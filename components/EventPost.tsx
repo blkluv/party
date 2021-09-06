@@ -2,18 +2,21 @@ import React, { useRef, useState } from 'react';
 import { BsTrash as TrashIcon } from "react-icons/bs";
 import { AiFillEdit as EditIcon, AiOutlineLoading as LoadingIcon, AiOutlineNotification as NotifyIcon } from "react-icons/ai";
 import PopupContainer from './PopupContainer';
-import { Button } from './FormComponents';
+import { Button, Input } from './FormComponents';
 // import AnnouncementForm from './AnnouncementForm';
 import Link from 'next/link';
 import { HiOutlineInformationCircle as InfoIcon } from "react-icons/hi"
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 // import ManageMailingListForm from './ManageMailingListForm';
 import { IoTicketOutline as TicketIcon } from "react-icons/io5";
+import EventDocument from '@typedefs/EventDocument';
+import useUser from '@utils/useUser';
+import { db } from '@config/firebase';
 // import AddPersonWindow from './AddPersonWindow';
 
 
-export default function EventPost(props: any) {
-    const { title, body, created_at, event_date, id, event_time } = props;
+export default function EventPost(props: EventDocument) {
+    const { title, description, createdAt, eventDate, id, eventTime } = props;
 
     const [showEditWindow, setShowEditWindow] = useState(false);
     const [showDeleteWindow, setShowDeleteWindow] = useState(false);
@@ -21,12 +24,25 @@ export default function EventPost(props: any) {
     const [showAddPersonWindow, setShowAddPersonWindow] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const deleteWindowRef: any = useRef();
+    const [editing, setEditing] = useState(false);
+    const [editState, setEditState] = useState(props);
+
+    const { user } = useUser();
 
     const getFormattedEventTime = () => {
-        if (!event_time) return "9:00 PM";
-        const [hour, minute] = event_time.split(":").map((e: string) => +e);
+        if (!eventTime) return "9:00 PM";
+        const [hour, minute] = eventTime.split(":").map((e: string) => +e);
 
         return `${hour % 12}:${minute.toString().padStart(2, "0")} ${hour > 12 ? "PM" : "AM"}`;
+    }
+
+    const handleEditStateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setEditState({ ...editState, [name]: value });
+    }
+
+    const saveEditState = async () => {
+        await db.doc(id).set(editState, { merge: true });
     }
 
     return (
@@ -50,11 +66,11 @@ export default function EventPost(props: any) {
             {/* {showNotifyWindow && <ManageMailingListForm subscribers={subscribers} setOpen={setShowNotifyWindow} />} */}
             <div className="flex flex-col gap-5">
                 <div className="grid gap-2">
-                    <h2>{title}</h2>
-                    <p className="font-normal"><span className="text-blue-500 font-semibold">{new Date(event_date).toDateString()}</span> at {getFormattedEventTime()}</p>
+                    {editing ? <Input value={editState.title} onChange={handleEditStateChange} name="title" /> : <h2>{title}</h2>}
+                    <p className="font-normal"><span className="text-blue-500 font-semibold">{new Date(eventDate).toDateString()}</span> at {getFormattedEventTime()}</p>
                 </div>
-                <p className="whitespace-pre-line text-gray-600 font-normal">{body}</p>
-                {(new Date(new Date(event_date).toDateString()) >= new Date(new Date().toDateString())) && <div className="flex flex-col items-center gap-4 mt-6">
+                <p className="whitespace-pre-line text-gray-600 font-normal">{description}</p>
+                {(new Date(new Date(eventDate).toDateString()) >= new Date(new Date().toDateString())) && <div className="flex flex-col items-center gap-4 mt-6">
                     <div className="flex items-center gap-4 flex-1">
                         <InfoIcon className="w-9 h-9 text-gray-600" />
                         <p className="font-normal text-gray-600">
@@ -73,9 +89,18 @@ export default function EventPost(props: any) {
                     </Link>
                 </div>}
                 <p className="font-normal text-gray-400 text-sm text-right">
-                    Posted on {new Date(created_at).toDateString()}
+                    Posted on {new Date(createdAt).toDateString()}
                 </p>
+                <Button onClick={saveEditState}>
+                    Save
+                </Button>
             </div>
+            {user?.role === "admin" && <div className="flex justify-center gap-3 border-t border-gray-200 pt-2">
+                <EditIcon className="w-7 h-7 p-1 cursor-pointer fill-current text-gray-400 hover:text-blue-500 transition" onClick={() => setEditing(true)} />
+                <TrashIcon className="w-7 h-7 p-1 cursor-pointer fill-current text-gray-400 hover:text-blue-500 transition" onClick={() => setShowDeleteWindow(true)} />
+                <NotifyIcon className="w-7 h-7 p-1 cursor-pointer fill-current text-gray-400 hover:text-blue-500 transition" onClick={() => setShowNotifyWindow(true)} />
+                <TicketIcon className="w-7 h-7 p-1 cursor-pointer fill-current text-gray-400 hover:text-blue-500 transition" onClick={() => setShowAddPersonWindow(true)} />
+            </div>}
         </div>
     )
 }

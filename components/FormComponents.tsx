@@ -1,28 +1,39 @@
-import React, { useRef, useState } from "react";
+import React, { InputHTMLAttributes, useRef, useState } from "react";
 import { IoIosArrowUp as ArrowIcon } from "react-icons/io";
 import { AiOutlineCheck as CheckIcon, AiOutlineClose as CloseIcon } from "react-icons/ai";
 import { BiHelpCircle as TooltipIcon } from "react-icons/bi";
 import { HiOutlineInformationCircle as InfoIcon } from "react-icons/hi"
 import PopupContainer from "./PopupContainer";
+import { ButtonHTMLAttributes } from "react";
+import { TextareaHTMLAttributes } from "react";
+import { SelectHTMLAttributes } from "react";
 
-export const Button = (props: any) => {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: string;
+}
+
+export const Button = (props: ButtonProps) => {
   const styles = "focus:ring-0 focus:outline-none appearance-none";
   const styleTypes = {
-    default: "rounded-lg bg-white border border-gray-200 transition hover:bg-yellow-500 hover:text-white px-4 py-2",
+    default: "rounded-lg bg-white border border-gray-200 transition hover:bg-blue-500 hover:text-white px-4 py-2",
     blank: ""
   }
   return (
     <button
       {...props}
       className={`${props.className} ${styleTypes[props?.variant ?? "default"]} ${styles} ${props.disabled && "filter brightness-50 cursor-default"}`}
-      type={props.type ?? "button"}
+      type={props.type}
     >
       {props.children}
     </button>
   );
 };
 
-export const Input = (properties: any) => {
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  showError?: boolean;
+  variant?: string;
+}
+export const Input = (properties: InputProps) => {
   const props = { ...properties };
   const styles = "focus:ring-1 focus:outline-none appearance-none";
   const styleTypes = {
@@ -43,7 +54,11 @@ export const Input = (properties: any) => {
   );
 };
 
-export const TextArea = (properties: any) => {
+interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  showError: boolean;
+  variant: string | undefined;
+}
+export const TextArea = (properties: TextAreaProps) => {
   const props = { ...properties };
   const styles = "focus:ring-1 focus:outline-none appearance-none";
   const styleTypes = {
@@ -64,15 +79,8 @@ export const TextArea = (properties: any) => {
   );
 };
 
-interface SelectProps {
-  className?: string;
-  onBlur?: any;
-  onClick?: any;
-  children: any;
-  onChange?: any;
-  value?: any;
-  multiple?: any;
-  name?: string;
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+
 }
 
 export const Select = (props: SelectProps) => {
@@ -122,20 +130,17 @@ export const Label = ({ children, className }: LabelProps) => {
   );
 };
 
-interface CheckboxProps {
-  className?: string,
-  value: boolean,
-  name?: string,
-  onClick?: any
+interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
+
 }
 
 export const Checkbox = (props: CheckboxProps) => {
   return (
     <div
-      {...props}
       className={`relative cursor-pointer w-5 h-5 rounded-sm border border-black ${props.className}`}
     >
       <input
+        {...props}
         type="checkbox"
         className={`rounded-md cursor-pointer appearance-none`}
       />
@@ -164,12 +169,12 @@ export const Tooltip = (props: TooltipProps) => {
       onClick={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
     >
-      <InfoIcon className="w-6 h-6 cursor-pointer transition hover:text-yellow-500" onClick={() => setVisible(true)} />
+      <InfoIcon className="w-6 h-6 cursor-pointer transition hover:text-blue-500" onClick={() => setVisible(true)} />
       {visible && (
         <PopupContainer setOpen={setVisible} passRef={ref}>
           <div className="flex justify-center sm:m-8 m-2" ref={ref}>
             <div className="bg-white p-4 sm:p-8 rounded-xl w-full max-w-lg">
-              <CloseIcon className="w-5 h-5 transition hover:text-yellow-500 ml-auto cursor-pointer mb-3" onClick={() => setVisible(false)} />
+              <CloseIcon className="w-5 h-5 transition hover:text-blue-500 ml-auto cursor-pointer mb-3" onClick={() => setVisible(false)} />
               <p>
                 {props.text}
               </p>
