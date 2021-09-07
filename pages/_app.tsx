@@ -36,7 +36,7 @@ export default function MyApp({ Component, pageProps }) {
         {/* <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"></link> */}
         <meta name="theme-color" content="#dbdbdb" />
       </Head>
-      <div className="relative min-h-screen flex flex-col bg-white dark:bg-black text-black" id="app">
+      <div className="relative min-h-screen flex flex-col bg-white dark:bg-black text-black pb-24" id="app">
         <Navigation />
         <Component {...pageProps} />
       </div>

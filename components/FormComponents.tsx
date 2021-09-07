@@ -3,7 +3,7 @@ import { IoIosArrowUp as ArrowIcon } from "react-icons/io";
 import { AiOutlineCheck as CheckIcon, AiOutlineClose as CloseIcon } from "react-icons/ai";
 import { BiHelpCircle as TooltipIcon } from "react-icons/bi";
 import { HiOutlineInformationCircle as InfoIcon } from "react-icons/hi"
-import PopupContainer from "./PopupContainer";
+import PopupContainer from "./Modal";
 import { ButtonHTMLAttributes } from "react";
 import { TextareaHTMLAttributes } from "react";
 import { SelectHTMLAttributes } from "react";
@@ -55,8 +55,8 @@ export const Input = (properties: InputProps) => {
 };
 
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  showError: boolean;
-  variant: string | undefined;
+  showError?: boolean;
+  variant?: string;
 }
 export const TextArea = (properties: TextAreaProps) => {
   const props = { ...properties };
@@ -155,33 +155,55 @@ export const Checkbox = (props: CheckboxProps) => {
   );
 };
 
-interface TooltipProps {
-  className?: string,
-  text: string
+export interface SwitchProps {
+  disabled?: boolean;
+  className?: string;
+  value: boolean;
+  onClick?: any;
 }
 
-export const Tooltip = (props: TooltipProps) => {
-  const [visible, setVisible] = useState(false);
-  const ref: any = useRef();
+export const Switch = (props: SwitchProps) => {
   return (
     <div
-      className="relative inline-block p-1"
-      onClick={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
+      {...props}
+      className={`relative filter w-10 h-5 rounded-xl transition-all border border-gray-300 ${props.value ? "bg-blue-500" : "bg-gray-50"} ${props.disabled ? "brightness-50" : "cursor-pointer"} ${props.className}`}
+      aria-label="switch"
     >
-      <InfoIcon className="w-6 h-6 cursor-pointer transition hover:text-blue-500" onClick={() => setVisible(true)} />
-      {visible && (
-        <PopupContainer setOpen={setVisible} passRef={ref}>
-          <div className="flex justify-center sm:m-8 m-2" ref={ref}>
-            <div className="bg-white p-4 sm:p-8 rounded-xl w-full max-w-lg">
-              <CloseIcon className="w-5 h-5 transition hover:text-blue-500 ml-auto cursor-pointer mb-3" onClick={() => setVisible(false)} />
-              <p>
-                {props.text}
-              </p>
-            </div>
-          </div>
-        </PopupContainer>
-      )}
+      <div
+        className={`absolute transition-all transform top-1/2 z-10 -translate-y-1/2 border  ${!props.disabled && "cursor-pointer"} h-4 w-4 rounded-full ${props.value ? "bg-white left-5" : "left-1 bg-white"}`}
+      >
+      </div>
     </div>
   );
-};
+}
+
+// interface TooltipProps {
+//   className?: string,
+//   text: string
+// }
+
+// export const Tooltip = (props: TooltipProps) => {
+//   const [visible, setVisible] = useState(false);
+//   const ref: any = useRef();
+//   return (
+//     <div
+//       className="relative inline-block p-1"
+//       onClick={() => setVisible(true)}
+//       onMouseLeave={() => setVisible(false)}
+//     >
+//       <InfoIcon className="w-6 h-6 cursor-pointer transition hover:text-blue-500" onClick={() => setVisible(true)} />
+//       {visible && (
+//         <PopupContainer setOpen={setVisible} passRef={ref}>
+//           <div className="flex justify-center sm:m-8 m-2" ref={ref}>
+//             <div className="bg-white p-4 sm:p-8 rounded-xl w-full max-w-lg">
+//               <CloseIcon className="w-5 h-5 transition hover:text-blue-500 ml-auto cursor-pointer mb-3" onClick={() => setVisible(false)} />
+//               <p>
+//                 {props.text}
+//               </p>
+//             </div>
+//           </div>
+//         </PopupContainer>
+//       )}
+//     </div>
+//   );
+// };
