@@ -1,14 +1,14 @@
 import Navigation from '@components/Navigation'
 import Head from 'next/head'
-import { useEffect } from 'react';
+// import { useEffect } from 'react';
 import "../styles/globals.css";
-import firebase from "@config/firebase";
+// import firebase from "@config/firebase";
 
 export default function MyApp({ Component, pageProps }) {
 
-  useEffect(() => {
-    firebase.analytics();
-  }, [])
+  // useEffect(() => {
+  //   firebase.analytics();
+  // }, [])
 
   return (
     <>
