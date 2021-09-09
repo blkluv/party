@@ -16,7 +16,7 @@ export default function Home() {
   if (eventsLoading) return <Loading />;
 
   return (
-    <div className="m-2 sm:m-8">
+    <div className="m-2 sm:m-8 flex-1">
       <Header title="Home" />
 
       <h1 className="text-center font-light text-xl">Events near University of Guelph</h1>
