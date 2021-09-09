@@ -45,20 +45,18 @@ export default function UploadEventMedia({ setOpen, eventId }: UploadEventMediaP
 
     return (
         <Modal setOpen={setOpen} ref={ref}>
-            <div ref={ref} className="bg-white p-2 rounded-xl m-1 w-screen max-w-xl">
-                <form onSubmit={uploadData}>
-                    <Input type="file" onChange={(e) => setSelectedFile(e.target.files[0])} />
-                    <Button type="submit">
-                        Upload
-                    </Button>
-                </form>
-                <p>Existing Media</p>
-                {filesLoading && <LoadingIcon className="w-10 h-10 animate-spin text-gray-400" />}
-                <div className="flex flex-col divide-y divide-gray-50">
-                    {files.map((e, index) => <div key={`file-${index}`} className="py-1">
-                        <p>{e.name}</p>
-                    </div>)}
-                </div>
+            <form onSubmit={uploadData} className="flex flex-col md:flex-row items-center gap-2">
+                <Input type="file" onChange={(e) => setSelectedFile(e.target.files[0])} />
+                <Button type="submit">
+                    Upload
+                </Button>
+            </form>
+            <p className="font-light mt-5">Existing Files</p>
+            {filesLoading && <LoadingIcon className="w-10 h-10 animate-spin text-gray-400" />}
+            <div className="flex flex-col divide-y divide-gray-50">
+                {files.length > 0 ? files.map((e, index) => <div key={`file-${index}`} className="py-1">
+                    <p>{e.name}</p>
+                </div>) : <p className="text-center">None</p>}
             </div>
         </Modal>
     )

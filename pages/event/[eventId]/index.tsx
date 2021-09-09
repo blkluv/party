@@ -43,7 +43,7 @@ export default function Event({ id }) {
     const editFlyerRef: any = useRef();
     const editCardsRef: any = useRef();
     const [files, setFiles] = useState([]);
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFile, setSelectedFile] = useState("");
     const [showSearchSubscribers, setShowSearchSubscribers] = useState(false);
     const searchSubscribersRef = useRef();
     const [showBroadcastSubscribers, setShowBroadcastSubscribers] = useState(false);
@@ -67,7 +67,7 @@ export default function Event({ id }) {
     }
 
     const saveEditState = async () => {
-        await db.doc(`/events/${id}`).set({ ...editState, eventDate: dateConvert(editState.eventDate) }, { merge: true });
+        await db.doc(`/events/${id}`).set({ ...editState, eventDate: dateConvert(editState.eventDate), maxTickets: +editState.maxTickets }, { merge: true });
         setEditing(false);
     }
 
@@ -91,6 +91,7 @@ export default function Event({ id }) {
 
     const submitEditFlyer = async (e: any) => {
         e.preventDefault();
+        if (selectedFile === "") return;
         const url = await storage.refFromURL(selectedFile).getDownloadURL();
         setEditState({ ...editState, flyerLink: url });
         setShowEditFlyer(false);
@@ -103,7 +104,7 @@ export default function Event({ id }) {
 
     useEffect(() => {
         getFiles();
-    }, [showEditCards])
+    }, [showEditCards, showEditFlyer])
 
     if (eventLoading || eventSubscribersLoading) return <Loading />;
 
@@ -134,6 +135,9 @@ export default function Event({ id }) {
             {showEditFlyer && <Modal setOpen={setShowEditFlyer} ref={editFlyerRef}>
                 <form onSubmit={submitEditFlyer} ref={editFlyerRef}>
                     <Select onChange={(e) => setSelectedFile(e.target.value)} value={selectedFile}>
+                        <option disabled value={""}>
+                            None
+                        </option>
                         {files.map((file) => <option value={file}>
                             {file.name}
                         </option>)}
@@ -158,7 +162,7 @@ export default function Event({ id }) {
 
                     {editing ? <TextArea value={editState.description} onChange={handleEditStateChange} name="description" /> : <p className="whitespace-pre-line text-gray-600 font-normal">{event.description}</p>}
 
-                    {!editing && event.eventDate.toDate() >= new Date() && <div className="flex flex-col items-center gap-4 mt-6">
+                    {!editing && event.eventDate.toDate() >= new Date(new Date().toDateString()) && <div className="flex flex-col items-center gap-4 mt-6">
                         <Link href={`/event/${id}/tickets`}>
                             <div>
                                 <Button className="flex gap-2 items-center">
@@ -172,6 +176,8 @@ export default function Event({ id }) {
                     </div>}
                     {editing &&
                         <Input onChange={handleEditStateChange} value={editState.priceId} name="priceId" placeholder="Price ID" />}
+                    {editing &&
+                        <Input onChange={handleEditStateChange} value={editState.maxTickets} name="maxTickets" placeholder="Maximum Tickets" type="number" />}
                     <BusinessCards images={event.cardLinks.map(({ url }) => url)} />
                     {showEditCards && <Modal setOpen={setShowEditCards} ref={editCardsRef}>
                         <div className="flex flex-col">
@@ -185,7 +191,7 @@ export default function Event({ id }) {
                         Edit Cards
                     </Button>}
                     <p className="font-normal text-gray-400 text-sm text-right">
-                        Posted on {new Date(event.createdAt).toDateString()}
+                        Posted on {event.createdAt.toDate().toDateString()}
                     </p>
                 </div>
             </div>

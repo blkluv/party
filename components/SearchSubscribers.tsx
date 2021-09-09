@@ -1,9 +1,10 @@
 import { db } from '@config/firebase';
 import MailingListSubscriber from '@typedefs/MailingListSubscriber'
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import NumberFormat from 'react-number-format';
 import { Button, Input } from './FormComponents';
 import { BsTrash as TrashIcon } from "react-icons/bs";
+import Modal from './Modal';
 
 export interface SearchSubscribersProps {
     subscribers: MailingListSubscriber[];
@@ -40,8 +41,9 @@ export default function SearchSubscribers({ subscribers, eventId }: SearchSubscr
 
 const SubscriberRow = ({ eventId, subscriber }: { eventId: string, subscriber: MailingListSubscriber }) => {
     const { id, name, phoneNumber, ticketQuantity } = subscriber;
-    
+
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+    const deleteRef = useRef();
 
     const deleteSubscriber = async () => {
         await db.doc(`events/${eventId}/subscribers/${id}`).delete();
@@ -49,6 +51,11 @@ const SubscriberRow = ({ eventId, subscriber }: { eventId: string, subscriber: M
 
     return (
         <div className="py-1 grid grid-cols-9" >
+            {showConfirmDelete && <Modal setOpen={setShowConfirmDelete} ref={deleteRef}>
+                <Button onClick={deleteSubscriber}>
+                    Delete {name}
+                </Button>
+            </Modal>}
             <p>
                 {ticketQuantity}
             </p>
@@ -59,7 +66,7 @@ const SubscriberRow = ({ eventId, subscriber }: { eventId: string, subscriber: M
                 <NumberFormat displayType="text" value={phoneNumber} format="###-###-####" />
             </p>
             <Button variant="blank">
-                <TrashIcon className="w-4 h-4 transition hover:text-gray-500" onClick={deleteSubscriber} />
+                <TrashIcon className="w-4 h-4 transition hover:text-gray-500" onClick={() => setShowConfirmDelete(true)} />
             </Button>
         </div >
     )

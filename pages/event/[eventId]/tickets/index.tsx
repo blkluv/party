@@ -12,7 +12,7 @@ import MailingListSubscriber from '@typedefs/MailingListSubscriber';
 export default function TicketPurchase({ id }) {
     const router = useRouter();
 
-    const [event, announcementLoading] = useDocumentDataOnce(db.doc(`events/${id}`));
+    const [event, eventLoading] = useDocumentDataOnce(db.doc(`events/${id}`), { idField: "id" });
     const [subscribers, subscribersLoading] = useCollectionData<MailingListSubscriber>(db.collection(`/events/${id}/subscribers`).where("status", "==", "success"));
 
     const [form, setForm] = useState({ name: "", phoneNumber: "" });
@@ -70,12 +70,12 @@ export default function TicketPurchase({ id }) {
         }
     }
 
-    if (!id || (!announcementLoading && !event)) {
+    if (!id || (!eventLoading && !event)) {
         router.push("/error/404");
         return <Loading />
     }
 
-    if (announcementLoading || subscribersLoading) return <Loading />
+    if (eventLoading || subscribersLoading) return <Loading />
 
     return (
         <div className="flex-1 flex justify-center items-center">

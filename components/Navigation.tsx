@@ -63,7 +63,7 @@ const BottomNavigation = () => {
     const drawerRef = useRef();
     return (
         <div className="flex justify-evenly pt-2 pb-8 bg-white">
-            {drawerOpen && <Drawer setOpen={setDrawerOpen} ref={drawerRef} size="64">
+            {drawerOpen && <Drawer setOpen={setDrawerOpen} ref={drawerRef}>
                 <div className="flex flex-col divide-y divide-gray-300">
                     {drawerRoutes.map(({ Icon, path, name }) =>
                         <div key={path} onClick={() => setDrawerOpen(false)}>

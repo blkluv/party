@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { IoCloseOutline as CloseIcon } from 'react-icons/io5';
-
+import _ from "lodash";
 
 export interface ModalProps {
   children: any;
@@ -8,7 +8,8 @@ export interface ModalProps {
   size?: string;
 }
 
-const Modal = React.forwardRef(({ children, setOpen, size = "3xl" }: ModalProps, ref: any) => {
+
+const Modal = React.forwardRef(({ children, setOpen, size = "max" }: ModalProps, ref: any) => {
 
   useEffect(() => {
     ref?.current?.scrollIntoView({ behavior: "smooth" });
@@ -24,9 +25,21 @@ const Modal = React.forwardRef(({ children, setOpen, size = "3xl" }: ModalProps,
       setOpen(false)
   }
 
+  const sizes = [
+    "max-w-max",
+    "max-w-sm",
+    "max-w-md",
+    "max-w-lg",
+    "max-w-xl",
+    "max-w-2xl",
+    "max-w-3xl",
+    "max-w-4xl",
+    "max-w-5xl",
+  ];
+  
   return (
     <div
-      className={`fixed bg-black bg-opacity-50 left-0 inset-0 right-0 h-screen z-50 backdrop-filter backdrop-blur-sm flex justify-center items-start p-1`}
+      className={`fixed bg-black bg-opacity-50 left-0 inset-0 right-0 h-screen z-50 backdrop-filter backdrop-blur-sm flex justify-center items-start p-1 ${false && sizes.join(" ")}`}
       onMouseDown={handleEvent}
       onTouchEnd={handleEvent}
     >

@@ -35,7 +35,7 @@ export default function Events() {
                     </Button>
                 </div>
                 <div className="border border-gray-300 rounded-xl overflow-hidden divide-y divide-gray-300">
-                    {sortedEvents?.map(({ title, id }) => <EventListItem title={title} id={id} key={id} />)}
+                    {sortedEvents.length ? sortedEvents?.map(({ title, id }) => <EventListItem title={title} id={id} key={id} />) : <p className="p-3">No events</p>}
                 </div>
             </div>
         </RequireAuth>
@@ -64,13 +64,13 @@ const EventListItem = ({ title, id }: EventListItemProps) => {
                     </Button>
                 </div>
             </Modal>}
-            <div className="flex-1 p-3 group hover:bg-blue-500 transition cursor-pointer">
-                <Link href={`/event/${id}`}>
+            <Link href={`/event/${id}`}>
+                <div className="flex-1 p-3 group hover:bg-blue-500 transition cursor-pointer">
                     <p className="group-hover:text-white transition">
                         {title}
                     </p>
-                </Link>
-            </div>
+                </div>
+            </Link>
             <div className="flex justify-center items-center p-3 group hover:bg-blue-500 transition cursor-pointer" onClick={() => setShowDelete(true)}>
                 <TrashIcon className="w-5 h-5 group-hover:text-white transition" />
             </div>
