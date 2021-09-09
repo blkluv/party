@@ -12,15 +12,15 @@ import MailingListSubscriber from '@typedefs/MailingListSubscriber';
 export default function TicketPurchase({ id }) {
     const router = useRouter();
 
-    const [announcement, announcementLoading] = useDocumentDataOnce(db.collection("events").doc(id));
+    const [event, announcementLoading] = useDocumentDataOnce(db.doc(`events/${id}`));
     const [subscribers, subscribersLoading] = useCollectionData<MailingListSubscriber>(db.collection(`/events/${id}/subscribers`).where("status", "==", "success"));
 
     const [form, setForm] = useState({ name: "", phoneNumber: "" });
     const [errors, setErrors] = useState({ name: "", phoneNumber: "" });
     const [ticketQuantity, setTicketQuantity] = useState(1);
 
-    const tickets_sold = subscribers?.map(({ ticket_quantity }) => ticket_quantity ?? 1).reduce((a, b) => a + b, 0);
-    const ticketCapReached = tickets_sold >= announcement?.max_tickets;
+    const tickets_sold = subscribers?.map(({ ticketQuantity }) => ticketQuantity ?? 1).reduce((a, b) => a + b, 0);
+    const ticketCapReached = tickets_sold >= event?.maxTickets;
 
     const handleChange = (e: any) => {
         const { name, value } = e.target;
@@ -62,7 +62,7 @@ export default function TicketPurchase({ id }) {
             return;
 
         try {
-            const { data } = await axios.post("/api/stripe", { event_id: announcement.id, price_id: announcement.price_id, ticket_quantity: ticketQuantity, customer_phone_number: form.phoneNumber, customer_name: form.name })
+            const { data } = await axios.post("/api/stripe", { eventId: event.id, priceId: event.priceId, ticketQuantity: ticketQuantity, customerPhoneNumber: form.phoneNumber, customerName: form.name })
 
             router.push(data.url);
         } catch (e) {
@@ -70,7 +70,7 @@ export default function TicketPurchase({ id }) {
         }
     }
 
-    if (!id || (!announcementLoading && !announcement)) {
+    if (!id || (!announcementLoading && !event)) {
         router.push("/error/404");
         return <Loading />
     }
@@ -81,7 +81,7 @@ export default function TicketPurchase({ id }) {
         <div className="flex-1 flex justify-center items-center">
             <div className="bg-white rounded-xl p-3 sm:p-6 w-screen max-w-lg border border-gray-200">
                 {!ticketCapReached && <div>
-                    <h2>{announcement?.title} Tickets</h2>
+                    <h2>{event?.title} Tickets</h2>
                     <h3 className="font-normal text-lg text-gray-500">Customer Information</h3>
                     <form onSubmit={handleSubmit} className="grid gap-6 mt-6">
                         <div className="grid gap-3">

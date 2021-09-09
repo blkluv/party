@@ -10,10 +10,12 @@ import Link from 'next/dist/client/link';
 import { BsPlus as PlusIcon, BsTrash as TrashIcon } from "react-icons/bs";
 import deleteEvent from '@utils/deleteEvent';
 import Modal from '@components/Modal';
+import Loading from '@components/Loading';
+import Header from '@components/Header';
 
 export default function Events() {
     const { user } = useAuth();
-    const [events] = useCollectionData<EventDocument>(db.collection("/events").where("hostId", "==", user?.uid ?? "none"), { idField: "id" });
+    const [events, eventsLoading] = useCollectionData<EventDocument>(db.collection("/events").where("hostId", "==", user?.uid ?? "none"), { idField: "id" });
 
     const addNewEvent = async () => {
         await db.collection("events").add(getNewEvent({ hostId: user.uid }));
@@ -21,15 +23,18 @@ export default function Events() {
 
     const sortedEvents = events?.sort((a, b) => a.title.localeCompare(b.title));
 
+    if (eventsLoading) return <Loading />
+
     return (
         <RequireAuth>
-            <div className="mx-auto p-1 w-full max-w-xl flex flex-col gap-2">
+            <Header title="My Events" />
+            <div className="mx-auto my-auto p-1 w-full max-w-xl flex flex-col gap-2">
                 <div className="flex justify-end items-center">
                     <Button onClick={addNewEvent} variant="blank" className="border border-black rounded-full p-px group hover:border-gray-500 transition">
                         <PlusIcon className="group-hover:text-gray-500 transition w-5 h-5" />
                     </Button>
                 </div>
-                <div className="border border-gray-300 rounded-xl overflow-hidden">
+                <div className="border border-gray-300 rounded-xl overflow-hidden divide-y divide-gray-300">
                     {sortedEvents?.map(({ title, id }) => <EventListItem title={title} id={id} key={id} />)}
                 </div>
             </div>

@@ -14,9 +14,10 @@ export interface SMSIntent {
 
 export default async function createSMSIntent(body: SMSIntent, consume: boolean) {
     try {
-        const intent = await db.collection("sms_intent").add(body);
+        const intent = await db.collection("sms_intent").add({ ...body, sent: false });
 
-        await axios.post("/api/consume-sms-intent", { id: intent.id });
+        if (consume)
+            await axios.post("/api/consume-sms-intent", { id: intent.id });
     } catch (e) {
         console.error("Error - Could not create/consume SMS intent")
     }

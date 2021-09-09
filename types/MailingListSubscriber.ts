@@ -1,6 +1,6 @@
 export default interface MailingListSubscriber {
     name: string;
-    phone_number: string;
+    phoneNumber: string;
     id?: string;
-    ticket_quantity?: number;
+    ticketQuantity?: number;
 }

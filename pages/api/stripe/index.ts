@@ -7,9 +7,9 @@ export default async function handler(req: any, res: any) {
 
     switch (method) {
         case "POST":
-            const { price_id, ticket_quantity, event_id, customer_phone_number, customer_name } = body;
+            const { priceId, ticketQuantity, eventId, customerPhoneNumber, customerName } = body;
 
-            const docRef = await db.collection("announcements").doc(event_id).collection("subscribers").add({ name: customer_name, phone_number: customer_phone_number, status: "pending", ticket_quantity });
+            const docRef = await db.collection(`events/${eventId}/subscribers`).add({ name: customerName, phoneNumber: customerPhoneNumber, status: "pending", ticketQuantity });
 
             const doc = await docRef.get();
 
@@ -17,13 +17,13 @@ export default async function handler(req: any, res: any) {
                 payment_method_types: ['card'],
                 line_items: [
                     {
-                        price: price_id,
-                        quantity: ticket_quantity,
+                        price: priceId,
+                        quantity: ticketQuantity,
                     },
                 ],
                 mode: 'payment',
-                success_url: `${process.env.WEBSITE_URL}/tickets/${event_id}/purchase/${doc.id}`,
-                cancel_url: `${process.env.WEBSITE_URL}/tickets/${event_id}`,
+                success_url: `${process.env.WEBSITE_URL}/event/${eventId}/tickets/purchase/${doc.id}`,
+                cancel_url: `${process.env.WEBSITE_URL}/event/${eventId}/tickets`,
             });
 
             return res.status(200).send({ url: session.url });

@@ -10,6 +10,9 @@ export default function getNewEvent(overrides?: any): EventDocument {
         flyerLink: "",
         cardLinks: [],
         priceId: "",
+        locationId: "",
+        maxTickets: 0,
+        visibility: "private",
         ...overrides
     }
 }

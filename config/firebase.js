@@ -2,6 +2,7 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
 import "firebase/compat/storage";
+import "firebase/compat/analytics";
 
 const devConfig = {
     apiKey: "AIzaSyAKsbyLZ5ztO4pMOUOSN3oemoZcjFq9wuU",
@@ -13,7 +14,15 @@ const devConfig = {
     measurementId: "G-3Y1N4P2WGZ"
 };
 
-const prodConfig = devConfig;
+const prodConfig = {
+    apiKey: "AIzaSyDTyweuMMEln6c0g4ePWfja2z2XJcFGt5Q",
+    authDomain: "party-box-production.firebaseapp.com",
+    projectId: "party-box-production",
+    storageBucket: "party-box-production.appspot.com",
+    messagingSenderId: "526378114745",
+    appId: "1:526378114745:web:8d2398614b7c096ed6c568",
+    measurementId: "G-42FNWE2D96"
+};
 
 const firebaseConfig = process.env.NODE_ENV === "production" ? prodConfig : devConfig;
 

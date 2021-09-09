@@ -1,5 +1,5 @@
 import Loading from '@components/Loading';
-import { useDocumentData } from 'react-firebase-hooks/firestore';
+import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import React, { useEffect, useRef, useState } from 'react';
 import { AiFillEdit as EditIcon, AiOutlineLoading as LoadingIcon, AiOutlineNotification as NotifyIcon, AiOutlineSave as SaveIcon, AiOutlineUnorderedList as ListIcon, AiOutlineMessage as MessageIcon } from "react-icons/ai";
 import Link from 'next/link';
@@ -11,6 +11,10 @@ import { Button, Input, Select, Switch, TextArea } from '@components/FormCompone
 import { GoFileMedia as MediaIcon } from "react-icons/go";
 import UploadEventMedia from '@components/UploadEventMedia';
 import dateConvert from '@utils/dateConvert';
+import Header from '@components/Header';
+import SearchSubscribers from '@components/SearchSubscribers';
+import BroadcastSubcribers from '@components/BroadcastSubcribers';
+import AddTicketManually from '@components/AddTicketManually';
 
 const BusinessCards = ({ images = [] }: { images?: string[] }) => {
     return (<div className="overflow-x-scroll lg:overflow-hidden py-3">
@@ -29,6 +33,8 @@ const BusinessCards = ({ images = [] }: { images?: string[] }) => {
 
 export default function Event({ id }) {
     const [event, eventLoading] = useDocumentData(db.doc(`/events/${id}`));
+    const [eventSubscribers, eventSubscribersLoading] = useCollectionData(db.collection(`/events/${id}/subscribers`), { idField: "id" });
+
     const [showUploadMedia, setShowUploadMedia] = useState(false);
     const [showEditFlyer, setShowEditFlyer] = useState(false);
     const [editing, setEditing] = useState(false);
@@ -38,6 +44,12 @@ export default function Event({ id }) {
     const editCardsRef: any = useRef();
     const [files, setFiles] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [showSearchSubscribers, setShowSearchSubscribers] = useState(false);
+    const searchSubscribersRef = useRef();
+    const [showBroadcastSubscribers, setShowBroadcastSubscribers] = useState(false);
+    const broadcastSubscribersRef = useRef();
+    const [showAddTickets, setShowAddTickets] = useState(false);
+    const addTicketsRef = useRef();
 
     const { user } = useAuth();
     const isOwner = event?.hostId === user?.uid;
@@ -93,16 +105,28 @@ export default function Event({ id }) {
         getFiles();
     }, [showEditCards])
 
-    if (eventLoading) return <Loading />;
+    if (eventLoading || eventSubscribersLoading) return <Loading />;
 
     return (
         <div className="flex flex-col gap-3 relative">
+            <Header title={event?.title} />
+            {showSearchSubscribers && <Modal setOpen={setShowSearchSubscribers} ref={searchSubscribersRef} size="xl">
+                <SearchSubscribers subscribers={eventSubscribers} eventId={id} />
+            </Modal>}
+            {showBroadcastSubscribers && <Modal setOpen={setShowBroadcastSubscribers} ref={broadcastSubscribersRef} size="xl">
+                <BroadcastSubcribers subscribers={eventSubscribers} />
+            </Modal>}
+            {showAddTickets && <Modal setOpen={setShowAddTickets} ref={addTicketsRef} size="xl">
+                <AddTicketManually eventId={id} />
+            </Modal>}
             {isOwner && <div className="flex justify-center gap-3 border-b border-gray-200 py-2">
-                <EditIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setEditing(!editing)} />
-                <MessageIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" />
-                <ListIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" />
-                <TicketIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" />
-                {editing && <SaveIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => saveEditState()} />}
+                {editing ?
+                    <SaveIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => saveEditState()} />
+                    :
+                    <EditIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setEditing(!editing)} />}
+                <MessageIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowBroadcastSubscribers(true)} />
+                <ListIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowSearchSubscribers(true)} />
+                <TicketIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowAddTickets(true)} />
                 <MediaIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowUploadMedia(true)} />
             </div>}
             {showUploadMedia && <UploadEventMedia setOpen={setShowUploadMedia} eventId={id} />}
@@ -134,7 +158,7 @@ export default function Event({ id }) {
 
                     {editing ? <TextArea value={editState.description} onChange={handleEditStateChange} name="description" /> : <p className="whitespace-pre-line text-gray-600 font-normal">{event.description}</p>}
 
-                    {event.eventDate.toDate() >= new Date() && <div className="flex flex-col items-center gap-4 mt-6">
+                    {!editing && event.eventDate.toDate() >= new Date() && <div className="flex flex-col items-center gap-4 mt-6">
                         <Link href={`/event/${id}/tickets`}>
                             <div>
                                 <Button className="flex gap-2 items-center">
@@ -146,6 +170,8 @@ export default function Event({ id }) {
                             </div>
                         </Link>
                     </div>}
+                    {editing &&
+                        <Input onChange={handleEditStateChange} value={editState.priceId} name="priceId" placeholder="Price ID" />}
                     <BusinessCards images={event.cardLinks.map(({ url }) => url)} />
                     {showEditCards && <Modal setOpen={setShowEditCards} ref={editCardsRef}>
                         <div className="flex flex-col">
