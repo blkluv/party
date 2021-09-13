@@ -12,9 +12,11 @@ import deleteEvent from '@utils/deleteEvent';
 import Modal from '@components/Modal';
 import Loading from '@components/Loading';
 import Header from '@components/Header';
+import { useRouter } from 'next/router';
 
 export default function Events() {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
+    const router = useRouter();
     const [events, eventsLoading] = useCollectionData<EventDocument>(db.collection("/events").where("hostId", "==", user?.uid ?? "none"), { idField: "id" });
 
     const addNewEvent = async () => {
@@ -23,7 +25,11 @@ export default function Events() {
 
     const sortedEvents = events?.sort((a, b) => a.title.localeCompare(b.title));
 
-    if (eventsLoading) return <Loading />
+    if (user.role !== "admin" && user.role !== "host") {
+        router.push("/error/403");
+    }
+    if (eventsLoading || loading) return <Loading />
+
 
     return (
         <RequireAuth>

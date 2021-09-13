@@ -12,7 +12,7 @@ export default function Login() {
     const router = useRouter();
     const [user, userLoading] = useAuthState(firebase.auth());
     const [phoneNumber, setPhoneNumber] = useState("");
-    const [name, setName] = useState("");
+    // const [name, setName] = useState("");
     const [showConfirm, setShowConfirm] = useState(false);
     const [confirmCode, setConfirmCode] = useState("");
     const [formError, setFormError] = useState("");
@@ -26,7 +26,7 @@ export default function Login() {
 
         // If user does not exist, create entry for them
         if (!data.exists)
-            await db.collection("users").doc(user.uid).set({ uid: user.uid, name: user.displayName, role: "default", phoneNumber })
+            await db.collection("users").doc(user.uid).set({ uid: user.uid, role: "default", phoneNumber })
 
         router.push("/");
     }
@@ -84,12 +84,12 @@ export default function Login() {
                 <div id="recaptcha-container"></div>
 
                 <form className="grid gap-2" onSubmit={login}>
-                    <Input onChange={(e) => setName(e.target.value)} value={name} type="text" placeholder="Name" minLength={2} />
+                    {/* <Input onChange={(e) => setName(e.target.value)} value={name} type="text" placeholder="Name" minLength={2} /> */}
                     <Input onChange={(e) => setPhoneNumber(e.target.value)} value={phoneNumber} type="tel" maxLength={10} minLength={10} placeholder="Phone Number" />
                     <Button type="submit" id="submit-button">
                         Submit
                     </Button>
-                    
+
                     {formError.length > 0 && <p className="text-sm text-red-400 text-center">{formError}</p>}
                 </form>
 
