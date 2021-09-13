@@ -33,7 +33,7 @@ const BusinessCards = ({ images = [] }: { images?: string[] }) => {
 
 export default function Event({ id }) {
     const [event, eventLoading] = useDocumentData(db.doc(`/events/${id}`));
-    const [eventSubscribers, eventSubscribersLoading] = useCollectionData(db.collection(`/events/${id}/subscribers`), { idField: "id" });
+    const [eventSubscribers, eventSubscribersLoading] = useCollectionData(db.collection(`/events/${id}/subscribers`).where("status", "==", "success"), { idField: "id" });
 
     const [showUploadMedia, setShowUploadMedia] = useState(false);
     const [showEditFlyer, setShowEditFlyer] = useState(false);
