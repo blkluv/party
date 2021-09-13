@@ -27,10 +27,12 @@ const firebaseConfig = process.env.NODE_ENV === "production" ? prodConfig : devC
 
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
+    // firebase.auth().useDeviceLanguage();
 }
 
 export const providers = {
-    google: new firebase.auth.GoogleAuthProvider()
+    google: new firebase.auth.GoogleAuthProvider(),
+    // phone: new firebase.auth.PhoneAuthProvider()
 };
 
 export const db = firebase.firestore();

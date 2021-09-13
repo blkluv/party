@@ -3,7 +3,7 @@ import { useCollectionData, useDocumentDataOnce } from 'react-firebase-hooks/fir
 import { db } from '@config/firebase';
 import Loading from '@components/Loading';
 import { useRouter } from 'next/router';
-import { Button, Input } from '@components/FormComponents';
+import { Button, Input, Switch } from '@components/FormComponents';
 import axios from 'axios';
 import { useState } from 'react';
 import { AiOutlinePlusCircle as PlusIcon, AiOutlineMinusCircle as MinusIcon } from "react-icons/ai";
@@ -18,6 +18,7 @@ export default function TicketPurchase({ id }) {
     const [form, setForm] = useState({ name: "", phoneNumber: "" });
     const [errors, setErrors] = useState({ name: "", phoneNumber: "" });
     const [ticketQuantity, setTicketQuantity] = useState(1);
+    const [subscribe, setSubscribe] = useState(true);
 
     const tickets_sold = subscribers?.map(({ ticketQuantity }) => ticketQuantity ?? 1).reduce((a, b) => a + b, 0);
     const ticketCapReached = tickets_sold >= event?.maxTickets;
@@ -58,7 +59,7 @@ export default function TicketPurchase({ id }) {
 
         if (Object.values(form).find((e => e.length === 0)))
             return;
-        if (Object.values(errors).find((e => e.length)))
+        if (Object.values(errors).find((e => e.length !== 0)))
             return;
 
         try {
@@ -104,6 +105,10 @@ export default function TicketPurchase({ id }) {
                                         <PlusIcon className="h-7 w-7" />
                                     </Button>
                                 </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <p className="font-normal">Subscribe for Updates</p>
+                                <Switch onClick={() => setSubscribe(!subscribe)} value={subscribe} />
                             </div>
                         </div>
                         <Button type="submit" variant="blank" className="text-white bg-blue-500 rounded-lg text-lg flex gap-6 items-center justify-center py-2" disabled={Object.values(errors).find((e: any) => e.length) ? true : false}>

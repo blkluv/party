@@ -1,5 +1,6 @@
 export default interface UserDocument {
     uid: string;
-    displayName: string;
-    role: "default" | "admin"
+    name: string;
+    role: "default" | "host" | "admin";
+    phoneNumber: string;
 }

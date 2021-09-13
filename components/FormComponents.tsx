@@ -160,9 +160,11 @@ export interface SwitchProps {
   className?: string;
   value: boolean;
   onClick?: any;
+  variant?: string;
 }
 
 export const Switch = (props: SwitchProps) => {
+
   return (
     <div
       {...props}
@@ -170,7 +172,7 @@ export const Switch = (props: SwitchProps) => {
       aria-label="switch"
     >
       <div
-        className={`absolute transition-all transform top-1/2 z-10 -translate-y-1/2 border  ${!props.disabled && "cursor-pointer"} h-4 w-4 rounded-full ${props.value ? "bg-white left-5" : "left-1 bg-white"}`}
+        className={`absolute transition-all transform top-1/2 z-10 -translate-y-1/2 border  ${!props.disabled && "cursor-pointer"} h-4 w-4 rounded-full ${props.value ? "bg-white left-5" : "left-1 bg-gray-400"}`}
       >
       </div>
     </div>

@@ -39,7 +39,7 @@ const Modal = React.forwardRef(({ children, setOpen, size = "max" }: ModalProps,
   
   return (
     <div
-      className={`fixed bg-black bg-opacity-50 left-0 inset-0 right-0 h-screen z-50 backdrop-filter backdrop-blur-sm flex justify-center items-start p-1 ${false && sizes.join(" ")}`}
+      className={`fixed bg-black bg-opacity-40 left-0 inset-0 right-0 h-screen z-50 flex justify-center items-center p-1 ${false && sizes.join(" ")}`}
       onMouseDown={handleEvent}
       onTouchEnd={handleEvent}
     >
