@@ -32,7 +32,7 @@ const BusinessCards = ({ images = [] }: { images?: string[] }) => {
 };
 
 export default function Event({ id }) {
-    const [event, eventLoading] = useDocumentData(db.doc(`/events/${id}`));
+    const [event, eventLoading] = useDocumentData(db.doc(`/events/${id}`), { idField: "id" });
     const [eventSubscribers, eventSubscribersLoading] = useCollectionData(db.collection(`/events/${id}/subscribers`).where("status", "==", "success"), { idField: "id" });
 
     const [showUploadMedia, setShowUploadMedia] = useState(false);
@@ -118,7 +118,7 @@ export default function Event({ id }) {
                 <BroadcastSubcribers subscribers={eventSubscribers} />
             </Modal>}
             {showAddTickets && <Modal setOpen={setShowAddTickets} ref={addTicketsRef} size="xl">
-                <AddTicketManually eventId={id} />
+                <AddTicketManually event={event} />
             </Modal>}
             {isOwner && <div className="flex justify-center gap-3 border-b border-gray-200 py-2">
                 {editing ?
