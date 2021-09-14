@@ -13,8 +13,13 @@ export default interface EventDocument {
     locationId: string;
 
     flyerLink: string;
-    cardLinks: string[];
+    cardLinks: CardLink[];
 
     maxTickets: number;
     visibility: "public" | "private"
+}
+
+interface CardLink {
+    name: string;
+    url: string;
 }

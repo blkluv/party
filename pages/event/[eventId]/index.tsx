@@ -15,6 +15,7 @@ import Header from '@components/Header';
 import SearchSubscribers from '@components/SearchSubscribers';
 import BroadcastSubcribers from '@components/BroadcastSubcribers';
 import AddTicketManually from '@components/AddTicketManually';
+import EventDocument from '@typedefs/EventDocument';
 
 const BusinessCards = ({ images = [] }: { images?: string[] }) => {
     return (<div className="overflow-x-scroll lg:overflow-hidden py-3">
@@ -32,7 +33,7 @@ const BusinessCards = ({ images = [] }: { images?: string[] }) => {
 };
 
 export default function Event({ id }) {
-    const [event, eventLoading] = useDocumentData(db.doc(`/events/${id}`), { idField: "id" });
+    const [event, eventLoading] = useDocumentData<EventDocument>(db.doc(`/events/${id}`), { idField: "id" });
     const [eventSubscribers, eventSubscribersLoading] = useCollectionData(db.collection(`/events/${id}/subscribers`).where("status", "==", "success"), { idField: "id" });
 
     const [showUploadMedia, setShowUploadMedia] = useState(false);
@@ -158,6 +159,7 @@ export default function Event({ id }) {
                     <div className="grid gap-2">
                         {editing ? <Input value={editState.title} onChange={handleEditStateChange} name="title" /> : <h2>{event.title}</h2>}
                         {editing ? <Input type="date" value={editState.eventDate} onChange={handleEditStateChange} name="eventDate" /> : <p className="font-normal"><span className="text-blue-500 font-semibold">{event.eventDate.toDate().toDateString()}</span> at {getFormattedEventTime()}</p>}
+                        {editing && <Input type="time" value={editState.eventTime} onChange={handleEditStateChange} name="eventTime" />}
                     </div>
 
                     {editing ? <TextArea value={editState.description} onChange={handleEditStateChange} name="description" /> : <p className="whitespace-pre-line text-gray-600 font-normal">{event.description}</p>}
