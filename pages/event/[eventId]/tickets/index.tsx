@@ -8,6 +8,7 @@ import axios from 'axios';
 import { useState } from 'react';
 import { AiOutlinePlusCircle as PlusIcon, AiOutlineMinusCircle as MinusIcon } from "react-icons/ai";
 import MailingListSubscriber from '@typedefs/MailingListSubscriber';
+import subscribeToMailingList from "@utils/subscribeToMailingList";
 
 export default function TicketPurchase({ id }) {
     const router = useRouter();
@@ -22,6 +23,9 @@ export default function TicketPurchase({ id }) {
 
     const tickets_sold = subscribers?.map(({ ticketQuantity }) => ticketQuantity ?? 1).reduce((a, b) => a + b, 0);
     const ticketCapReached = tickets_sold >= event?.maxTickets;
+
+    // Looks for an empty value in the form object or a filled value in errors
+    const shouldBlockSubmit = (Object.values(errors).filter((e: any) => e.length > 0).length || Object.values(form).filter(e => e.length === 0).length) ? true : false;
 
     const handleChange = (e: any) => {
         const { name, value } = e.target;
@@ -63,8 +67,11 @@ export default function TicketPurchase({ id }) {
             return;
 
         try {
-            const { data } = await axios.post("/api/stripe", { eventId: event.id, priceId: event.priceId, ticketQuantity: ticketQuantity, customerPhoneNumber: form.phoneNumber, customerName: form.name })
+            const { data } = await axios.post("/api/stripe", { eventId: event.id, priceId: event.priceId, ticketQuantity, customerPhoneNumber: form.phoneNumber, customerName: form.name })
 
+            if (subscribe)
+                await subscribeToMailingList(form.phoneNumber);
+                
             router.push(data.url);
         } catch (e) {
 
@@ -88,11 +95,11 @@ export default function TicketPurchase({ id }) {
                         <div className="grid gap-3">
                             <div>
                                 <p className="font-normal">Name</p>
-                                <Input onChange={handleChange} name="name" type="text" value={form.name} showError={errors.name.length > 0} />
+                                <Input onChange={handleChange} name="name" type="text" value={form.name} showError={errors.name.length > 0} minLength={1} />
                             </div>
                             <div>
                                 <p className="font-normal">Phone Number</p>
-                                <Input onChange={handleChange} name="phoneNumber" type="tel" value={form.phoneNumber} showError={errors.phoneNumber.length > 0} />
+                                <Input onChange={handleChange} name="phoneNumber" type="tel" value={form.phoneNumber} showError={errors.phoneNumber.length > 0} minLength={10} maxLength={10} />
                             </div>
                             <div>
                                 <p className="font-normal">Ticket Quantity</p>
@@ -107,11 +114,11 @@ export default function TicketPurchase({ id }) {
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
-                                <p className="font-normal">Subscribe for Updates</p>
+                                <p className="font-normal">Get notified about future events</p>
                                 <Switch onClick={() => setSubscribe(!subscribe)} value={subscribe} />
                             </div>
                         </div>
-                        <Button type="submit" variant="blank" className="text-white bg-blue-500 rounded-lg text-lg flex gap-6 items-center justify-center py-2" disabled={Object.values(errors).find((e: any) => e.length) ? true : false}>
+                        <Button type="submit" variant="blank" className="text-white bg-blue-500 rounded-lg text-lg flex gap-6 items-center justify-center py-2" disabled={shouldBlockSubmit}>
                             Pay with Stripe
                         </Button>
                     </form>

@@ -3,12 +3,13 @@ import React, { useState } from 'react'
 import { Button, Input } from './FormComponents';
 import { AiOutlinePlusCircle as PlusIcon, AiOutlineMinusCircle as MinusIcon } from "react-icons/ai";
 import createSMSIntent from '@utils/createSMSIntent';
+import EventDocument from '@typedefs/EventDocument';
 
 export interface AddTicketManuallyProps {
-    eventId: string;
+    event: EventDocument;
 }
 
-export default function AddTicketManually({ event }) {
+export default function AddTicketManually({ event }: AddTicketManuallyProps) {
 
     const [ticketQuantity, setTicketQuantity] = useState(1);
     const [name, setName] = useState("");
