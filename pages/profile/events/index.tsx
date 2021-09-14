@@ -25,11 +25,11 @@ export default function Events() {
 
     const sortedEvents = events?.sort((a, b) => a.title.localeCompare(b.title));
 
-    if (user.role !== "admin" && user.role !== "host") {
+    if (user?.role !== "admin" && user?.role !== "host") {
         router.push("/error/403");
     }
-    if (eventsLoading || loading) return <Loading />
 
+    if (eventsLoading || loading) return <Loading />
 
     return (
         <RequireAuth>
