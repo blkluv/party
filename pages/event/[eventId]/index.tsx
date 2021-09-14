@@ -17,18 +17,18 @@ import BroadcastSubcribers from '@components/BroadcastSubcribers';
 import AddTicketManually from '@components/AddTicketManually';
 import EventDocument from '@typedefs/EventDocument';
 
-const BusinessCards = ({ images = [] }: { images?: string[] }) => {
-    return (<div className="overflow-x-scroll lg:overflow-hidden py-3">
-        <div className="lg:hidden flex gap-2" style={{ width: `${20 * images.length}rem` }}>
+const Carousel = ({ images = [] }: { images?: string[] }) => {
+    return (<div className="overflow-x-scroll lg:overflow-x-hidden py-3">
+        <div className="flex gap-2 lg:flex-wrap lg:justify-center">
             {images.map((url: string) =>
-                <img src={url} key={url} className="w-80 rounded-md shadow-md" />
+                <img src={url} key={url} className="max-w-sm lg:max-w-md rounded-md shadow-md" />
             )}
         </div>
-        <div className="hidden lg:grid gap-2 grid-cols-1 xl:grid-cols-2 grid-flow-row">
+        {/* <div className="hidden lg:grid gap-2 grid-cols-1 xl:grid-cols-2 grid-flow-row">
             {images.map((url: string) =>
-                <img src={url} key={url} className="w-80 rounded-md shadow-md mx-auto" />
+                <img src={url} key={url} className="max-w-sm rounded-md shadow-md mx-auto" />
             )}
-        </div>
+        </div> */}
     </div>)
 };
 
@@ -133,22 +133,24 @@ export default function Event({ id }) {
             </div>}
             {showUploadMedia && <UploadEventMedia setOpen={setShowUploadMedia} eventId={id} />}
 
-            {showEditFlyer && <Modal setOpen={setShowEditFlyer} ref={editFlyerRef}>
+            {showEditFlyer && <Modal setOpen={setShowEditFlyer} ref={editFlyerRef} size="md">
                 <form onSubmit={submitEditFlyer} ref={editFlyerRef}>
                     <Select onChange={(e) => setSelectedFile(e.target.value)} value={selectedFile}>
                         <option disabled value={""}>
                             None
                         </option>
-                        {files.map((file) => <option value={file}>
+                        {files.map((file) => <option value={file} key={file.name}>
                             {file.name}
                         </option>)}
                     </Select>
+                    <div className="flex justify-center mt-2">
                     <Button>
                         Change Flyer
                     </Button>
+                        </div>
                 </form>
             </Modal>}
-            <div className="flex flex-col items-center lg:flex-row md:justify-center gap-5 p-2 w-full max-w-xl lg:max-w-7xl mx-auto lg:items-start">
+            <div className="flex flex-col items-center lg:flex-row md:justify-center gap-5 p-2 sm:p-8 w-full max-w-xl lg:max-w-7xl mx-auto lg:items-start">
                 <div className="flex flex-col gap-2 flex-1">
                     <img src={event.flyerLink} className="w-full lg:max-w-xl" />
                     {editing && <Button onClick={() => setShowEditFlyer(true)}>
@@ -180,10 +182,10 @@ export default function Event({ id }) {
                         <Input onChange={handleEditStateChange} value={editState.priceId} name="priceId" placeholder="Price ID" />}
                     {editing &&
                         <Input onChange={handleEditStateChange} value={editState.maxTickets} name="maxTickets" placeholder="Maximum Tickets" type="number" />}
-                    <BusinessCards images={event.cardLinks.map(({ url }) => url)} />
-                    {showEditCards && <Modal setOpen={setShowEditCards} ref={editCardsRef}>
-                        <div className="flex flex-col">
-                            {files.map((file) => <div key={file}>
+                    <Carousel images={event.cardLinks.map(({ url }) => url)} />
+                    {showEditCards && <Modal setOpen={setShowEditCards} ref={editCardsRef} size="md">
+                        <div className="flex flex-col gap-2">
+                            {files.map((file) => <div key={file} className="flex items-center gap-4">
                                 <Switch value={editState.cardLinks.find(({ name }) => name === file.name)} onClick={() => toggleCard(file)} />
                                 <p>{file.name}</p>
                             </div>)}
