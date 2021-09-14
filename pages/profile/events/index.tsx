@@ -1,6 +1,6 @@
 import { Button } from '@components/FormComponents'
 import { db } from '@config/firebase';
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useCollectionData } from 'react-firebase-hooks/firestore'
 import useAuth from '@utils/useAuth';
 import RequireAuth from "@components/RequireAuth";
@@ -25,9 +25,11 @@ export default function Events() {
 
     const sortedEvents = events?.sort((a, b) => a.title.localeCompare(b.title));
 
-    if (user?.role !== "admin" && user?.role !== "host") {
-        router.push("/error/403");
-    }
+    useEffect(() => {
+        if (user?.role !== "admin" && user?.role !== "host") {
+            router.push("/error/403");
+        }
+    }, [user]);
 
     if (eventsLoading || loading) return <Loading />
 
