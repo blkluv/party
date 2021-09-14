@@ -41,8 +41,6 @@ export default function Event({ id }) {
     const [editing, setEditing] = useState(false);
     const [showEditCards, setShowEditCards] = useState(false);
     const [editState, setEditState]: any = useState(null);
-    const editFlyerRef: any = useRef();
-    const editCardsRef: any = useRef();
     const [files, setFiles] = useState([]);
     const [selectedFile, setSelectedFile] = useState("");
     const [showSearchSubscribers, setShowSearchSubscribers] = useState(false);
@@ -50,6 +48,8 @@ export default function Event({ id }) {
     const [showBroadcastSubscribers, setShowBroadcastSubscribers] = useState(false);
     const broadcastSubscribersRef = useRef();
     const [showAddTickets, setShowAddTickets] = useState(false);
+    const editFlyerRef = useRef();
+    const editCardsRef = useRef();
     const addTicketsRef = useRef();
 
     const { user } = useAuth();
