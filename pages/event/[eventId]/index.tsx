@@ -24,11 +24,6 @@ const Carousel = ({ images = [] }: { images?: string[] }) => {
                 <img src={url} key={url} className="max-w-sm lg:max-w-md rounded-md shadow-md" />
             )}
         </div>
-        {/* <div className="hidden lg:grid gap-2 grid-cols-1 xl:grid-cols-2 grid-flow-row">
-            {images.map((url: string) =>
-                <img src={url} key={url} className="max-w-sm rounded-md shadow-md mx-auto" />
-            )}
-        </div> */}
     </div>)
 };
 
@@ -144,10 +139,10 @@ export default function Event({ id }) {
                         </option>)}
                     </Select>
                     <div className="flex justify-center mt-2">
-                    <Button>
-                        Change Flyer
-                    </Button>
-                        </div>
+                        <Button>
+                            Change Flyer
+                        </Button>
+                    </div>
                 </form>
             </Modal>}
             <div className="flex flex-col items-center lg:flex-row md:justify-center gap-5 p-2 sm:p-8 w-full max-w-xl lg:max-w-7xl mx-auto lg:items-start">
