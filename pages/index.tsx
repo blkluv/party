@@ -9,9 +9,7 @@ import { useCollectionData } from "react-firebase-hooks/firestore";
 
 export default function Home() {
 
-  const [query, setQuery] = useState("");
-
-  const [events, eventsLoading] = useCollectionData<EventDocument>(db.collection("/events"), { idField: "id" });
+  const [events, eventsLoading] = useCollectionData<EventDocument>(db.collection("/events").where("visibility","==","public"), { idField: "id" });
 
   if (eventsLoading) return <Loading />;
 

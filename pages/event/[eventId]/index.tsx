@@ -57,7 +57,7 @@ export default function Event({ id }) {
         return `${hour % 12}:${minute.toString().padStart(2, "0")} ${hour > 12 ? "PM" : "AM"}`;
     }
 
-    const handleEditStateChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleEditStateChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setEditState({ ...editState, [name]: value });
     }
@@ -153,6 +153,14 @@ export default function Event({ id }) {
                     </Button>}
                 </div>
                 <div className="flex flex-col gap-2 w-full flex-1">
+                    {editing && <Select onChange={handleEditStateChange} name="visibility">
+                        <option value="private">
+                            Private
+                        </option>
+                        <option value="public">
+                            Public
+                        </option>
+                    </Select>}
                     <div className="grid gap-2">
                         {editing ? <Input value={editState.title} onChange={handleEditStateChange} name="title" /> : <h2>{event.title}</h2>}
                         {editing ? <Input type="date" value={editState.eventDate} onChange={handleEditStateChange} name="eventDate" /> : <p className="font-normal"><span className="text-blue-500 font-semibold">{event.eventDate.toDate().toDateString()}</span> at {getFormattedEventTime()}</p>}
