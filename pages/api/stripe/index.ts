@@ -9,7 +9,7 @@ export default async function handler(req: any, res: any) {
         case "POST":
             const { priceId, ticketQuantity, eventId, customerPhoneNumber, customerName } = body;
 
-            const docRef = await db.collection(`events/${eventId}/subscribers`).add({ name: customerName, phoneNumber: customerPhoneNumber, status: "pending", ticketQuantity });
+            const docRef = await db.collection(`events/${eventId}/subscribers`).add({ name: customerName, phoneNumber: customerPhoneNumber, status: "pending", ticketQuantity, createdAt: new Date() });
 
             const doc = await docRef.get();
 

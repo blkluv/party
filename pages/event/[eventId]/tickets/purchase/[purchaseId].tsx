@@ -6,7 +6,7 @@ import Loading from '@components/Loading';
 import createSMSIntent from '@utils/createSMSIntent';
 
 export default function PurchaseResult({ purchaseId, id }) {
-    const [doc, loading, error] = useDocumentData(db.doc(`events/${id}/subscribers/${purchaseId}`), { idField: "id" });
+    const [doc, loading] = useDocumentData(db.doc(`events/${id}/subscribers/${purchaseId}`), { idField: "id" });
     const [event, eventLoading] = useDocumentDataOnce(db.doc(`events/${id}`));
 
     useEffect(() => {
