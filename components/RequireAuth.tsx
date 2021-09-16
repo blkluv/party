@@ -18,7 +18,7 @@ export default function RequireAuth({ children, allowRoles }: RequireAuthProps) 
 
     if (user?.role === "admin") return;
     // Not loading and no user = invalid login
-    if ((!loading && !user) || error || !allowRoles.includes(user?.role)) {
+    if ((!loading && !user) || error || allowRoles?.includes(user?.role)) {
       router.push("/error/403");
     }
   }, [user]);
