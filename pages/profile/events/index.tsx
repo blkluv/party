@@ -25,12 +25,6 @@ export default function Events() {
 
     const sortedEvents = events?.sort((a, b) => a.title.localeCompare(b.title));
 
-    useEffect(() => {
-        if (user?.role !== "admin" && user?.role !== "host") {
-            router.push("/error/403");
-        }
-    }, [user]);
-
     if (eventsLoading || loading) return <Loading />
 
     return (

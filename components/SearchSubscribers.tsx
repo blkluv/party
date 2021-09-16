@@ -16,9 +16,12 @@ export default function SearchSubscribers({ subscribers, eventId }: SearchSubscr
 
     const queriedSubscribers = subscribers.filter(({ name, phoneNumber }) => name.toLowerCase().includes(query.toLowerCase()) || phoneNumber.includes(query));
 
+    const totalTickets = queriedSubscribers.map(e => e.ticketQuantity).reduce((a, b) => a + b, 0);
+
     return (
         <div>
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
+            <p className="text-center my-2">{totalTickets} Total Ticket{totalTickets !== 1 && "s"}</p>
             <div className="grid grid-cols-9 my-4">
                 <p className="font-medium">
                     Tickets
