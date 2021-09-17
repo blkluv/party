@@ -39,11 +39,11 @@ const Modal = React.forwardRef(({ children, setOpen, size = "max" }: ModalProps,
 
   return (
     <div
-      className={`fixed bg-black bg-opacity-40 left-0 inset-0 right-0 h-screen z-50 flex justify-center items-center overflow-y-auto p-1 ${false && sizes.join(" ")}`}
+      className={`fixed bg-black bg-opacity-40 inset-0 h-screen z-50 flex justify-center items-center overflow-y-auto p-1 ${false && sizes.join(" ")}`}
       onMouseDown={handleEvent}
       onTouchEnd={handleEvent}
     >
-      <div className={`bg-white w-screen max-w-${size} rounded-xl p-4 sm:p-8`} ref={ref}>
+      <div className={`bg-white w-screen max-w-${size} rounded-xl p-4 sm:p-8 absolute top-2 mx-auto`} ref={ref}>
         <CloseIcon className="ml-auto w-6 h-6 transition cursor-pointer hover:text-blue-500 mb-2" onClick={() => setOpen(false)} />
         {children}
       </div>
