@@ -16,8 +16,10 @@ export default function BroadcastSubcribers({ subscribers }) {
 
         if (message.length === 0) return;
 
-        await createSMSIntent({ recipients: subscribers.map(({ phoneNumber }) => phoneNumber), message }, true);
-
+        for (const n of subscribers.map(({ phoneNumber }) => phoneNumber)) {
+            await createSMSIntent({ recipients: [n], message }, true);
+        }
+        
         setMessage("");
         setShowConfirm(false);
     }
