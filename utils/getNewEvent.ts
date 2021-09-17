@@ -13,6 +13,7 @@ export default function getNewEvent(overrides?: any): EventDocument {
         locationId: "",
         maxTickets: 0,
         visibility: "private",
+        managerIds: [],
         ...overrides
     }
 }
