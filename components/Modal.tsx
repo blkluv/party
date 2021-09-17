@@ -36,10 +36,10 @@ const Modal = React.forwardRef(({ children, setOpen, size = "max" }: ModalProps,
     "max-w-4xl",
     "max-w-5xl",
   ];
-  
+
   return (
     <div
-      className={`fixed bg-black bg-opacity-40 left-0 inset-0 right-0 h-screen z-50 flex justify-center items-center p-1 ${false && sizes.join(" ")}`}
+      className={`fixed bg-black bg-opacity-40 left-0 inset-0 right-0 h-screen z-50 flex justify-center items-center overflow-y-auto p-1 ${false && sizes.join(" ")}`}
       onMouseDown={handleEvent}
       onTouchEnd={handleEvent}
     >
