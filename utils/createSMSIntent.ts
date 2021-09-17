@@ -12,7 +12,7 @@ export interface SMSIntent {
     id?: string;
 }
 
-export default async function createSMSIntent(body: SMSIntent, consume: boolean) {
+export default async function createSMSIntent(body: SMSIntent, consume?: boolean) {
     try {
         const intent = await db.collection("sms_intent").add({ ...body, sent: false });
 

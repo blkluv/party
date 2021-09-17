@@ -16,6 +16,7 @@ export default function AddTicketManually({ event }: AddTicketManuallyProps) {
     const [ticketQuantity, setTicketQuantity] = useState(1);
     const [name, setName] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const { id, title } = event;
 
@@ -25,7 +26,9 @@ export default function AddTicketManually({ event }: AddTicketManuallyProps) {
     const handleSubmit = async (e: any) => {
         e.preventDefault();
 
-        const newTicket = { phoneNumber, name, ticketQuantity, status: "success" }
+        setLoading(true);
+
+        const newTicket = { phoneNumber, name, ticketQuantity, status: "success", createdAt: new Date() }
 
         await db.collection(`events/${id}/subscribers`).add(newTicket);
 
@@ -36,6 +39,8 @@ export default function AddTicketManually({ event }: AddTicketManuallyProps) {
         setName("");
         setPhoneNumber("");
         setTicketQuantity(1);
+
+        setLoading(false);
     }
 
     return (
@@ -51,7 +56,7 @@ export default function AddTicketManually({ event }: AddTicketManuallyProps) {
                 </div>
             </div>
 
-            <Button>
+            <Button disabled={loading}>
                 Submit
             </Button>
         </form>
