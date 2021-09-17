@@ -3,7 +3,7 @@ import { db } from "@config/firebase";
 import { AiFillCheckCircle as CheckIcon } from 'react-icons/ai';
 import { useDocumentData, useDocumentDataOnce } from 'react-firebase-hooks/firestore';
 import Loading from '@components/Loading';
-import createSMSIntent from '@utils/createSMSIntent';
+import createPurchaseReceipt from '@utils/createPurchaseReceipt';
 
 export default function PurchaseResult({ purchaseId, id }) {
     const [doc, loading] = useDocumentData(db.doc(`events/${id}/subscribers/${purchaseId}`), { idField: "id" });
@@ -21,7 +21,7 @@ export default function PurchaseResult({ purchaseId, id }) {
 
             await db.doc(`events/${id}/subscribers/${purchaseId}`).set({ status: "success" }, { merge: true });
 
-            await createSMSIntent({ recipients: [doc.phoneNumber], message: `Purchase successful!\n\nDetails for ${event?.title} will be sent to you on the day of the event.\n\nIf you have any further questions, feel free to contact us.` }, true);
+            await createPurchaseReceipt(doc.phoneNumber, event.title);
         }
 
 
