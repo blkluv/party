@@ -14,7 +14,7 @@ export interface SearchSubscribersProps {
 export default function SearchSubscribers({ subscribers, eventId }: SearchSubscribersProps) {
     const [query, setQuery] = useState("");
 
-    const queriedSubscribers = subscribers.filter(({ name, phoneNumber }) => name.toLowerCase().includes(query.toLowerCase()) || phoneNumber.includes(query));
+    const queriedSubscribers = subscribers.filter(({ name, phoneNumber }) => name.toLowerCase().includes(query.toLowerCase()) || phoneNumber.includes(query)).sort((a, b) => a.name.localeCompare(b.name));
 
     const totalTickets = queriedSubscribers.map(e => e.ticketQuantity).reduce((a, b) => a + b, 0);
 
