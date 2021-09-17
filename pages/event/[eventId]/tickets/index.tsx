@@ -20,6 +20,7 @@ export default function TicketPurchase({ id }) {
     const [errors, setErrors] = useState({ name: "", phoneNumber: "" });
     const [ticketQuantity, setTicketQuantity] = useState(1);
     const [subscribe, setSubscribe] = useState(true);
+    const [submitLoading, setSubmitLoading] = useState(false);
 
     const tickets_sold = subscribers?.map(({ ticketQuantity }) => ticketQuantity ?? 1).reduce((a, b) => a + b, 0);
     const ticketCapReached = tickets_sold >= event?.maxTickets;
@@ -67,11 +68,15 @@ export default function TicketPurchase({ id }) {
             return;
 
         try {
+
+            setSubmitLoading(true);
             const { data } = await axios.post("/api/stripe", { eventId: event.id, priceId: event.priceId, ticketQuantity, customerPhoneNumber: form.phoneNumber, customerName: form.name })
 
             if (subscribe)
                 await subscribeToMailingList(form.phoneNumber);
-                
+
+            setSubmitLoading(false);
+
             router.push(data.url);
         } catch (e) {
 
@@ -118,7 +123,7 @@ export default function TicketPurchase({ id }) {
                                 <Switch onClick={() => setSubscribe(!subscribe)} value={subscribe} />
                             </div>
                         </div>
-                        <Button type="submit" variant="blank" className="text-white bg-blue-500 rounded-lg text-lg flex gap-6 items-center justify-center py-2" disabled={shouldBlockSubmit}>
+                        <Button type="submit" variant="blank" className="text-white bg-blue-500 rounded-lg text-lg flex gap-6 items-center justify-center py-2" disabled={shouldBlockSubmit || submitLoading}>
                             Pay with Stripe
                         </Button>
                     </form>
