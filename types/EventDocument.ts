@@ -17,6 +17,7 @@ export default interface EventDocument {
 
     maxTickets: number;
     visibility: "public" | "private"
+    managerIds: string[];
 }
 
 interface CardLink {

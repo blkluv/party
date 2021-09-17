@@ -5,6 +5,7 @@ import { AiOutlinePlusCircle as PlusIcon, AiOutlineMinusCircle as MinusIcon } fr
 import createSMSIntent from '@utils/createSMSIntent';
 import EventDocument from '@typedefs/EventDocument';
 import subscribeToMailingList from '@utils/subscribeToMailingList';
+import createPurchaseReceipt from '@utils/createPurchaseReceipt';
 
 export interface AddTicketManuallyProps {
     event: EventDocument;
@@ -28,9 +29,9 @@ export default function AddTicketManually({ event }: AddTicketManuallyProps) {
 
         await db.collection(`events/${id}/subscribers`).add(newTicket);
 
-        await createSMSIntent({ recipients: [phoneNumber], message: `Purchase successful!\n\nDetails for ${title} will be sent to you on the day of the event.\n\nIf you have any further questions, feel free to contact us.` }, true);
-        
         await subscribeToMailingList(phoneNumber);
+
+        await createPurchaseReceipt(phoneNumber, title);
 
         setName("");
         setPhoneNumber("");

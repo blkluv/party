@@ -62,14 +62,14 @@ const SubscriberRow = ({ eventId, subscriber }: { eventId: string, subscriber: M
             <p>
                 {ticketQuantity}
             </p>
-            <p className="col-span-4 text-center">
+            <p className="col-span-4 text-center capitalize">
                 {name}
             </p>
             <p className="col-span-3 text-center">
                 <NumberFormat displayType="text" value={phoneNumber} format="###-###-####" />
             </p>
             <Button variant="blank">
-                <TrashIcon className="w-4 h-4 transition hover:text-gray-500" onClick={() => setShowConfirmDelete(true)} />
+                <TrashIcon className="w-4 h-4 transition hover:text-gray-500 mx-auto" onClick={() => setShowConfirmDelete(true)} />
             </Button>
         </div >
     )
