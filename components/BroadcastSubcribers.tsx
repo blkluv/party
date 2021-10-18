@@ -10,16 +10,20 @@ export interface BroadcastSubscribersProps {
 export default function BroadcastSubcribers({ subscribers }) {
     const [message, setMessage] = useState("");
     const [showConfirm, setShowConfirm] = useState(false);
+    const [loading,setLoading] = useState(false);
 
     const handleSubmit = async (e: any) => {
         e.preventDefault();
 
-        if (message.length === 0) return;
+        if (message.length === 0 || loading) return;
+
+        setLoading(true);
 
         for (const n of subscribers.map(({ phoneNumber }) => phoneNumber)) {
             await createSMSIntent({ recipients: [n], message }, true);
         }
-        
+
+        setLoading(false);
         setMessage("");
         setShowConfirm(false);
     }
@@ -33,7 +37,7 @@ export default function BroadcastSubcribers({ subscribers }) {
                     <Button type="submit" className="bg-green-300 text-white">
                         Confirm
                     </Button>
-                    <Button type="button" className="bg-red-300 text-white" onClick={() => setShowConfirm(false)}>
+                    <Button type="button" className="bg-red-300 text-white" onClick={() => setShowConfirm(false)} disabled={loading}>
                         Cancel
                     </Button>
                 </div>
