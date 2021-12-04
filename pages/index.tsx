@@ -1,17 +1,32 @@
-import { Button, Input } from "@components/FormComponents";
 import Header from "@components/Header";
-import Loading from "@components/Loading";
-import { db } from "@config/firebase";
-import EventDocument from "@typedefs/EventDocument";
 import Link from "next/link";
-import React, { useState } from "react";
-import { useCollectionData } from "react-firebase-hooks/firestore";
+import React, { useEffect, useState } from "react";
+import { query, collection, where, getFirestore, getDocs } from "@firebase/firestore";
+import LoadingScreen from "@components/LoadingScreen";
 
 export default function Home() {
+  const db = getFirestore();
 
-  const [events, eventsLoading] = useCollectionData<EventDocument>(db.collection("/events").where("visibility","==","public"), { idField: "id" });
+  const [events, setEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
 
-  if (eventsLoading) return <Loading />;
+  useEffect(() => {
+    (async () => {
+      setEventsLoading(true);
+      const eventsRef = query(collection(db, "/events"), where("visibility", "==", "public"));
+      
+      const eventDocs = await getDocs(eventsRef);
+      const tmpEvents = [];
+      eventDocs.forEach((doc: any) => {
+        tmpEvents.push({ ...doc.data(), id: doc.id });
+      });
+      
+      setEvents(tmpEvents);
+      setEventsLoading(false);
+    })();
+  }, [])
+
+  if (eventsLoading) return <LoadingScreen />;
 
   return (
     <div className="m-2 sm:m-8 flex-1">

@@ -1,19 +1,19 @@
-import { db } from "@config/firebase";
 import createSMSIntent from "./createSMSIntent";
 import { WEBSITE_URL } from "@config/config";
+import { getFirestore, collection, addDoc, where, query, getDocs } from "@firebase/firestore";
 
 export default async function subscribeToMailingList(phoneNumber: string) {
-    const subscriberRef = await db.collection("mailing_list").where("phoneNumber", "==", phoneNumber).get();
+    const db = getFirestore();
+    const subscriberRef = query(collection(db, "mailing_list"), where("phoneNumber", "==", phoneNumber));
+    const subscriberDocs = await getDocs(subscriberRef);
 
-    if (!subscriberRef.empty) return;
+    if (!subscriberDocs.empty) return;
 
     try {
 
-        const req = await db.collection("mailing_list").add({ phoneNumber });
+        const req = await addDoc(collection(db, "mailing_list"), { phoneNumber });
 
-        const data = await req.get();
-
-        const message = `You have been subscribed to notifications from \n\n${WEBSITE_URL}\n\nIf you would like to unsubscribe, visit the link below \n\n${WEBSITE_URL}/unsubscribe/${data.id}`;
+        const message = `You have been subscribed to notifications from \n\n${WEBSITE_URL}\n\nIf you would like to unsubscribe, visit the link below \n\n${WEBSITE_URL}/unsubscribe/${req.id}`;
 
         await createSMSIntent({ recipients: [phoneNumber], message }, true);
 

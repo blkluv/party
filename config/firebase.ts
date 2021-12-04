@@ -1,7 +1,3 @@
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import 'firebase/compat/firestore';
-import "firebase/compat/storage";
 
 const devConfig = {
     apiKey: "AIzaSyAKsbyLZ5ztO4pMOUOSN3oemoZcjFq9wuU",
@@ -23,19 +19,4 @@ const prodConfig = {
     measurementId: "G-42FNWE2D96"
 };
 
-const firebaseConfig = process.env.NODE_ENV === "production" ? prodConfig : devConfig;
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-    // firebase.auth().useDeviceLanguage();
-}
-
-export const providers = {
-    google: new firebase.auth.GoogleAuthProvider(),
-    // phone: new firebase.auth.PhoneAuthProvider()
-};
-
-export const db = firebase.firestore();
-export const storage = firebase.storage();
-
-export default firebase;
+export default process.env.NODE_ENV === "production" ? prodConfig : devConfig;

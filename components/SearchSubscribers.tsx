@@ -1,10 +1,10 @@
-import { db } from '@config/firebase';
 import MailingListSubscriber from '@typedefs/MailingListSubscriber'
-import React, { useRef, useState } from 'react';
+import React, {useState } from 'react';
 import NumberFormat from 'react-number-format';
 import { Button, Input } from './FormComponents';
 import { BsTrash as TrashIcon } from "react-icons/bs";
-import Modal from './Modal';
+import { Modal } from '@components/beluga';
+import { getFirestore, doc, deleteDoc } from "@firebase/firestore";
 
 export interface SearchSubscribersProps {
     subscribers: MailingListSubscriber[];
@@ -43,18 +43,20 @@ export default function SearchSubscribers({ subscribers, eventId }: SearchSubscr
 };
 
 const SubscriberRow = ({ eventId, subscriber }: { eventId: string, subscriber: MailingListSubscriber }) => {
+    const db = getFirestore();
+
     const { id, name, phoneNumber, ticketQuantity } = subscriber;
 
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-    const deleteRef = useRef();
 
     const deleteSubscriber = async () => {
-        await db.doc(`events/${eventId}/subscribers/${id}`).delete();
+        const docRef = doc(db, "events", eventId, "subscriberss", id);
+        await deleteDoc(docRef);
     }
 
     return (
         <div className="py-1 grid grid-cols-9" >
-            {showConfirmDelete && <Modal setOpen={setShowConfirmDelete} ref={deleteRef}>
+            {showConfirmDelete && <Modal onClose={() => setShowConfirmDelete(false)}>
                 <Button onClick={deleteSubscriber}>
                     Delete {name}
                 </Button>

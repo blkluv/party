@@ -1,20 +1,41 @@
-import React from 'react'
-import { useCollectionData, useDocumentDataOnce } from 'react-firebase-hooks/firestore'
-import { db } from '@config/firebase';
-import Loading from '@components/Loading';
+import React, { useEffect } from 'react'
 import { useRouter } from 'next/router';
 import { Button, Input, Switch } from '@components/FormComponents';
 import axios from 'axios';
 import { useState } from 'react';
 import { AiOutlinePlusCircle as PlusIcon, AiOutlineMinusCircle as MinusIcon } from "react-icons/ai";
-import MailingListSubscriber from '@typedefs/MailingListSubscriber';
 import subscribeToMailingList from "@utils/subscribeToMailingList";
+import { getFirestore, doc, getDoc, query, collection, where, onSnapshot } from "@firebase/firestore";
+import LoadingScreen from '@components/LoadingScreen';
 
 export default function TicketPurchase({ id }) {
     const router = useRouter();
+    const db = getFirestore();
 
-    const [event, eventLoading] = useDocumentDataOnce(db.doc(`events/${id}`), { idField: "id" });
-    const [subscribers, subscribersLoading] = useCollectionData<MailingListSubscriber>(db.collection(`/events/${id}/subscribers`).where("status", "==", "success"));
+    const [event, setEvent] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [subscribers, setSubscribers] = useState([]);
+
+    useEffect(() => {
+        (async () => {
+            setLoading(true);
+            const eventRef = doc(db, "events", id);
+            const eventDoc = await getDoc(eventRef);
+            setEvent({ ...eventDoc.data(), id: eventDoc.id });
+
+            const subscribersQuery = query(collection(db, "events", id, "subscribers"), where("status", "==", "success"));
+            onSnapshot(subscribersQuery, (snapshot) => {
+                const tmpDocs = [];
+                snapshot.forEach(doc => {
+                    tmpDocs.push({ ...doc.data(), id: doc.id });
+                });
+                setSubscribers(tmpDocs);
+            });
+
+
+            setLoading(false);
+        })()
+    }, []);
 
     const [form, setForm] = useState({ name: "", phoneNumber: "" });
     const [errors, setErrors] = useState({ name: "", phoneNumber: "" });
@@ -75,23 +96,25 @@ export default function TicketPurchase({ id }) {
             if (subscribe)
                 await subscribeToMailingList(form.phoneNumber);
 
+
             setSubmitLoading(false);
 
-            router.push(data.url);
+            await router.push(data.url);
+            console.log("here")
         } catch (e) {
 
         }
     }
 
-    if (!id || (!eventLoading && !event)) {
+    if (!id || (!loading && !event)) {
         router.push("/error/404");
-        return <Loading />
+        return <LoadingScreen />
     }
 
-    if (eventLoading || subscribersLoading) return <Loading />
+    if (loading) return <LoadingScreen />
 
     return (
-        <div className="flex-1 flex justify-center items-center">
+        <div className="flex justify-center items-center p-2 flex-1">
             <div className="bg-white rounded-xl p-3 sm:p-6 w-screen max-w-lg border border-gray-200">
                 {!ticketCapReached && <div>
                     <h2>{event?.title} Tickets</h2>
@@ -109,11 +132,11 @@ export default function TicketPurchase({ id }) {
                             <div>
                                 <p className="font-normal">Ticket Quantity</p>
                                 <div className="flex gap-3 items-center mt-3">
-                                    <Button onClick={handleTicketDecrease} variant="blank" className="hover:text-blue-500 transition" >
+                                    <Button onClick={handleTicketDecrease} variant="blank" type="button" className="hover:text-blue-500 transition" >
                                         <MinusIcon className="h-7 w-7" />
                                     </Button>
                                     <p className="font-normal text-xl">{ticketQuantity}</p>
-                                    <Button onClick={handleTicketIncrease} variant="blank" className="hover:text-blue-500 transition" >
+                                    <Button onClick={handleTicketIncrease} variant="blank" type="button" className="hover:text-blue-500 transition" >
                                         <PlusIcon className="h-7 w-7" />
                                     </Button>
                                 </div>

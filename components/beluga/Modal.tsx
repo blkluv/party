@@ -1,15 +1,16 @@
-import React, { useEffect } from "react";
-import { IoCloseOutline as CloseIcon } from 'react-icons/io5';
-import _ from "lodash";
+import { Close } from "@components/Icons";
+import React, { useEffect, useRef } from "react";
 
 export interface ModalProps {
   children: any;
-  setOpen(state: boolean): void;
+  onClose: any;
   size?: string;
 }
 
 
-const Modal = React.forwardRef(({ children, setOpen, size = "max" }: ModalProps, ref: any) => {
+const Modal = ({ children, onClose, size = "max" }: ModalProps) => {
+
+  const ref: any = useRef();
 
   useEffect(() => {
     ref?.current?.scrollIntoView({ behavior: "smooth" });
@@ -21,8 +22,9 @@ const Modal = React.forwardRef(({ children, setOpen, size = "max" }: ModalProps,
   }, []);
 
   const handleEvent = (e: any) => {
-    if (ref?.current && !ref?.current.contains(e.target))
-      setOpen(false)
+    if (ref?.current && !ref?.current.contains(e?.target))
+      onClose();
+
   }
 
   const sizes = [
@@ -43,12 +45,12 @@ const Modal = React.forwardRef(({ children, setOpen, size = "max" }: ModalProps,
       onMouseDown={handleEvent}
       onTouchEnd={handleEvent}
     >
-      <div className={`bg-white w-screen max-w-${size} rounded-xl p-4 sm:p-8 absolute top-2 mx-auto`} ref={ref}>
-        <CloseIcon className="ml-auto w-6 h-6 transition cursor-pointer hover:text-blue-500 mb-2" onClick={() => setOpen(false)} />
+      <div className={`bg-white dark:bg-gray-900 w-screen max-w-${size} rounded-xl p-4 sm:p-6 absolute top-2 mx-auto`} ref={ref}>
+        <Close className="ml-auto w-6 h-6 transition cursor-pointer primary-hover mb-2" onClick={() => onClose()} />
         {children}
       </div>
     </div>
   );
-});
+};
 
 export default Modal;

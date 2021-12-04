@@ -1,37 +1,17 @@
+const colors = require("tailwindcss/colors");
+
 module.exports = {
   mode: 'jit',
   purge: ['./pages/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
-  darkMode: false, // or 'media' or 'class'
+  darkMode: 'class',
   theme: {
     fontFamily: {
-      'sans': ['"Inter"', 'ui-sans-serif', 'system-ui'],
+      'sans': ['Inter', 'ui-sans-serif', 'system-ui'],
     },
     extend: {
       colors: {
-        'github': '#333',
+        gray: colors.trueGray,
       },
-      keyframes: {
-        'fade-in': {
-          '0%': {
-            opacity: '0',
-          },
-          '100%': {
-            opacity: '1',
-          },
-        },
-        'slide-in-left': {
-          '0%': {
-            transform: 'translateX(125%)',
-          },
-          '100%': {
-            transform: 'translateX(0%)',
-          },
-        }
-      },
-      animation: {
-        'fade-in': 'fade-in 0.2s',
-        'slide-in-left': 'slide-in-left 0.2s ease-in-out',
-      }
     },
   },
   variants: {
