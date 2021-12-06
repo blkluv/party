@@ -115,7 +115,7 @@ export default function TicketPurchase({ id }) {
 
     return (
         <div className="flex justify-center items-center p-2 flex-1">
-            <div className="bg-white rounded-xl p-3 sm:p-6 w-screen max-w-lg border border-gray-200">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-3 sm:p-6 w-screen max-w-lg shadow-center-md">
                 {!ticketCapReached && <div>
                     <h2>{event?.title} Tickets</h2>
                     <h3 className="font-normal text-lg text-gray-500">Customer Information</h3>

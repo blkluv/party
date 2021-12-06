@@ -12,13 +12,13 @@ export interface SwitchProps {
 export default function Switch(props: SwitchProps) {
     const style = {
         default: {
-            style: "bg-dark-gray",
-            active: "bg-accent-1",
+            style: "bg-gray-300 dark:bg-black",
+            active: "bg-indigo-500",
             button: "bg-white"
         },
         "light-gray": {
             style: "bg-gray-800",
-            active: "bg-accent-1",
+            active: "bg-indigo-500",
             button: "bg-white"
         }
     };
