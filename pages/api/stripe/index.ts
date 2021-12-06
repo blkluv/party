@@ -17,8 +17,6 @@ export default async function handler(req: any, res: any) {
                 const docRef = collection(db, "events", eventId, "subscribers");
                 const doc = await addDoc(docRef, { name: customerName, phoneNumber: customerPhoneNumber, status: "pending", ticketQuantity, createdAt: new Date() });
 
-                const docResult = await getDoc(doc);
-
                 const session = await stripeClient.checkout.sessions.create({
                     payment_method_types: ['card'],
                     line_items: [
@@ -28,7 +26,7 @@ export default async function handler(req: any, res: any) {
                         },
                     ],
                     mode: 'payment',
-                    success_url: `${WEBSITE_URL}/event/${eventId}/tickets/purchase/${docResult.id}`,
+                    success_url: `${WEBSITE_URL}/event/${eventId}/tickets/purchase/${doc.id}`,
                     cancel_url: `${WEBSITE_URL}/event/${eventId}/tickets`,
                 });
 
