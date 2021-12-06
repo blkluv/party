@@ -9,7 +9,6 @@ export default async function handler(req: any, res: any) {
         const stripeClient = new stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2020-08-27" });
         const db = getFirestore();
 
-
         switch (method) {
             case "POST":
                 const { priceId, ticketQuantity, eventId, customerPhoneNumber, customerName } = body;
