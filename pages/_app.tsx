@@ -1,7 +1,12 @@
 import Navigation from '@components/Navigation'
 import { APP_NAME } from '@config/config';
+import { initializeApp } from '@firebase/app';
+import { Provider } from 'context/Context';
 import Head from 'next/head'
 import "../styles/globals.css";
+import firebaseConfig from "@config/firebase";
+
+initializeApp(firebaseConfig);
 
 export default function MyApp({ Component, pageProps }) {
 
@@ -36,10 +41,12 @@ export default function MyApp({ Component, pageProps }) {
         {/* <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"></link> */}
         <meta name="theme-color" content="#dbdbdb" />
       </Head>
-      <div className="relative min-h-screen flex flex-col bg-white dark:bg-black text-black pb-24" id="app">
-        <Navigation />
-        <Component {...pageProps} />
-      </div>
+      <Provider>
+        <div className="bg-gray-100 dark:bg-black text-black dark:text-white min-h-screen bg-opacity-50 pb-24 md:pb-0 flex flex-col" id="app">
+          <Navigation />
+          <Component {...pageProps} />
+        </div>
+      </Provider>
     </>
   )
 }

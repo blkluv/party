@@ -1,14 +1,16 @@
-import { Button } from '@components/FormComponents';
+import { Button } from '@components/beluga';
 import Loading from '@components/Loading';
-import { db } from '@config/firebase';
 import router from 'next/router';
 import React, { useState } from 'react'
 import { useDocumentDataOnce } from 'react-firebase-hooks/firestore';
 import { AiFillCheckCircle as CheckIcon } from "react-icons/ai";
+import { getFirestore, doc, deleteDoc } from "@firebase/firestore";
 
 export default function Unsubscribe({ id }) {
 
-    const [value, loading] = useDocumentDataOnce(db.collection("mailing_list").doc(id));
+    const db = getFirestore();
+
+    const [value, loading] = useDocumentDataOnce(doc(db, "mailing_list", id));
     const [finished, setFinished]: any = useState(false);
 
     if (loading) return <Loading />;
@@ -19,7 +21,7 @@ export default function Unsubscribe({ id }) {
     }
 
     const unsubscribeUser = async () => {
-        await db.collection("mailing_list").doc(id).delete();
+        await deleteDoc(doc(db, "mailing_list_users", id));
 
         setFinished(true);
 

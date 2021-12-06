@@ -1,9 +1,9 @@
-import { storage } from '@config/firebase';
-import useAuth from '@utils/useAuth';
-import React, { useEffect, useRef, useState } from 'react'
+import { getAuth } from '@firebase/auth';
+import React, { useEffect, useState } from 'react'
+import { useAuthState } from 'react-firebase-hooks/auth';
 import { AiOutlineLoading as LoadingIcon } from 'react-icons/ai';
-import { Button, Input } from './FormComponents';
-import Modal from './Modal'
+import { Modal, Button, Input } from '@components/beluga'
+import { getStorage, ref, uploadBytes, listAll } from "@firebase/storage";
 
 export interface UploadEventMediaProps {
     setOpen(state: boolean): void;
@@ -11,11 +11,12 @@ export interface UploadEventMediaProps {
 }
 
 export default function UploadEventMedia({ setOpen, eventId }: UploadEventMediaProps) {
-    const ref: any = useRef();
     const [files, setFiles] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null)
     const [filesLoading, setFilesLoading] = useState(false)
-    const { loading: userLoading } = useAuth();
+    const auth = getAuth();
+    const [_user, userLoading] = useAuthState(auth);
+    const storage = getStorage();
 
     const uploadData = async (e: any) => {
         e.preventDefault();
@@ -24,17 +25,17 @@ export default function UploadEventMedia({ setOpen, eventId }: UploadEventMediaP
 
         setFilesLoading(true);
 
-        const task = storage.ref(`events/${eventId}/${selectedFile.name}`).put(selectedFile);
 
-        task.on("state_changed", null, null, async () => {
-            await getFiles();
-            setSelectedFile(null);
-        });
+        const uploadRef = ref(storage, `/events/${eventId}/${selectedFile.name}`);
+        await uploadBytes(uploadRef, selectedFile);
+
+        await getFiles();
+        setSelectedFile(null);
     }
 
     const getFiles = async () => {
         setFilesLoading(true);
-        const data = await storage.ref(`events/${eventId}`).listAll();
+        const data = await listAll(ref(storage, `/events/${eventId}`));
         setFiles(data.items);
         setFilesLoading(false);
     }
@@ -44,7 +45,7 @@ export default function UploadEventMedia({ setOpen, eventId }: UploadEventMediaP
     }, []);
 
     return (
-        <Modal setOpen={setOpen} ref={ref}>
+        <Modal onClose={() => setOpen(false)}>
             <form onSubmit={uploadData} className="flex flex-col md:flex-row items-center gap-2">
                 <Input type="file" onChange={(e) => setSelectedFile(e.target.files[0])} />
                 <Button type="submit">

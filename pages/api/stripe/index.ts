@@ -1,18 +1,20 @@
 import stripe from "stripe";
-import { db } from "@config/firebase";
+import { getFirestore, addDoc, collection, getDoc } from "@firebase/firestore";
 import { WEBSITE_URL } from "@config/config";
 
 export default async function handler(req: any, res: any) {
     const { method, body } = req;
     const stripeClient = new stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2020-08-27" });
+    const db = getFirestore();
 
     switch (method) {
         case "POST":
             const { priceId, ticketQuantity, eventId, customerPhoneNumber, customerName } = body;
 
-            const docRef = await db.collection(`events/${eventId}/subscribers`).add({ name: customerName, phoneNumber: customerPhoneNumber, status: "pending", ticketQuantity, createdAt: new Date() });
+            const docRef = collection(db, "events", eventId, "subscribers");
+            const doc = await addDoc(docRef, { name: customerName, phoneNumber: customerPhoneNumber, status: "pending", ticketQuantity, createdAt: new Date() });
 
-            const doc = await docRef.get();
+            const docResult = await getDoc(doc);
 
             const session = await stripeClient.checkout.sessions.create({
                 payment_method_types: ['card'],
@@ -23,7 +25,7 @@ export default async function handler(req: any, res: any) {
                     },
                 ],
                 mode: 'payment',
-                success_url: `${WEBSITE_URL}/event/${eventId}/tickets/purchase/${doc.id}`,
+                success_url: `${WEBSITE_URL}/event/${eventId}/tickets/purchase/${docResult.id}`,
                 cancel_url: `${WEBSITE_URL}/event/${eventId}/tickets`,
             });
 

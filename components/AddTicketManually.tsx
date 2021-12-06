@@ -1,11 +1,10 @@
-import { db } from '@config/firebase';
 import React, { useState } from 'react'
-import { Button, Input } from './FormComponents';
+import { Button, Input } from '@components/beluga';
 import { AiOutlinePlusCircle as PlusIcon, AiOutlineMinusCircle as MinusIcon } from "react-icons/ai";
-import createSMSIntent from '@utils/createSMSIntent';
 import EventDocument from '@typedefs/EventDocument';
 import subscribeToMailingList from '@utils/subscribeToMailingList';
 import createPurchaseReceipt from '@utils/createPurchaseReceipt';
+import { getFirestore, addDoc, collection } from "@firebase/firestore";
 
 export interface AddTicketManuallyProps {
     event: EventDocument;
@@ -17,6 +16,7 @@ export default function AddTicketManually({ event }: AddTicketManuallyProps) {
     const [name, setName] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [loading, setLoading] = useState(false);
+    const db = getFirestore();
 
     const { id, title } = event;
 
@@ -30,7 +30,7 @@ export default function AddTicketManually({ event }: AddTicketManuallyProps) {
 
         const newTicket = { phoneNumber, name, ticketQuantity, status: "success", createdAt: new Date() }
 
-        await db.collection(`events/${id}/subscribers`).add(newTicket);
+        await addDoc(collection(db, "events", id, "subscribers"), newTicket);
 
         await subscribeToMailingList(phoneNumber);
 
@@ -45,6 +45,7 @@ export default function AddTicketManually({ event }: AddTicketManuallyProps) {
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <h2 className="text-center">Add Ticket Manually</h2>
             <Input value={name} onChange={(e: any) => setName(e.target.value)} type="text" placeholder="Name" />
             <Input value={phoneNumber} onChange={(e: any) => setPhoneNumber(e.target.value)} type="tel" placeholder="Phone Number" />
             <div>

@@ -1,13 +1,8 @@
-import Loading from '@components/Loading';
-import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import React, { useEffect, useRef, useState } from 'react';
-import { AiFillEdit as EditIcon, AiOutlineLoading as LoadingIcon, AiOutlineNotification as NotifyIcon, AiOutlineSave as SaveIcon, AiOutlineUnorderedList as ListIcon, AiOutlineMessage as MessageIcon } from "react-icons/ai";
+import { AiFillEdit as EditIcon, AiOutlineNotification as NotifyIcon, AiOutlineSave as SaveIcon, AiOutlineUnorderedList as ListIcon, AiOutlineMessage as MessageIcon } from "react-icons/ai";
 import Link from 'next/link';
 import { IoTicketOutline as TicketIcon } from "react-icons/io5";
-import useAuth from '@utils/useAuth';
-import { db, storage } from '@config/firebase';
-import Modal from '@components/Modal';
-import { Button, Input, Select, Switch, TextArea } from '@components/FormComponents';
+import { Modal, Button, Input, Select, Switch, TextArea } from '@components/beluga';
 import { GoFileMedia as MediaIcon } from "react-icons/go";
 import UploadEventMedia from '@components/UploadEventMedia';
 import dateConvert from '@utils/dateConvert';
@@ -15,6 +10,11 @@ import Header from '@components/Header';
 import SearchSubscribers from '@components/SearchSubscribers';
 import BroadcastSubcribers from '@components/BroadcastSubcribers';
 import AddTicketManually from '@components/AddTicketManually';
+import { getFirestore, doc, collection, query, where, setDoc, onSnapshot } from "@firebase/firestore";
+import { getStorage, ref, getDownloadURL, listAll } from "@firebase/storage";
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { getAuth } from '@firebase/auth';
+import LoadingScreen from '@components/LoadingScreen';
 import EventDocument from '@typedefs/EventDocument';
 
 const Carousel = ({ images = [] }: { images?: string[] }) => {
@@ -28,8 +28,8 @@ const Carousel = ({ images = [] }: { images?: string[] }) => {
 };
 
 export default function Event({ id }) {
-    const [event, eventLoading] = useDocumentData<EventDocument>(db.doc(`/events/${id}`), { idField: "id" });
-    const [eventSubscribers, eventSubscribersLoading] = useCollectionData(db.collection(`/events/${id}/subscribers`).where("status", "==", "success"), { idField: "id" });
+    const db = getFirestore();
+    const storage = getStorage();
 
     const [showUploadMedia, setShowUploadMedia] = useState(false);
     const [showEditFlyer, setShowEditFlyer] = useState(false);
@@ -39,16 +39,44 @@ export default function Event({ id }) {
     const [files, setFiles] = useState([]);
     const [selectedFile, setSelectedFile] = useState("");
     const [showSearchSubscribers, setShowSearchSubscribers] = useState(false);
-    const searchSubscribersRef = useRef();
     const [showBroadcastSubscribers, setShowBroadcastSubscribers] = useState(false);
-    const broadcastSubscribersRef = useRef();
     const [showAddTickets, setShowAddTickets] = useState(false);
     const editFlyerRef = useRef();
-    const editCardsRef = useRef();
-    const addTicketsRef = useRef();
 
-    const { user } = useAuth();
-    const isOwner = event?.hostId === user?.uid;
+    const auth = getAuth();
+    const [user] = useAuthState(auth);
+    const [isOwner, setIsOwner] = useState(false);
+    const [event, setEvent] = useState(null);
+    const [eventSubscribers, setEventSubscribers] = useState([]);
+    const [eventLoading, setEventLoading] = useState(true);
+
+    useEffect(() => {
+        if (user && event) {
+            setIsOwner(event?.hostId === user?.uid);
+        }
+
+        (async () => {
+            if (!eventLoading) return;
+
+            const eventRef = doc(db, "events", id);
+
+            onSnapshot(eventRef, (snapshot) => {
+                setEvent({ ...snapshot.data(), id: snapshot.id } as EventDocument);
+            });
+
+            const eventSubscribersRef = query(collection(db, "events", id, "subscribers"), where("status", "==", "success"));
+            onSnapshot(eventSubscribersRef, (snapshot) => {
+                const tmpSubscribers = [];
+                snapshot.forEach(e => {
+                    tmpSubscribers.push({ ...e.data(), id: e.id });
+                });
+                setEventSubscribers(tmpSubscribers);
+            });
+
+            setEventLoading(false);
+
+        })();
+    }, [user, event]);
 
     const getFormattedEventTime = () => {
         if (!event.eventTime) return "9:00 PM";
@@ -63,12 +91,15 @@ export default function Event({ id }) {
     }
 
     const saveEditState = async () => {
-        await db.doc(`/events/${id}`).set({ ...editState, eventDate: dateConvert(editState.eventDate), maxTickets: +editState.maxTickets }, { merge: true });
+        const docRef = doc(db, "events", id);
+
+        await setDoc(docRef, { ...editState, eventDate: dateConvert(editState.eventDate), maxTickets: +editState.maxTickets }, { merge: true });
+
         setEditing(false);
     }
 
     const toggleCard = async (file: any) => {
-        const url = await storage.refFromURL(file).getDownloadURL();
+        const url = getDownloadURL(ref(file));
         const containsCard = editState.cardLinks.find(({ name }) => name === file.name);
 
         if (containsCard) {
@@ -81,14 +112,14 @@ export default function Event({ id }) {
     }
 
     const getFiles = async () => {
-        const data = await storage.ref(`events/${id}`).listAll();
+        const data = await listAll(ref(storage, `events/${id}`))
         setFiles(data.items);
     }
 
     const submitEditFlyer = async (e: any) => {
         e.preventDefault();
         if (selectedFile === "") return;
-        const url = await storage.refFromURL(selectedFile).getDownloadURL();
+        const url = await getDownloadURL(ref(storage, selectedFile));
         setEditState({ ...editState, flyerLink: url });
         setShowEditFlyer(false);
     }
@@ -100,35 +131,35 @@ export default function Event({ id }) {
 
     useEffect(() => {
         getFiles();
-    }, [showEditCards, showEditFlyer])
+    }, [showEditCards, showEditFlyer]);
 
-    if (eventLoading || eventSubscribersLoading) return <Loading />;
+    if (!event || eventLoading) return <LoadingScreen />;
 
     return (
         <div className="flex flex-col gap-3 relative">
             <Header title={event?.title} />
-            {showSearchSubscribers && <Modal setOpen={setShowSearchSubscribers} ref={searchSubscribersRef} size="xl">
+            {showSearchSubscribers && <Modal onClose={() => setShowSearchSubscribers(false)} size="xl">
                 <SearchSubscribers subscribers={eventSubscribers} eventId={id} />
             </Modal>}
-            {showBroadcastSubscribers && <Modal setOpen={setShowBroadcastSubscribers} ref={broadcastSubscribersRef} size="xl">
+            {showBroadcastSubscribers && <Modal onClose={() => setShowBroadcastSubscribers(false)} size="xl">
                 <BroadcastSubcribers subscribers={eventSubscribers} />
             </Modal>}
-            {showAddTickets && <Modal setOpen={setShowAddTickets} ref={addTicketsRef} size="xl">
+            {showAddTickets && <Modal onClose={() => setShowAddTickets(false)} size="xl">
                 <AddTicketManually event={event} />
             </Modal>}
-            {isOwner && <div className="flex justify-center gap-3 border-b border-gray-200 py-2">
+            {isOwner && <div className="flex justify-center gap-3 border-b border-gray-200 dark:border-gray-900 py-2">
                 {editing ?
-                    <SaveIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => saveEditState()} />
+                    <SaveIcon className="event-utility-button" onClick={() => saveEditState()} />
                     :
-                    <EditIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setEditing(!editing)} />}
-                <MessageIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowBroadcastSubscribers(true)} />
-                <ListIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowSearchSubscribers(true)} />
-                <TicketIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowAddTickets(true)} />
-                <MediaIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowUploadMedia(true)} />
+                    <EditIcon className="event-utility-button" onClick={() => setEditing(!editing)} />}
+                <MessageIcon className="event-utility-button" onClick={() => setShowBroadcastSubscribers(true)} />
+                <ListIcon className="event-utility-button" onClick={() => setShowSearchSubscribers(true)} />
+                <TicketIcon className="event-utility-button" onClick={() => setShowAddTickets(true)} />
+                <MediaIcon className="event-utility-button" onClick={() => setShowUploadMedia(true)} />
             </div>}
             {showUploadMedia && <UploadEventMedia setOpen={setShowUploadMedia} eventId={id} />}
 
-            {showEditFlyer && <Modal setOpen={setShowEditFlyer} ref={editFlyerRef} size="md">
+            {showEditFlyer && <Modal onClose={() => setShowEditFlyer(false)} size="md">
                 <form onSubmit={submitEditFlyer} ref={editFlyerRef}>
                     <Select onChange={(e) => setSelectedFile(e.target.value)} value={selectedFile}>
                         <option disabled value={""}>
@@ -139,7 +170,7 @@ export default function Event({ id }) {
                         </option>)}
                     </Select>
                     <div className="flex justify-center mt-2">
-                        <Button>
+                        <Button type="submit">
                             Change Flyer
                         </Button>
                     </div>
@@ -147,13 +178,13 @@ export default function Event({ id }) {
             </Modal>}
             <div className="flex flex-col items-center lg:flex-row md:justify-center gap-5 p-2 sm:p-8 w-full max-w-xl lg:max-w-7xl mx-auto lg:items-start">
                 <div className="flex flex-col gap-2 flex-1">
-                    <img src={event.flyerLink} className="w-full lg:max-w-xl" />
+                    <img src={event?.flyerLink} className="w-full lg:max-w-xl" />
                     {editing && <Button onClick={() => setShowEditFlyer(true)}>
                         Edit Flyer
                     </Button>}
                 </div>
                 <div className="flex flex-col gap-2 w-full flex-1">
-                    {editing && <Select onChange={handleEditStateChange} name="visibility">
+                    {editing && <Select onChange={handleEditStateChange} name="visibility" value={editState.visibility}>
                         <option value="private">
                             Private
                         </option>
@@ -163,11 +194,11 @@ export default function Event({ id }) {
                     </Select>}
                     <div className="grid gap-2">
                         {editing ? <Input value={editState.title} onChange={handleEditStateChange} name="title" /> : <h2>{event.title}</h2>}
-                        {editing ? <Input type="date" value={editState.eventDate} onChange={handleEditStateChange} name="eventDate" /> : <p className="font-normal"><span className="text-blue-500 font-semibold">{event.eventDate.toDate().toDateString()}</span> at {getFormattedEventTime()}</p>}
+                        {editing ? <Input type="date" value={editState.eventDate} onChange={handleEditStateChange} name="eventDate" /> : <p><span className="text-indigo-500 font-semibold">{event.eventDate.toDate().toDateString()}</span> at {getFormattedEventTime()}</p>}
                         {editing && <Input type="time" value={editState.eventTime} onChange={handleEditStateChange} name="eventTime" />}
                     </div>
 
-                    {editing ? <TextArea value={editState.description} onChange={handleEditStateChange} name="description" /> : <p className="whitespace-pre-line text-gray-600 font-normal">{event.description}</p>}
+                    {editing ? <TextArea value={editState.description} onChange={handleEditStateChange} name="description" /> : <p className="whitespace-pre-line font-normal">{event.description}</p>}
 
                     {!editing && event.eventDate.toDate() >= new Date(new Date().toDateString()) && <div className="flex flex-col items-center gap-4 mt-6">
                         <Link href={`/event/${id}/tickets`}>
@@ -186,7 +217,7 @@ export default function Event({ id }) {
                     {editing &&
                         <Input onChange={handleEditStateChange} value={editState.maxTickets} name="maxTickets" placeholder="Maximum Tickets" type="number" />}
                     <Carousel images={event.cardLinks.map(({ url }) => url)} />
-                    {showEditCards && <Modal setOpen={setShowEditCards} ref={editCardsRef} size="md">
+                    {showEditCards && <Modal onClose={() => setShowEditCards(false)} size="md">
                         <div className="flex flex-col gap-2">
                             {files.map((file) => <div key={file} className="flex items-center gap-4">
                                 <Switch value={editState.cardLinks.find(({ name }) => name === file.name)} onClick={() => toggleCard(file)} />

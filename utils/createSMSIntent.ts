@@ -1,5 +1,5 @@
-import { db } from "@config/firebase";
 import axios from "axios";
+import { getFirestore, addDoc, collection } from "@firebase/firestore";
 
 export interface SMSIntent {
     /**
@@ -14,7 +14,8 @@ export interface SMSIntent {
 
 export default async function createSMSIntent(body: SMSIntent, consume?: boolean) {
     try {
-        const intent = await db.collection("sms_intent").add({ ...body, sent: false });
+        const db = getFirestore();
+        const intent = await addDoc(collection(db, "sms_intent"), { ...body, sent: false });
 
         if (consume)
             await axios.post("/api/consume-sms-intent", { id: intent.id });

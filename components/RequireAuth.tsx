@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Loading from "@components/Loading";
+import LoadingScreen from "@components/LoadingScreen";
 import { useAuthState } from "react-firebase-hooks/auth";
-import firebase from "@config/firebase";
+import { getAuth } from "@firebase/auth";
+import { getDoc, doc, getFirestore } from "@firebase/firestore";
 
 export interface RequireAuthProps {
   children: any;
@@ -11,20 +12,37 @@ export interface RequireAuthProps {
 
 export default function RequireAuth({ children, allowRoles }: RequireAuthProps) {
   const router = useRouter();
+  const db = getFirestore();
 
-  const [user, loading, error] = useAuthState(firebase.auth());
+  const auth = getAuth();
+  const [user, loading] = useAuthState(auth);
+  const [checksPass, setChecksPass] = useState(false);
 
   useEffect(() => {
+    (async () => {
 
-    if (user?.role === "admin") return;
-    // Not loading and no user = invalid login
-    if ((!loading && !user) || error || allowRoles?.includes(user?.role)) {
-      router.push("/error/403");
-    }
+      // If the user is loading, we don't want to do anything
+      if (loading) return;
+
+      // Get the user document
+      const docRef = doc(db, `users/${user?.uid}`);
+      const userDoc = await getDoc(docRef);
+
+      if (userDoc.exists()) {
+        const { role } = userDoc.data();
+
+        // If the user is an admin or is of a valid role, we're good
+        if (role === "admin" || (allowRoles?.length && !allowRoles?.includes(role)) || allowRoles?.length === 0 || !allowRoles)
+          setChecksPass(true);
+      } else {
+        router.push("/error/403");
+      }
+    })()
+
   }, [user]);
 
-  // Not loading and user exists = valid login
-  if (!loading && user) return children;
 
-  return <Loading />;
+  if (checksPass) return children;
+
+  return <LoadingScreen />;
 }

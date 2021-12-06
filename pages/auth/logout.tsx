@@ -1,23 +1,22 @@
 import React, { useEffect } from 'react'
-import firebase from "@config/firebase";
-import Loading from '@components/Loading';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useRouter } from "next/router";
+import { getAuth, signOut } from '@firebase/auth';
+import LoadingScreen from '@components/LoadingScreen';
 
 export default function Logout() {
     const router = useRouter();
-    const [user, loading] = useAuthState(firebase.auth());
-
-    const signOut = async () => {
-        await firebase.auth().signOut();
-    };
+    const auth = getAuth();
+    const [user, loading] = useAuthState(auth);
 
     useEffect(() => {
-        signOut();
+        (async () => {
+            await signOut(auth);
+        })();
     }, []);
 
     // If there is no login
     if (!user && !loading) router.push("/");
 
-    return <Loading />
+    return <LoadingScreen />
 }
