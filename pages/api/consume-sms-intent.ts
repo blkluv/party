@@ -1,8 +1,17 @@
 import { getFirestore, doc, getDoc } from "@firebase/firestore";
 import twilio from 'twilio'
+import { initializeApp, getApps } from "@firebase/app";
+import firebaseConfig from "@config/firebase";
+
 
 export default async function handler(req: any, res: any) {
     const { method, body } = req;
+
+    const apps = getApps();
+
+    if (apps.length === 0) {
+        initializeApp(firebaseConfig);
+    }
 
     const db = getFirestore();
 
@@ -12,9 +21,9 @@ export default async function handler(req: any, res: any) {
         case "POST":
             const { id } = body;
 
-            const docRef = doc(db,"sms_intent",id);
+            const docRef = doc(db, "sms_intent", id);
             const docData = await getDoc(docRef);
-            
+
             if (!docData.exists()) return res.status(400).send({})
 
             const { recipients, message, sent } = docData.data();
