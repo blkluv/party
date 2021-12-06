@@ -1,13 +1,13 @@
 import stripe from "stripe";
-import { getFirestore, addDoc, collection, getDoc } from "@firebase/firestore";
+import { getFirestore, addDoc, collection } from "@firebase/firestore";
 import { WEBSITE_URL } from "@config/config";
 
 export default async function handler(req: any, res: any) {
-    const { method, body } = req;
-    const stripeClient = new stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2020-08-27" });
-    const db = getFirestore();
 
     try {
+        const { method, body } = req;
+        const stripeClient = new stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2020-08-27" });
+        const db = getFirestore();
 
 
         switch (method) {
@@ -33,9 +33,8 @@ export default async function handler(req: any, res: any) {
                 return res.status(200).send({ url: session.url });
         }
 
-
+        return res.status(400).send({});
     } catch (e) {
-        res.status(400).send({ error: e });
+        return res.status(400).send({ error: e });
     }
-    return res.status(400).send({});
 }
