@@ -4,24 +4,27 @@
 
 @layer base {
   h1 {
-    @apply text-5xl;
+    @apply text-4xl;
     @apply md:text-5xl;
     @apply font-bold;
   }
   h2 {
-    @apply text-4xl;
+    @apply text-3xl;
     @apply md:text-4xl;
     @apply font-semibold;
   }
   h3 {
-    @apply text-3xl;
-    @apply md:text-2xl;
+    @apply text-2xl;
+    @apply md:text-3xl;
     @apply font-semibold;
   }
   h4 {
-    @apply text-2xl;
+    @apply text-xl;
+    @apply md:text-2xl;
+  }
+  h5 {
+    @apply text-lg;
     @apply md:text-xl;
-    @apply font-light;
   }
 
   .small-screen-nav-button {
@@ -41,11 +44,19 @@
   }
 
   .background-hover {
-    @apply hover:bg-gray-100 transition dark:hover:bg-gray-500 cursor-pointer rounded-sm;
+    @apply hover:bg-gray-100 transition dark:hover:bg-gray-500 cursor-pointer;
   }
 
   .nav-drawer-button {
     @apply background-hover flex items-center gap-4 py-3 px-6;
+  }
+
+  .event-utility-button{
+    @apply w-7 h-7 p-1 cursor-pointer primary-hover;
+  }
+
+  .rainbow-text {
+    @apply bg-clip-text bg-gradient-to-r from-blue-500 to-red-400 fill-current text-transparent pb-2;
   }
 }
 

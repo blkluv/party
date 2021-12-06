@@ -1,12 +1,11 @@
-import { Button } from '@components/FormComponents'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import RequireAuth from "@components/RequireAuth";
 import getNewEvent from '@utils/getNewEvent';
 import EventDocument from '@typedefs/EventDocument';
 import Link from 'next/link';
 import { BsPlus as PlusIcon, BsTrash as TrashIcon } from "react-icons/bs";
 import deleteEvent from '@utils/deleteEvent';
-import { Modal } from '@components/beluga';
+import { Modal, Button } from '@components/beluga';
 import Header from '@components/Header';
 import { getAuth } from '@firebase/auth';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -26,35 +25,32 @@ export default function Events() {
     }
 
     useEffect(() => {
-        (async () => {
-            if (!user) return;
-            setEventsLoading(true);
-            const eventsRef = query(collection(db, "events"), where("hostId", "==", user?.uid));
-            onSnapshot(eventsRef, (snapshot) => {
-                const tmpEvents = [];
-                snapshot.forEach((doc) => {
-                    tmpEvents.push({ ...doc.data(), id: doc.id });
-                });
-                setEvents(tmpEvents);
+        if (!user) return;
+        setEventsLoading(true);
+        const eventsRef = query(collection(db, "events"), where("hostId", "==", user?.uid));
+        onSnapshot(eventsRef, (snapshot) => {
+            const tmpEvents = [];
+            snapshot.forEach((doc) => {
+                tmpEvents.push({ ...doc.data(), id: doc.id });
             });
-            setEventsLoading(false);
-        })();
-    })
+            setEvents(tmpEvents);
+        });
+        setEventsLoading(false);
+    }, [user]);
+
 
     if (eventsLoading || loading) return <LoadingScreen />
 
     return (
         <RequireAuth>
             <Header title="My Events" />
-            <div className="mx-auto my-auto p-1 w-full max-w-xl flex flex-col gap-2">
-                <div className="flex justify-end items-center">
-                    <Button onClick={addNewEvent} variant="blank" className="border border-black rounded-full p-px group hover:border-gray-500 transition">
-                        <PlusIcon className="group-hover:text-gray-500 transition w-5 h-5" />
-                    </Button>
-                </div>
-                <div className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden divide-y divide-gray-300 dark:divide-gray-800">
+            <div className="mx-auto my-auto p-1 w-full max-w-xl flex flex-col gap-2 items-center">
+                <div className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden divide-y divide-gray-300 dark:divide-gray-800 shadow-center-md w-full">
                     {sortedEvents.length ? sortedEvents?.map(({ title, id }) => <EventListItem title={title} id={id} key={id} />) : <p className="p-3">No events</p>}
                 </div>
+                <Button onClick={addNewEvent} variant="default">
+                    <PlusIcon className="w-6 h-6" />
+                </Button>
             </div>
         </RequireAuth>
     )
@@ -84,13 +80,13 @@ const EventListItem = ({ title, id }: EventListItemProps) => {
             </Modal>}
             <Link href={`/event/${id}`}>
                 <div className="flex-1 p-3 group background-hover">
-                    <p className="group-hover:text-white transition">
+                    <p>
                         {title}
                     </p>
                 </div>
             </Link>
             <div className="flex justify-center items-center p-3 group background-hover" onClick={() => setShowDelete(true)}>
-                <TrashIcon className="w-5 h-5 group-hover:text-white transition" />
+                <TrashIcon className="w-5 h-5" />
             </div>
         </div>
     )

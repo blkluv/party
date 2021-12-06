@@ -20,6 +20,7 @@ export default function SearchSubscribers({ subscribers, eventId }: SearchSubscr
 
     return (
         <div>
+            <h3 className="text-center mb-2">Search</h3>
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search" />
             <p className="text-center my-2">{totalTickets} Total Ticket{totalTickets !== 1 && "s"}</p>
             <div className="grid grid-cols-9 my-4">

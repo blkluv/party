@@ -6,7 +6,7 @@ export interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   error?: boolean;
 }
 
-const Input = forwardRef((props: TextAreaProps, ref: any) => {
+const TextArea = forwardRef((props: TextAreaProps, ref: any) => {
   const { variant = "default" } = props;
   const className = `${props.className} ${overrides} ${styles[variant].style} ${props?.error && styles[variant].error} ${props?.disabled && styles[variant].disabled}`;
 
@@ -19,4 +19,4 @@ const Input = forwardRef((props: TextAreaProps, ref: any) => {
   );
 });
 
-export default Input;
+export default TextArea;

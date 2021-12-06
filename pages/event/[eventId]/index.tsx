@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AiFillEdit as EditIcon, AiOutlineNotification as NotifyIcon, AiOutlineSave as SaveIcon, AiOutlineUnorderedList as ListIcon, AiOutlineMessage as MessageIcon } from "react-icons/ai";
 import Link from 'next/link';
 import { IoTicketOutline as TicketIcon } from "react-icons/io5";
-import { Modal } from '@components/beluga';
-import { Button, Input, Select, Switch, TextArea } from '@components/FormComponents';
+import { Modal, Button, Input, Select, Switch, TextArea } from '@components/beluga';
 import { GoFileMedia as MediaIcon } from "react-icons/go";
 import UploadEventMedia from '@components/UploadEventMedia';
 import dateConvert from '@utils/dateConvert';
@@ -43,7 +42,6 @@ export default function Event({ id }) {
     const [showBroadcastSubscribers, setShowBroadcastSubscribers] = useState(false);
     const [showAddTickets, setShowAddTickets] = useState(false);
     const editFlyerRef = useRef();
-    const editCardsRef = useRef();
 
     const auth = getAuth();
     const [user] = useAuthState(auth);
@@ -94,7 +92,9 @@ export default function Event({ id }) {
 
     const saveEditState = async () => {
         const docRef = doc(db, "events", id);
+
         await setDoc(docRef, { ...editState, eventDate: dateConvert(editState.eventDate), maxTickets: +editState.maxTickets }, { merge: true });
+
         setEditing(false);
     }
 
@@ -131,14 +131,14 @@ export default function Event({ id }) {
 
     useEffect(() => {
         getFiles();
-    }, [showEditCards, showEditFlyer])
+    }, [showEditCards, showEditFlyer]);
 
     if (!event || eventLoading) return <LoadingScreen />;
 
     return (
         <div className="flex flex-col gap-3 relative">
             <Header title={event?.title} />
-            {showSearchSubscribers && <Modal onClose={() => setShowBroadcastSubscribers(false)} size="xl">
+            {showSearchSubscribers && <Modal onClose={() => setShowSearchSubscribers(false)} size="xl">
                 <SearchSubscribers subscribers={eventSubscribers} eventId={id} />
             </Modal>}
             {showBroadcastSubscribers && <Modal onClose={() => setShowBroadcastSubscribers(false)} size="xl">
@@ -147,15 +147,15 @@ export default function Event({ id }) {
             {showAddTickets && <Modal onClose={() => setShowAddTickets(false)} size="xl">
                 <AddTicketManually event={event} />
             </Modal>}
-            {isOwner && <div className="flex justify-center gap-3 border-b border-gray-200 py-2">
+            {isOwner && <div className="flex justify-center gap-3 border-b border-gray-200 dark:border-gray-900 py-2">
                 {editing ?
-                    <SaveIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => saveEditState()} />
+                    <SaveIcon className="event-utility-button" onClick={() => saveEditState()} />
                     :
-                    <EditIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setEditing(!editing)} />}
-                <MessageIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowBroadcastSubscribers(true)} />
-                <ListIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowBroadcastSubscribers(true)} />
-                <TicketIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowAddTickets(true)} />
-                <MediaIcon className="w-7 h-7 p-1 cursor-pointer text-gray-400 hover:text-blue-500 transition" onClick={() => setShowUploadMedia(true)} />
+                    <EditIcon className="event-utility-button" onClick={() => setEditing(!editing)} />}
+                <MessageIcon className="event-utility-button" onClick={() => setShowBroadcastSubscribers(true)} />
+                <ListIcon className="event-utility-button" onClick={() => setShowSearchSubscribers(true)} />
+                <TicketIcon className="event-utility-button" onClick={() => setShowAddTickets(true)} />
+                <MediaIcon className="event-utility-button" onClick={() => setShowUploadMedia(true)} />
             </div>}
             {showUploadMedia && <UploadEventMedia setOpen={setShowUploadMedia} eventId={id} />}
 
@@ -170,7 +170,7 @@ export default function Event({ id }) {
                         </option>)}
                     </Select>
                     <div className="flex justify-center mt-2">
-                        <Button>
+                        <Button type="submit">
                             Change Flyer
                         </Button>
                     </div>
@@ -184,7 +184,7 @@ export default function Event({ id }) {
                     </Button>}
                 </div>
                 <div className="flex flex-col gap-2 w-full flex-1">
-                    {editing && <Select onChange={handleEditStateChange} name="visibility">
+                    {editing && <Select onChange={handleEditStateChange} name="visibility" value={editState.visibility}>
                         <option value="private">
                             Private
                         </option>
@@ -194,11 +194,11 @@ export default function Event({ id }) {
                     </Select>}
                     <div className="grid gap-2">
                         {editing ? <Input value={editState.title} onChange={handleEditStateChange} name="title" /> : <h2>{event.title}</h2>}
-                        {editing ? <Input type="date" value={editState.eventDate} onChange={handleEditStateChange} name="eventDate" /> : <p className="font-normal"><span className="text-blue-500 font-semibold">{event.eventDate.toDate().toDateString()}</span> at {getFormattedEventTime()}</p>}
+                        {editing ? <Input type="date" value={editState.eventDate} onChange={handleEditStateChange} name="eventDate" /> : <p><span className="text-indigo-500 font-semibold">{event.eventDate.toDate().toDateString()}</span> at {getFormattedEventTime()}</p>}
                         {editing && <Input type="time" value={editState.eventTime} onChange={handleEditStateChange} name="eventTime" />}
                     </div>
 
-                    {editing ? <TextArea value={editState.description} onChange={handleEditStateChange} name="description" /> : <p className="whitespace-pre-line text-gray-600 font-normal">{event.description}</p>}
+                    {editing ? <TextArea value={editState.description} onChange={handleEditStateChange} name="description" /> : <p className="whitespace-pre-line font-normal">{event.description}</p>}
 
                     {!editing && event.eventDate.toDate() >= new Date(new Date().toDateString()) && <div className="flex flex-col items-center gap-4 mt-6">
                         <Link href={`/event/${id}/tickets`}>

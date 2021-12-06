@@ -15,7 +15,7 @@ export default function RequireAuth({ children, allowRoles }: RequireAuthProps) 
   const db = getFirestore();
 
   const auth = getAuth();
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
   const [checksPass, setChecksPass] = useState(false);
 
   useEffect(() => {
