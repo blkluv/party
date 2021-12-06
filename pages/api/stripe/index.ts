@@ -1,10 +1,18 @@
 import stripe from "stripe";
 import { getFirestore, addDoc, collection } from "@firebase/firestore";
 import { WEBSITE_URL } from "@config/config";
+import { initializeApp, getApps } from "@firebase/app";
+import firebaseConfig from "@config/firebase";
 
 export default async function handler(req: any, res: any) {
 
     try {
+
+        const apps = getApps();
+
+        if (apps.length === 0) {
+            initializeApp(firebaseConfig);
+        }
         const { method, body } = req;
         const stripeClient = new stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2020-08-27" });
         const db = getFirestore();

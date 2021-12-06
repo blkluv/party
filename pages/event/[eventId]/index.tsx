@@ -216,7 +216,7 @@ export default function Event({ id }) {
                         <Input onChange={handleEditStateChange} value={editState.priceId} name="priceId" placeholder="Price ID" />}
                     {editing &&
                         <Input onChange={handleEditStateChange} value={editState.maxTickets} name="maxTickets" placeholder="Maximum Tickets" type="number" />}
-                    <Carousel images={event.cardLinks.map(({ url }) => url)} />
+                    {event?.cardLinks.length > 0 && <Carousel images={event.cardLinks.map(({ url }) => url)} />}
                     {showEditCards && <Modal onClose={() => setShowEditCards(false)} size="md">
                         <div className="flex flex-col gap-2">
                             {files.map((file) => <div key={file} className="flex items-center gap-4">
