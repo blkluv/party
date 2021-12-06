@@ -1,10 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router';
 import { Button, Input, Modal } from '@components/beluga';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import LoadingScreen from '@components/LoadingScreen';
 import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc } from '@firebase/firestore';
 
 export default function Login() {
 
@@ -16,21 +15,6 @@ export default function Login() {
     const [confirmCode, setConfirmCode] = useState("");
     const [formError, setFormError] = useState("");
     const [confirmationResult, setConfirmationResult]: any = useState(null);
-    const db = getFirestore();
-
-    const checkAndSetUserDetails = async () => {
-        if (!user) return;
-
-        const docRef = doc(db, "users", user.uid);
-        const data = await getDoc(docRef);
-
-        // If user does not exist, create entry for them
-        if (!data.exists)
-            await setDoc(docRef, { uid: user.uid, role: "default", phoneNumber, updatedAt: new Date() });
-
-        router.push("/");
-    }
-
 
     const login = async (e: any) => {
         e.preventDefault();
@@ -57,8 +41,10 @@ export default function Login() {
         confirmationResult.confirm(confirmCode);
     }
 
-    // There exists a user locally. Create one in db
-    if (!userLoading && user) checkAndSetUserDetails();
+    useEffect(() => {
+        if (!userLoading && user)
+            router.push("/");
+    }, [user, userLoading]);
 
     // User is loading or user exists
     if (userLoading || (!userLoading && user)) return <LoadingScreen />;
