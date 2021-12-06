@@ -1,9 +1,8 @@
 import MailingListSubscriber from '@typedefs/MailingListSubscriber'
-import React, {useState } from 'react';
+import React, { useState } from 'react';
 import NumberFormat from 'react-number-format';
-import { Button, Input } from './FormComponents';
 import { BsTrash as TrashIcon } from "react-icons/bs";
-import { Modal } from '@components/beluga';
+import { Modal, Button, Input } from '@components/beluga';
 import { getFirestore, doc, deleteDoc } from "@firebase/firestore";
 
 export interface SearchSubscribersProps {

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { useRouter } from 'next/router';
-import { Button, Input, Switch } from '@components/FormComponents';
+import { Button, Input, Switch } from '@components/beluga';
 import axios from 'axios';
 import { useState } from 'react';
 import { AiOutlinePlusCircle as PlusIcon, AiOutlineMinusCircle as MinusIcon } from "react-icons/ai";
@@ -123,11 +123,11 @@ export default function TicketPurchase({ id }) {
                         <div className="grid gap-3">
                             <div>
                                 <p className="font-normal">Name</p>
-                                <Input onChange={handleChange} name="name" type="text" value={form.name} showError={errors.name.length > 0} minLength={1} />
+                                <Input onChange={handleChange} name="name" type="text" value={form.name} minLength={1} />
                             </div>
                             <div>
                                 <p className="font-normal">Phone Number</p>
-                                <Input onChange={handleChange} name="phoneNumber" type="tel" value={form.phoneNumber} showError={errors.phoneNumber.length > 0} minLength={10} maxLength={10} />
+                                <Input onChange={handleChange} name="phoneNumber" type="tel" value={form.phoneNumber} minLength={10} maxLength={10} />
                             </div>
                             <div>
                                 <p className="font-normal">Ticket Quantity</p>

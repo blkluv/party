@@ -1,7 +1,7 @@
 import MailingListSubscriber from '@typedefs/MailingListSubscriber'
 import createSMSIntent from '@utils/createSMSIntent';
 import React, { useState } from 'react'
-import { Button, TextArea } from './FormComponents';
+import { Button, TextArea } from '@components/beluga';
 
 export interface BroadcastSubscribersProps {
     subscribers: MailingListSubscriber[];

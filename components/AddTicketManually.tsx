@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Button, Input } from './FormComponents';
+import { Button, Input } from '@components/beluga';
 import { AiOutlinePlusCircle as PlusIcon, AiOutlineMinusCircle as MinusIcon } from "react-icons/ai";
 import EventDocument from '@typedefs/EventDocument';
 import subscribeToMailingList from '@utils/subscribeToMailingList';
