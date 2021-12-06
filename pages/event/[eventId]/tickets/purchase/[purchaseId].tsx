@@ -48,7 +48,7 @@ export default function PurchaseResult({ purchaseId, id }) {
 
         if (purchase?.status === "pending")
             setSuccessState();
-    }, [doc, event]);
+    }, [purchase, event,loading]);
 
     if (loading) return <Loading />
 
