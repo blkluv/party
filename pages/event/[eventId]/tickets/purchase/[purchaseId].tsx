@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { AiFillCheckCircle as CheckIcon } from 'react-icons/ai';
-import Loading from '@components/Loading';
 import createPurchaseReceipt from '@utils/createPurchaseReceipt';
-import { getFirestore, doc, collection, query, where, getDocs, setDoc, getDoc } from "@firebase/firestore";
+import { getFirestore, doc, collection, query, where, getDocs, setDoc, getDoc, onSnapshot } from "@firebase/firestore";
+import LoadingScreen from '@components/LoadingScreen';
 
 export default function PurchaseResult({ purchaseId, id }) {
     const db = getFirestore();
@@ -13,44 +13,51 @@ export default function PurchaseResult({ purchaseId, id }) {
 
     useEffect(() => {
         if (event && purchase) return;
-        (async () => {
-            setLoading(true);
+
+        const loadData = async () => {
 
             const eventRef = doc(db, "events", id);
             const eventDoc = await getDoc(eventRef);
             setEvent({ ...eventDoc.data(), id: eventDoc.id });
 
             const purchaseRef = doc(db, "events", id, "subscribers", purchaseId);
-            const purchaseDoc = await getDoc(purchaseRef);
-            setPurchase({ ...purchaseDoc.data(), id: purchaseDoc.id });
+            onSnapshot(purchaseRef, (snapshot) => {
+                setPurchase({ ...snapshot.data(), id: snapshot.id });
+            });
 
-            setLoading(false);
-        })();
-    }, []);
+        }
+
+        loadData();
+    }, [event, purchase]);
 
     useEffect(() => {
-        const setSuccessState = async () => {
 
-            if (loading) return;
+        const setSuccessState = async () => {
 
             // Don't send texts if successful purchase was previously made for phone number
             const subscribersQuery = query(collection(db, "events", id, "subscribers"), where("phoneNumber", "==", purchase.phoneNumber), where("status", "==", "success"));
 
             const matchingSubscribers = await getDocs(subscribersQuery);
 
-            if (matchingSubscribers.docs.length)
-                return;
+            if (matchingSubscribers.docs.length === 0) {
+                await setDoc(doc(db, `events/${id}/subscribers/${purchaseId}`), { status: "success" }, { merge: true })
+                await createPurchaseReceipt(purchase.phoneNumber, event.title);
+            }
 
-            await setDoc(doc(db, `events/${id}/subscribers/${purchaseId}`), { status: "success" }, { merge: true })
-
-            await createPurchaseReceipt(purchase.phoneNumber, event.title);
+            setLoading(false);
         }
 
-        if (purchase?.status === "pending")
-            setSuccessState();
-    }, [purchase, event,loading]);
+        if (event && purchase) {
+            if (purchase?.status === "pending") {
+                setSuccessState();
+            } else {
+                setLoading(false);
+            }
+        }
 
-    if (loading) return <Loading />
+    }, [purchase, event, loading]);
+
+    if (loading) return <LoadingScreen />
 
     return (
         <div className="flex-1 flex justify-center items-center">
