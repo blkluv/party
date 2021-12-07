@@ -50,7 +50,7 @@ const SubscriberRow = ({ eventId, subscriber }: { eventId: string, subscriber: M
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
     const deleteSubscriber = async () => {
-        const docRef = doc(db, "events", eventId, "subscriberss", id);
+        const docRef = doc(db, "events", eventId, "subscribers", id);
         await deleteDoc(docRef);
     }
 
