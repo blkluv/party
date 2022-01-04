@@ -25,7 +25,7 @@ export default function Home() {
       setEvents(tmpEvents);
       setEventsLoading(false);
     })();
-  }, [])
+  }, [db])
 
   if (eventsLoading) return <LoadingScreen />;
 
@@ -37,7 +37,7 @@ export default function Home() {
       <div className="mx-auto max-w-lg w-full p-2 sm:p-8">
         <div className="rounded-xl mt-2 flex flex-col gap-4">
           {events?.length > 0 ? events?.map((event: EventDocument) =>
-            <Link href={`/event/${event.id}`} key={event.id}>
+            <Link href={`/event/${event.id}`} key={event.id} passHref>
               <div className="p-3 bg-white dark:bg-gray-900 background-hover shadow-center-md rounded-xl">
                 <h4>
                   {event.title}

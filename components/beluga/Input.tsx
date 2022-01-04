@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { ForwardedRef, forwardRef } from "react";
 import { styles, overrides } from "./InputStyles";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -6,8 +6,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?: boolean;
 }
 
-
-const Input = forwardRef((props: InputProps, ref: any) => {
+const Input = forwardRef((props: InputProps, ref: ForwardedRef<any>) => {
   const { variant = "default" } = props;
   const className = `${props.className} ${overrides} ${styles[variant].style} ${props?.error && styles[variant].error} ${props?.disabled && styles[variant].disabled}`;
 
@@ -30,5 +29,7 @@ const Input = forwardRef((props: InputProps, ref: any) => {
     />
   );
 });
+
+Input.displayName = "Input";
 
 export default Input;

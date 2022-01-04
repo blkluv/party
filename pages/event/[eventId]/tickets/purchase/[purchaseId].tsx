@@ -28,7 +28,7 @@ export default function PurchaseResult({ purchaseId, id }) {
         }
 
         loadData();
-    }, [event, purchase]);
+    }, [event, purchase, db, purchaseId, id]);
 
     useEffect(() => {
 
@@ -55,7 +55,7 @@ export default function PurchaseResult({ purchaseId, id }) {
             }
         }
 
-    }, [purchase, event, loading]);
+    }, [purchase, event, loading, db, purchaseId, id]);
 
     if (loading) return <LoadingScreen />
 

@@ -1,10 +1,12 @@
 import Navigation from '@components/Navigation'
 import { APP_NAME } from '@config/config';
 import { initializeApp } from '@firebase/app';
-import { Provider } from 'context/Context';
+import store from "@redux/store";
+import StateManager from '@components/StateManager'
 import Head from 'next/head'
 import "../styles/globals.css";
 import firebaseConfig from "@config/firebase";
+import { Provider } from 'react-redux';
 
 initializeApp(firebaseConfig);
 
@@ -23,8 +25,6 @@ export default function MyApp({ Component, pageProps }) {
         <meta name="keywords" content={APP_NAME} />
         <title>{APP_NAME}</title>
 
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-
         <link rel="manifest" href="/manifest.json" />
         <link
           href="/icons/icon-16x16.png"
@@ -41,8 +41,9 @@ export default function MyApp({ Component, pageProps }) {
         {/* <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"></link> */}
         <meta name="theme-color" content="#dbdbdb" />
       </Head>
-      <Provider>
-        <div className="bg-gray-100 dark:bg-black text-black dark:text-white min-h-screen bg-opacity-50 pb-24 md:pb-0 flex flex-col" id="app">
+      <Provider store={store}>
+        <div className="bg-gray-100 dark:bg-gray-900 text-black dark:text-white min-h-screen md:pt-24 pb-24 md:pb-0 relative flex flex-col" id="app">
+          <StateManager />
           <Navigation />
           <Component {...pageProps} />
         </div>

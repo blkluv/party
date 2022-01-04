@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React, { ForwardedRef, forwardRef } from "react";
 import { styles, overrides } from "./InputStyles";
 
 export interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -6,7 +6,7 @@ export interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   error?: boolean;
 }
 
-const TextArea = forwardRef((props: TextAreaProps, ref: any) => {
+const TextArea = forwardRef((props: TextAreaProps, ref: ForwardedRef<any>) => {
   const { variant = "default" } = props;
   const className = `${props.className} ${overrides} ${styles[variant].style} ${props?.error && styles[variant].error} ${props?.disabled && styles[variant].disabled}`;
 
@@ -18,5 +18,7 @@ const TextArea = forwardRef((props: TextAreaProps, ref: any) => {
     />
   );
 });
+
+TextArea.displayName = "TextArea";
 
 export default TextArea;

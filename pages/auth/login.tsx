@@ -44,7 +44,7 @@ export default function Login() {
     useEffect(() => {
         if (!userLoading && user)
             router.push("/");
-    }, [user, userLoading]);
+    }, [user, userLoading, router]);
 
     // User is loading or user exists
     if (userLoading || (!userLoading && user)) return <LoadingScreen />;
@@ -53,13 +53,14 @@ export default function Login() {
         <div className="flex-1 flex items-center justify-center">
             {showConfirm && <Modal onClose={() => setShowConfirm(false)}>
                 <form onSubmit={verifyConfirmationCode} className="grid gap-2">
-                    <Input value={confirmCode} onChange={e => setConfirmCode(e.target.value)} type="tel" />
+                    <p className='text-center font-light text-xl mb-4'>Verification Code</p>
+                    <Input value={confirmCode} onChange={e => setConfirmCode(e.target.value)} type="tel" placeholder="Code" />
                     <Button type="submit">
                         Verify
                     </Button>
                 </form>
             </Modal>}
-            <div className="w-full max-w-sm rounded-lg mx-2 sm:px-8 sm:py-12 p-4 my-6 bg-white border border-gray-300">
+            <div className="w-full max-w-sm rounded-lg mx-2 sm:px-8 sm:py-12 p-4 my-6 bg-white dark:bg-gray-900 shadow-center-md">
                 <h3 className="text-center font-light text-3xl mt-4 mb-6">
                     Login
                 </h3>
