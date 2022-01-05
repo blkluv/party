@@ -42,7 +42,7 @@ export default function MyApp({ Component, pageProps }) {
         <meta name="theme-color" content="#dbdbdb" />
       </Head>
       <Provider store={store}>
-        <div className="bg-gray-100 dark:bg-gray-900 text-black dark:text-white min-h-screen md:pt-24 pb-24 md:pb-0 relative flex flex-col" id="app">
+        <div className="bg-gray-100 dark:bg-gray-900 text-black dark:text-white min-h-screen pb-24 md:pb-0 relative flex flex-col" id="app">
           <StateManager />
           <Navigation />
           <Component {...pageProps} />

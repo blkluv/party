@@ -42,7 +42,7 @@ export default function Events() {
     if (eventsLoading || loading) return <LoadingScreen />
 
     return (
-        <RequireAuth>
+        <RequireAuth allowRoles={["host"]}>
             <Header title="My Events" />
             <div className="mx-auto my-auto p-1 w-full max-w-xl flex flex-col gap-2 items-center">
                 <div className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden divide-y divide-gray-300 dark:divide-gray-800 shadow-center-md w-full">

@@ -1,15 +1,36 @@
+import UserDocument from "@typedefs/UserDocument";
+import getNewUser from "@utils/getNewUser";
 import { getAuth } from "firebase/auth";
-import { useState } from "react";
+import { doc, getDoc, getFirestore, setDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
 
-export default function useAuth() {
+/**
+ * Hook that returns the current user as a document from firestore
+ * @returns {[UserDocument, boolean]}
+ */
+export default function useAuth(): [UserDocument | null, boolean] {
     const [auth, setAuth] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const firebaseAuth = getAuth();
-    firebaseAuth.onAuthStateChanged(user => {
-        if (user) {
-            setAuth(user);
-        }
-    });
+    useEffect(() => {
+        const firebaseAuth = getAuth();
+        const db = getFirestore();
 
-    return auth;
+        firebaseAuth.onAuthStateChanged(async (user) => {
+            setLoading(true);
+            if (user) {
+                const ref = doc(db, "users", user.uid);
+                const snapshot = await getDoc(ref);
+                if (snapshot.exists()) {
+                    const data = snapshot.data();
+                    setAuth(data as UserDocument);
+                } else {
+                    await setDoc(ref, getNewUser());
+                }
+            }
+            setLoading(false);
+        });
+    }, []);
+
+    return [auth, loading];
 }

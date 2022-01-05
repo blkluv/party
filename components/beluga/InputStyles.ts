@@ -1,7 +1,7 @@
 export const overrides = `focus:ring-0 focus:outline-none appearance-none`;
 export const styles: any = {
     default: {
-        style: "focus:border-indigo-300 text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-900 rounded-md w-full border border-gray-300 dark:border-gray-700 py-2 px-2",
+        style: "focus:border-indigo-300 text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-900 rounded-md w-full border border-gray-300 dark:border-gray-700 px-2 h-10 py-2",
         error: "border border-red-500",
         disabled: "filter brightness-50"
     },

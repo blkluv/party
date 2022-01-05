@@ -4,12 +4,13 @@ import { Button, Input, Modal } from '@components/beluga';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import LoadingScreen from '@components/LoadingScreen';
 import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
+import useAuth from '@hooks/useAuth';
 
 export default function Login() {
 
     const router = useRouter();
+    const [user, userLoading] = useAuth();
     const auth = getAuth();
-    const [user, userLoading] = useAuthState(auth);
     const [phoneNumber, setPhoneNumber] = useState("");
     const [showConfirm, setShowConfirm] = useState(false);
     const [confirmCode, setConfirmCode] = useState("");

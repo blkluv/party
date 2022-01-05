@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from "next/link";
 import { Drawer } from "@components/beluga"
-import { Home, Menu, Login, Logout, Sun, Moon, Calendar } from "@components/Icons";
+import { Home, Menu, Login, Logout, Sun, Moon, Calendar, Admin } from "@components/Icons";
 import useAuth from "@hooks/useAuth";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,7 +13,7 @@ export default function Navigation() {
     const [menuOpen, setMenuOpen] = useState(false);
     const dispatch = useDispatch();
     const { darkMode } = useSelector<RootState, SettingsState>(state => state.settings);
-    const auth = useAuth();
+    const [auth] = useAuth();
     const router = useRouter();
 
     useEffect(() => {
@@ -24,12 +24,6 @@ export default function Navigation() {
         <div>
             {menuOpen && <Drawer onClose={() => setMenuOpen(false)}>
                 <div>
-                    {auth && <Link href="/auth/logout" passHref>
-                        <div className="nav-drawer-button">
-                            <Logout className="w-6 h-6" />
-                            <p>Logout</p>
-                        </div>
-                    </Link>}
                     {darkMode ?
                         <div className="nav-drawer-button" onClick={() => dispatch(toggleDarkMode())}>
                             <Sun className="w-6 h-6" />
@@ -40,6 +34,18 @@ export default function Navigation() {
                             <p>Dark Mode</p>
                         </div>
                     }
+                    {auth?.role === "admin" && <Link href="/admin" passHref>
+                        <div className="nav-drawer-button">
+                            <Admin className="w-6 h-6" />
+                            <p>Admin</p>
+                        </div>
+                    </Link>}
+                    {auth && <Link href="/auth/logout" passHref>
+                        <div className="nav-drawer-button mt-auto">
+                            <Logout className="w-6 h-6" />
+                            <p>Logout</p>
+                        </div>
+                    </Link>}
                 </div>
             </Drawer>}
             <div className="md:hidden">
@@ -54,7 +60,7 @@ export default function Navigation() {
                             <Login className="small-screen-nav-button-icon" />
                         </div>
                     </Link>}
-                    {auth && <Link href="/profile/events" passHref>
+                    {auth?.role === "host" || auth?.role === "admin" && <Link href="/profile/events" passHref>
                         <div className="small-screen-nav-button">
                             <Calendar className="small-screen-nav-button-icon" />
                         </div>
@@ -73,10 +79,17 @@ export default function Navigation() {
                         </p>
                     </div>
                 </Link>
-                {auth && <Link href="/profile/events" passHref>
-                    <div className="w-6 h-6 cursor-pointer primary-hover">
+                {auth?.role === "host" || auth?.role === "admin" && <Link href="/profile/events" passHref>
+                    <div className="big-screen-nav-button">
                         <p>
                             Events
+                        </p>
+                    </div>
+                </Link>}
+                {auth?.role === "admin" && <Link href="/admin" passHref>
+                    <div className="big-screen-nav-button">
+                        <p>
+                            Admin
                         </p>
                     </div>
                 </Link>}

@@ -163,7 +163,8 @@ export default function Event({ id }) {
             {showUploadMedia && <UploadEventMedia setOpen={setShowUploadMedia} eventId={id} />}
 
             {showEditFlyer && <Modal onClose={() => setShowEditFlyer(false)}>
-                <form onSubmit={submitEditFlyer} ref={editFlyerRef}>
+                <h3 className='text-center mb-2'>Edit Flyer</h3>
+                <form onSubmit={submitEditFlyer} ref={editFlyerRef} className='w-screen max-w-md'>
                     <Select onChange={(e) => setSelectedFile(e.target.value)} value={selectedFile}>
                         <option disabled value={""}>
                             None
@@ -181,27 +182,46 @@ export default function Event({ id }) {
             </Modal>}
             <div className="flex flex-col items-center lg:flex-row md:justify-center gap-5 p-2 sm:p-8 w-full max-w-xl lg:max-w-7xl mx-auto lg:items-start">
                 <div className="flex flex-col gap-2 flex-1">
-                    <img src={event?.flyerLink} className="w-full lg:max-w-xl" />
-                    {editing && <Button onClick={() => setShowEditFlyer(true)}>
-                        Edit Flyer
-                    </Button>}
+                    {editing &&
+                        <div className='mx-auto'>
+                            <Button onClick={() => setShowEditFlyer(true)}>
+                                Edit Flyer
+                            </Button>
+                        </div>
+                    }
+                    {event?.flyerLink && <img src={event?.flyerLink} className="w-full lg:max-w-xl" alt="Flyer" />}
                 </div>
                 <div className="flex flex-col gap-2 w-full flex-1">
-                    {editing && <Select onChange={handleEditStateChange} name="visibility" value={editState.visibility}>
-                        <option value="private">
-                            Private
-                        </option>
-                        <option value="public">
-                            Public
-                        </option>
-                    </Select>}
-                    <div className="grid gap-2">
-                        {editing ? <Input value={editState.title} onChange={handleEditStateChange} name="title" /> : <h2>{event.title}</h2>}
-                        {editing ? <Input type="date" value={editState.eventDate} onChange={handleEditStateChange} name="eventDate" /> : <p><span className="text-indigo-500 font-semibold">{event.eventDate.toDate().toDateString()}</span> at {getFormattedEventTime()}</p>}
-                        {editing && <Input type="time" value={editState.eventTime} onChange={handleEditStateChange} name="eventTime" />}
-                    </div>
-
-                    {editing ? <TextArea value={editState.description} onChange={handleEditStateChange} name="description" /> : <p className="whitespace-pre-line font-normal">{event.description}</p>}
+                    {editing && <h2 className="text-center mb-4">Event Details</h2>}
+                    {editing &&
+                        <div className='flex flex-col gap-2'>
+                            <p>Visibility</p>
+                            <Select onChange={handleEditStateChange} name="visibility" value={editState.visibility}>
+                                <option value="private">
+                                    Private
+                                </option>
+                                <option value="public">
+                                    Public
+                                </option>
+                            </Select>
+                        </div>
+                    }
+                    {editing ?
+                        <Input value={editState.title} onChange={handleEditStateChange} name="title" />
+                        :
+                        <h2>{event.title}</h2>
+                    }
+                    {editing ?
+                        <Input type="date" value={editState.eventDate} onChange={handleEditStateChange} name="eventDate" />
+                        :
+                        <p><span className="text-indigo-500 font-semibold">{event.eventDate.toDate().toDateString()}</span> at {getFormattedEventTime()}</p>
+                    }
+                    {editing && <Input type="time" value={editState.eventTime} onChange={handleEditStateChange} name="eventTime" />}
+                    {editing ?
+                        <TextArea value={editState.description} onChange={handleEditStateChange} name="description" />
+                        :
+                        <p className="whitespace-pre-line font-normal">{event.description}</p>
+                    }
 
                     {!editing && event.eventDate.toDate() >= new Date(new Date().toDateString()) && <div className="flex flex-col items-center gap-4 mt-6">
                         <Link href={`/event/${id}/tickets`} passHref>
@@ -216,9 +236,10 @@ export default function Event({ id }) {
                         </Link>
                     </div>}
                     {editing &&
-                        <Input onChange={handleEditStateChange} value={editState.priceId} name="priceId" placeholder="Price ID" />}
-                    {editing &&
-                        <Input onChange={handleEditStateChange} value={editState.maxTickets} name="maxTickets" placeholder="Maximum Tickets" type="number" />}
+                        <div className='grid gap-2'>
+                            <Input onChange={handleEditStateChange} value={editState.priceId} name="priceId" placeholder="Price ID" type='text' />
+                            <Input onChange={handleEditStateChange} value={editState.maxTickets} name="maxTickets" placeholder="Maximum Tickets" type="number" />
+                        </div>}
                     {event?.cardLinks.length > 0 && <Carousel images={event.cardLinks.map(({ url }) => url)} />}
                     {showEditCards && <Modal onClose={() => setShowEditCards(false)}>
                         <div className="flex flex-col gap-2">
@@ -228,9 +249,12 @@ export default function Event({ id }) {
                             </div>)}
                         </div>
                     </Modal>}
-                    {editing && <Button onClick={() => setShowEditCards(true)}>
-                        Edit Cards
-                    </Button>}
+                    {editing &&
+                        <div className='mx-auto'>
+                            <Button onClick={() => setShowEditCards(true)}>
+                                Edit Cards
+                            </Button>
+                        </div>}
                     <p className="font-normal text-gray-400 text-sm text-right">
                         Posted on {event.createdAt.toDate().toDateString()}
                     </p>
