@@ -35,7 +35,7 @@ export default function TicketPurchase({ id }) {
 
             setLoading(false);
         })()
-    }, []);
+    }, [db, id]);
 
     const [form, setForm] = useState({ name: "", phoneNumber: "" });
     const [errors, setErrors] = useState({ name: "", phoneNumber: "" });

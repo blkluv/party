@@ -1,89 +1,105 @@
-import { MdEvent as CalendarIcon } from "react-icons/md";
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from "next/link";
 import { Drawer } from "@components/beluga"
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { getAuth } from '@firebase/auth';
-import { Home, Menu, Login, Logout, Sun, Moon, Calendar } from "@components/Icons";
-import Context from "@context/Context";
+import { Home, Menu, Login, Logout, Sun, Moon, Calendar, Admin } from "@components/Icons";
+import useAuth from "@hooks/useAuth";
+import { useRouter } from "next/router";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@redux/store";
+import { SettingsState, toggleDarkMode } from "@redux/settings";
 
 export default function Navigation() {
 
-    const auth = getAuth();
-    const [user] = useAuthState(auth);
     const [menuOpen, setMenuOpen] = useState(false);
+    const dispatch = useDispatch();
+    const { darkMode } = useSelector<RootState, SettingsState>(state => state.settings);
+    const [auth] = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        setMenuOpen(false);
+    }, [router.pathname])
 
     return (
-        <Context.Consumer>
-            {({ darkMode, toggleDarkMode }) => (
+        <div>
+            {menuOpen && <Drawer onClose={() => setMenuOpen(false)}>
                 <div>
-                    {menuOpen && <Drawer onClose={() => setMenuOpen(false)}>
-                        <div>
-                            {user && <Link href="/auth/logout">
-                                <div className="nav-drawer-button">
-                                    <Logout className="w-6 h-6" />
-                                    <p>Logout</p>
-                                </div>
-                            </Link>}
-                            {darkMode ?
-                                <div className="nav-drawer-button" onClick={() => toggleDarkMode()}>
-                                    <Sun className="w-6 h-6" />
-                                    <p>Light Mode</p>
-                                </div>
-                                : <div className="nav-drawer-button" onClick={() => toggleDarkMode()}>
-                                    <Moon className="w-6 h-6" />
-                                    <p>Dark Mode</p>
-                                </div>
-                            }
+                    {darkMode ?
+                        <div className="nav-drawer-button" onClick={() => dispatch(toggleDarkMode())}>
+                            <Sun className="w-6 h-6" />
+                            <p>Light Mode</p>
                         </div>
-                    </Drawer>}
-                    <div className="md:hidden">
-                        <div className="fixed bottom-0 left-0 right-0 shadow-center-lg dark:border-t dark:border-gray-600 flex justify-evenly items-center dark:bg-black bg-white z-30">
-                            <Link href="/">
-                                <div className="small-screen-nav-button">
-                                    <Home className="small-screen-nav-button-icon" />
-                                </div>
-                            </Link>
-                            {!user && <Link href="/auth/login">
-                                <div className="small-screen-nav-button">
-                                    <Login className="small-screen-nav-button-icon" />
-                                </div>
-                            </Link>}
-                            {user && <Link href="/profile/events">
-                                <div className="small-screen-nav-button">
-                                    <Calendar className="small-screen-nav-button-icon" />
-                                </div>
-                            </Link>}
-                            <div className="small-screen-nav-button">
-                                <Menu className="small-screen-nav-button-icon" onClick={() => setMenuOpen(true)} />
-                            </div>
+                        : <div className="nav-drawer-button" onClick={() => dispatch(toggleDarkMode())}>
+                            <Moon className="w-6 h-6" />
+                            <p>Dark Mode</p>
                         </div>
+                    }
+                    {auth?.role === "admin" && <Link href="/admin" passHref>
+                        <div className="nav-drawer-button">
+                            <Admin className="w-6 h-6" />
+                            <p>Admin</p>
+                        </div>
+                    </Link>}
+                    {auth && <Link href="/auth/logout" passHref>
+                        <div className="nav-drawer-button mt-auto">
+                            <Logout className="w-6 h-6" />
+                            <p>Logout</p>
+                        </div>
+                    </Link>}
+                </div>
+            </Drawer>}
+            <div className="md:hidden">
+                <div className="fixed bottom-0 left-0 right-0 shadow-center-lg dark:border-t dark:border-gray-600 flex justify-evenly items-center dark:bg-black bg-white z-30">
+                    <Link href="/" passHref>
+                        <div className="small-screen-nav-button">
+                            <Home className="small-screen-nav-button-icon" />
+                        </div>
+                    </Link>
+                    {!auth && <Link href="/auth/login" passHref>
+                        <div className="small-screen-nav-button">
+                            <Login className="small-screen-nav-button-icon" />
+                        </div>
+                    </Link>}
+                    {auth?.role === "host" || auth?.role === "admin" && <Link href="/profile/events" passHref>
+                        <div className="small-screen-nav-button">
+                            <Calendar className="small-screen-nav-button-icon" />
+                        </div>
+                    </Link>}
+                    <div className="small-screen-nav-button">
+                        <Menu className="small-screen-nav-button-icon" onClick={() => setMenuOpen(true)} />
                     </div>
-                    <div className="hidden md:flex relative z-30 justify-start w-full px-6 gap-6 items-center pt-4">
-                        <Menu className="w-6 h-6 cursor-pointer primary-hover" onClick={() => setMenuOpen(true)} />
-                        <Link href="/">
-                            <div className="big-screen-nav-button">
-                                <p>
-                                    Home
-                                </p>
-                            </div>
-                        </Link>
-                        {user && <Link href="/profile/events">
-                            <div className="w-6 h-6 cursor-pointer primary-hover">
-                                <p>
-                                    Events
-                                </p>
-                            </div>
-                        </Link>}
-                        {!user && <Link href="/auth/login">
-                            <div className="big-screen-nav-button">
-                                <p>
-                                    Login
-                                </p>
-                            </div>
-                        </Link>}
+                </div>
+            </div>
+            <div className="hidden md:flex relative z-30 justify-start w-full px-6 gap-6 items-center pt-4">
+                <Menu className="w-6 h-6 cursor-pointer primary-hover" onClick={() => setMenuOpen(true)} />
+                <Link href="/" passHref>
+                    <div className="big-screen-nav-button">
+                        <p>
+                            Home
+                        </p>
                     </div>
-                </div >)}
-        </Context.Consumer>
-    )
+                </Link>
+                {auth?.role === "host" || auth?.role === "admin" && <Link href="/profile/events" passHref>
+                    <div className="big-screen-nav-button">
+                        <p>
+                            Events
+                        </p>
+                    </div>
+                </Link>}
+                {auth?.role === "admin" && <Link href="/admin" passHref>
+                    <div className="big-screen-nav-button">
+                        <p>
+                            Admin
+                        </p>
+                    </div>
+                </Link>}
+                {!auth && <Link href="/auth/login" passHref>
+                    <div className="big-screen-nav-button">
+                        <p>
+                            Login
+                        </p>
+                    </div>
+                </Link>}
+            </div>
+        </div >)
 }

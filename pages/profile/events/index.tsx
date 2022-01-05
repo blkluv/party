@@ -36,13 +36,13 @@ export default function Events() {
             setEvents(tmpEvents);
         });
         setEventsLoading(false);
-    }, [user]);
+    }, [user, db]);
 
 
     if (eventsLoading || loading) return <LoadingScreen />
 
     return (
-        <RequireAuth>
+        <RequireAuth allowRoles={["host"]}>
             <Header title="My Events" />
             <div className="mx-auto my-auto p-1 w-full max-w-xl flex flex-col gap-2 items-center">
                 <div className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden divide-y divide-gray-300 dark:divide-gray-800 shadow-center-md w-full">
@@ -65,7 +65,7 @@ const EventListItem = ({ title, id }: EventListItemProps) => {
 
     return (
         <div className="flex divide-x divide-gray-300 dark:divide-gray-800">
-            {showDelete && <Modal onClose={() => setShowDelete(false)} size="md">
+            {showDelete && <Modal onClose={() => setShowDelete(false)}>
 
                 <p className="text-xl mb-6">Are you sure you want to delete <span className="text-blue-500">{title}</span>?</p>
 
@@ -78,7 +78,7 @@ const EventListItem = ({ title, id }: EventListItemProps) => {
                     </Button>
                 </div>
             </Modal>}
-            <Link href={`/event/${id}`}>
+            <Link href={`/event/${id}`} passHref>
                 <div className="flex-1 p-3 group background-hover">
                     <p>
                         {title}

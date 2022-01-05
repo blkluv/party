@@ -1,5 +1,5 @@
 import { getAuth } from '@firebase/auth';
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { AiOutlineLoading as LoadingIcon } from 'react-icons/ai';
 import { Modal, Button, Input } from '@components/beluga'
@@ -33,16 +33,16 @@ export default function UploadEventMedia({ setOpen, eventId }: UploadEventMediaP
         setSelectedFile(null);
     }
 
-    const getFiles = async () => {
+    const getFiles = useCallback(async () => {
         setFilesLoading(true);
         const data = await listAll(ref(storage, `/events/${eventId}`));
         setFiles(data.items);
         setFilesLoading(false);
-    }
+    }, [eventId, storage]);
 
     useEffect(() => {
         getFiles();
-    }, []);
+    }, [getFiles]);
 
     return (
         <Modal onClose={() => setOpen(false)}>
