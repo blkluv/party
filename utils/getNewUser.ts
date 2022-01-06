@@ -3,7 +3,7 @@ import UserDocument from "@typedefs/UserDocument";
 export default function getNewUser(): UserDocument {
     return {
         email: null,
-        name: null,
+        displayName: null,
         photoURL: null,
         uid: null,
         createdAt: new Date(),
