@@ -30,7 +30,7 @@ export default function Page() {
                 {users.map(({ uid, displayName, phoneNumber, role }) =>
                     <div key={uid} className='bg-white dark:bg-gray-800 rounded-xl shadow-center-md p-4'>
                         <p>
-                            {name}
+                            {displayName}
                         </p>
                         <p>
                             {phoneNumber}
