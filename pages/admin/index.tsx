@@ -27,10 +27,10 @@ export default function Page() {
     return (
         <RequireAuth allowRoles={["admin"]}>
             <div className='mx-auto max-w-xl flex flex-col gap-2'>
-                {users.map(({ uid, name, phoneNumber, role }) =>
+                {users.map(({ uid, displayName, phoneNumber, role }) =>
                     <div key={uid} className='bg-white dark:bg-gray-800 rounded-xl shadow-center-md p-4'>
                         <p>
-                            {name}
+                            {displayName}
                         </p>
                         <p>
                             {phoneNumber}
