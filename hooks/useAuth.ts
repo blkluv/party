@@ -25,7 +25,9 @@ export default function useAuth(): [UserDocument | null, boolean] {
                     const data = snapshot.data();
                     setAuth(data as UserDocument);
                 } else {
-                    await setDoc(ref, getNewUser());
+                    let userData = getNewUser();
+                    userData = { ...userData, ...user };
+                    await setDoc(ref, userData);
                 }
             }
             setLoading(false);
