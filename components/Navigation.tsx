@@ -60,7 +60,7 @@ export default function Navigation() {
                             <Login className="small-screen-nav-button-icon" />
                         </div>
                     </Link>}
-                    {auth?.role === "host" || auth?.role === "admin" && <Link href="/profile/events" passHref>
+                    {(auth?.role === "host" || auth?.role === "admin") && <Link href="/profile/events" passHref>
                         <div className="small-screen-nav-button">
                             <Calendar className="small-screen-nav-button-icon" />
                         </div>
@@ -79,7 +79,7 @@ export default function Navigation() {
                         </p>
                     </div>
                 </Link>
-                {auth?.role === "host" || auth?.role === "admin" && <Link href="/profile/events" passHref>
+                {(auth?.role === "host" || auth?.role === "admin") && <Link href="/profile/events" passHref>
                     <div className="big-screen-nav-button">
                         <p>
                             Events

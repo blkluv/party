@@ -29,6 +29,8 @@ export default function useAuth(): [UserDocument | null, boolean] {
                     userData.displayName = user.displayName;
                     userData.email = user.email;
                     userData.phoneNumber = user.phoneNumber;
+                    
+                    setAuth(userData);
                     await setDoc(ref, userData);
                 }
             }
