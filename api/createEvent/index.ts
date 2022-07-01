@@ -30,10 +30,11 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       port,
       database: dbname,
     });
-
-    await client.query("SELECT * FROM events");
-
     await client.connect();
+
+    const { rows } = await client.query("SELECT NOW()");
+
+    console.log(rows);
 
     await client.end();
 
