@@ -9,7 +9,7 @@ on:
       - ".github/workflows/cd-createEvent.yml"
 
 env:
-  AWS_REGION: us-east-1
+  AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
   FUNCTION_NAME: party-box-createEvent
 
@@ -56,10 +56,4 @@ jobs:
           aws lambda wait function-updated --function-name ${{ env.FUNCTION_NAME }}
           aws lambda update-function-configuration \
           --function-name ${{ env.FUNCTION_NAME }} \
-          --timeout 600 \
-          --environment "Variables={ \
-              NEO4J_HOST=${{secrets.NEO4J_HOST}}, \
-              NEO4J_PASSWORD=${{secrets.NEO4J_PASSWORD}}, \
-              NEO4J_USERNAME=${{secrets.NEO4J_USERNAME}}, \
-              SALT=${{secrets.SALT}} \
-            }"
+          --timeout 600
