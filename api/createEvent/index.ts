@@ -5,11 +5,11 @@ import { Client } from "pg";
 interface Body {
   name: string;
   description: string;
-  start_time: string;
-  end_time?: string;
+  startTime: string;
+  endTime?: string;
   location: string;
-  owner_id: string;
-  max_tickets: string;
+  ownerId: string;
+  maxTickets: string;
 }
 
 /**
@@ -19,7 +19,7 @@ interface Body {
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<{ message: string }>> => {
   try {
     const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
-    const { name, description, start_time, end_time, location, owner_id, max_tickets } = JSON.parse(
+    const { name, description, startTime, endTime, location, ownerId, maxTickets } = JSON.parse(
       event.body ?? "{}"
     ) as Body;
     // const query = event.queryStringParameters as Query;
@@ -40,8 +40,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     await client.connect();
 
     const { rows } = await client.query(
-      "insert into events(name,description,start_time,end_time,max_tickets,location,owner_id) values($1,$2,$3,$4,$5,$6,$7) returning *",
-      [name, description, start_time, end_time, max_tickets, location, owner_id]
+      "insert into events(name,description,startTime,endTime,maxTickets,location,ownerId) values($1,$2,$3,$4,$5,$6,$7) returning *",
+      [name, description, startTime, endTime, maxTickets, location, ownerId]
     );
 
     console.log(rows);
