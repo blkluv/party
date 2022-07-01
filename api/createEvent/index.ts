@@ -13,6 +13,7 @@ import { Client } from "pg";
  * @description Create event within Postgres and Stripe
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<{ message: string }>> => {
+
   const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
   try {
     // const body = JSON.parse(event.body ?? "{}") as Body;
