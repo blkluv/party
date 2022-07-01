@@ -6,7 +6,7 @@ on:
       - dev
     paths:
       - "api/createEvent/**"
-      - ".github/workflows/createEvent.yml"
+      - ".github/workflows/cd-createEvent.yml"
 
 env:
   AWS_REGION: us-east-1
