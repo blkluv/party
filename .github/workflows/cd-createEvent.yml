@@ -3,7 +3,7 @@ name: CD/Frontend
 on:
   push:
     branches:
-      - main
+      - dev
     paths:
       - "api/createEvent/**"
       - ".github/workflows/createEvent.yml"
