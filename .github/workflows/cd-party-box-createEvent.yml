@@ -5,8 +5,8 @@ on:
     branches:
       - dev
     paths:
-      - "api/createEvent/**"
-      - ".github/workflows/cd-createEvent.yml"
+      - "api/party-box-createEvent/**"
+      - ".github/workflows/cd-party-box-createEvent.yml"
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -39,7 +39,7 @@ jobs:
         working-directory: ./api/${{env.FUNCTION_NAME}}
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          FUNCTION_NAME: createEvent
+          FUNCTION_NAME: ${{ env.FUNCTION_NAME }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$FUNCTION_NAME .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$FUNCTION_NAME
