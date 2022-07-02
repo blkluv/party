@@ -139,7 +139,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         new PutObjectCommand({
           Bucket: "party-box-bucket",
           Key: imagePath,
-          Body: image.data.data,
+          Body: "stinkeymonkey",
         })
       );
       const imageUrl = `https://party-box-bucket.s3.amazonaws.com/${imagePath}`;
