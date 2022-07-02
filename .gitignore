@@ -2,3 +2,4 @@
 **/yarn.lock
 .vscode
 yarn.lock
+*.session.sql
