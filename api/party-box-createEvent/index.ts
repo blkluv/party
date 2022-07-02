@@ -18,13 +18,13 @@ interface Body {
     name: string;
     type: string;
     alt_text: string;
-    data: Buffer;
+    data: FormData;
   };
   images: {
     name: string;
     type: string;
     alt_text: string;
-    data: Buffer;
+    data: FormData;
   }[];
 }
 
@@ -32,7 +32,8 @@ interface Body {
  * @method POST
  * @description Create event within Postgres and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<object>> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2> => {
+  console.log(event);
   const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
 
   // Get postgres login
@@ -112,7 +113,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       new PutObjectCommand({
         Bucket: "party-box-bucket",
         Key: posterPath,
-        Body: poster.data,
+        Body: "poster.data",
       })
     );
 
@@ -138,7 +139,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         new PutObjectCommand({
           Bucket: "party-box-bucket",
           Key: imagePath,
-          Body: image.data,
+          Body: image.data.data,
         })
       );
       const imageUrl = `https://party-box-bucket.s3.amazonaws.com/${imagePath}`;
