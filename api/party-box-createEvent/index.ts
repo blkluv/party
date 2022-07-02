@@ -1,8 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyResultV2 } from "aws-lambda";
 import * as AWS from "@aws-sdk/client-secrets-manager";
 import { Client } from "pg";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { v4 as uuid } from "uuid";
 import stripe from "stripe";
 
 interface Body {
@@ -14,18 +12,6 @@ interface Body {
   owner_id: string;
   max_tickets: string;
   ticket_price: number;
-  poster: {
-    name: string;
-    type: string;
-    alt_text: string;
-    data: FormData;
-  };
-  images: {
-    name: string;
-    type: string;
-    alt_text: string;
-    data: FormData;
-  }[];
 }
 
 /**
@@ -52,33 +38,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   await client.connect();
 
   try {
-    const {
-      name,
-      description,
-      start_time,
-      end_time,
-      location,
-      owner_id,
-      max_tickets,
-      images = [],
-      poster,
-      ticket_price,
-    } = JSON.parse(event.body ?? "{}") as Body;
+    const { name, description, start_time, end_time, location, owner_id, max_tickets, ticket_price } = JSON.parse(
+      event.body ?? "{}"
+    ) as Body;
     // const headers = event.headers;
-
-    const imageUrls: string[] = [];
-
-    // Get access keys for S3 login
-    const { SecretString: s3SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/access-keys" });
-    if (!s3SecretString) throw new Error("Access keys string was undefined.");
-    const { accessKeyId, secretAccessKey } = JSON.parse(s3SecretString);
-    const s3 = new S3Client({
-      region: "us-east-1",
-      credentials: {
-        accessKeyId,
-        secretAccessKey,
-      },
-    });
 
     // Get stripe keys
     const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
@@ -103,66 +66,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       [name, description, start_time, end_time, max_tickets, location, owner_id, stripeProduct.id]
     );
 
-    const eventData = rows[0];
-
-    const bucketPath = `events/${eventData.id}`;
-
-    // Upload poster
-    const posterPath = `${bucketPath}/${uuid()}-${poster.name}`;
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: "party-box-bucket",
-        Key: posterPath,
-        Body: "poster.data",
-      })
-    );
-
-    const { rows: insertPosterResult } = await client.query(
-      `insert into media(name,type,alt_text,url) values($1,$2,$3,$4) returning id;`,
-      [poster.name, "image", poster.alt_text, `https://party-box-bucket.s3.amazonaws.com/${posterPath}`]
-    );
-    const posterId = insertPosterResult[0].id;
-
-    // Update event with poster id
-    await client.query(
-      `
-      update event 
-      where id = $1
-      set poster_id = $2;
-    `,
-      [eventData.id, posterId]
-    );
-
-    for (const image of images) {
-      const imagePath = `${bucketPath}/${uuid()}-${image.name}`;
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: "party-box-bucket",
-          Key: imagePath,
-          Body: "stinkeymonkey",
-        })
-      );
-      const imageUrl = `https://party-box-bucket.s3.amazonaws.com/${imagePath}`;
-      await client.query(`insert into media(name,type,alt_text,url) values($1,$2,$3,$4);`, [
-        image.name,
-        "image",
-        image.alt_text,
-        imageUrl,
-      ]);
-
-      imageUrls.push(imageUrl);
-    }
-
-    await stripeClient.products.update(stripeProduct.id, {
-      images: imageUrls,
-    });
-
-    return {
-      ...eventData,
-      poster: {
-        url: `https://party-box-bucket.s3.amazonaws.com/${posterPath}`,
-      },
-    };
+    return rows[0];
   } catch (error) {
     console.error(error);
     throw error;

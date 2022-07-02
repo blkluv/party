@@ -1,20 +1,32 @@
 import "../styles/globals.css";
 import { Amplify } from "aws-amplify";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import amplifyConfig from "~/config/amplify";
-import Default from "~/layouts/Default";
 import { APP_NAME } from "~/config/config";
-import Head from "next/head";
+import { useRouter } from "next/router";
+import NavigationDrawer from "~/components/NavigationDrawer";
+import TopNavigation from "~/components/TopNavigation";
+import BottomNavigation from "~/components/BottomNavigation";
 
 const App = ({ Component, pageProps }) => {
   useEffect(() => {
     Amplify.configure(amplifyConfig);
   }, []);
 
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [router.pathname]);
+
   return (
-    <Default>
+    <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white min-h-screen md:pt-24 pb-24 md:pb-0 relative">
+      <TopNavigation setDrawerOpen={setDrawerOpen} />
       <Component {...pageProps} />
-    </Default>
+      {drawerOpen && <NavigationDrawer setOpen={setDrawerOpen} />}
+      <BottomNavigation setDrawerOpen={setDrawerOpen} />
+    </div>
   );
 };
 

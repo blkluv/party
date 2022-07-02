@@ -1,3 +1,4 @@
+/* eslint-disable require-await */
 /** @type {import('next').NextConfig} */
 const withPWA = require("next-pwa");
 const runtimeCaching = require("next-pwa/cache");
@@ -12,12 +13,12 @@ const nextConfig = withPWA({
     runtimeCaching,
   },
   images: {
-    domains: ["i.imgur.com"],
+    domains: ["party-box-bucket.s3.amazonaws.com"],
   },
   rewrites: async () => [
     {
       source: "/api/:path*",
-      destination: `https://api.dogs-barking.ca/:path*`,
+      destination: `https://fm2aaoc5el.execute-api.us-east-1.amazonaws.com/dev/:path*`,
     },
   ],
 });
