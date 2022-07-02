@@ -1,4 +1,4 @@
-name: CD/Frontend
+name: CD/party-box-createEvent
 
 on:
   push:
