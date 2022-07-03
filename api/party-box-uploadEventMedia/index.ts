@@ -41,7 +41,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const command = new PutObjectCommand({
       Bucket: "party-box-bucket",
       Key: uploadKey,
-      ContentType: "multipart/form-data",
+      ContentType: "image/jpeg",
     });
 
     const url = await getSignedUrl(s3, command, { expiresIn: 120 });
