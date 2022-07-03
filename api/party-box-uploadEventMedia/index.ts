@@ -17,8 +17,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
 
   try {
-    const body = event.body;
-    if (!body) throw new Error("Missing body");
     const { eventId } = event.pathParameters as PathParameters;
 
     // const headers = event.headers;
@@ -42,7 +40,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       Bucket: "party-box-bucket",
       Key: uploadKey,
       ContentType: "image/jpeg",
-      Body: "BODY",
     });
 
     const url = await getSignedUrl(s3, command, { expiresIn: 120 });
