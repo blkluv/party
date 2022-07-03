@@ -60,19 +60,20 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     // Create event in pg without poster (we'll update after)
     const { rows: updatedEventDataRows } = await client.query(
       `
-        update events
-          set name = $2,
-          set description = $3,
-          set start_time = $4,
-          set end_time = $5,
-          set location = $6,
-          set poster_url = $7,
-          set max_tickets = $8,
-          set ticket_price = $9
+        UPDATE events
+          SET 
+            name = $2,
+            description = $3,
+            start_time = $4,
+            end_time = $5,
+            location = $6,
+            poster_url = $7,
+            max_tickets = $8,
+            ticket_price = $9
         
-        where id = $1
+        WHERE id = $1
         
-        returning *;
+        RETURNING *;
       `,
       [
         eventId,
