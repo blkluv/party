@@ -1,6 +1,6 @@
 import EventForm from "~/components/EventForm";
 import MetaData from "~/components/MetaData";
-import TransactionList from "~/components/TransactionList";
+import UpcomingEvents from "~/components/UpcomingEvents";
 
 const Page = () => {
   return (
@@ -8,8 +8,10 @@ const Page = () => {
       <MetaData title="Home" />
       <h1>Page</h1>
       <EventForm />
+      <UpcomingEvents/>
     </div>
   );
 };
+
 
 export default Page;

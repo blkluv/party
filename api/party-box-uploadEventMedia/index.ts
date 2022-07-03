@@ -42,9 +42,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       ContentType: "multipart/form-data",
     });
 
-    const url = await getSignedUrl(s3, command, { expiresIn: 120 });
+    const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 120 });
 
-    return { url };
+    return { uploadUrl, downloadUrl: `https://party-box-bucket.s3.us-east-1.amazonaws.com/${uploadKey}` };
   } catch (error) {
     console.error(error);
     throw error;
