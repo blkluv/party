@@ -11,9 +11,6 @@ const EventForm = () => {
     <Formik
       onSubmit={async (values) => {
         try {
-          const formData = new FormData();
-
-          formData.append("file", posterData, posterData.name);
           const { data: event } = await axios.post("/api/events/create", {
             ...values,
             start_time: values.start_time.replace("T", " "),
@@ -24,9 +21,12 @@ const EventForm = () => {
           const {
             data: { uploadUrl, downloadUrl },
           } = await axios.post(`/api/events/${event.id}/media/upload`);
+
+          const formData = new FormData();
+          formData.append("file", posterData, posterData.name);
           await axios.put(uploadUrl, posterData);
 
-          await axios.post(`/api/events/${event.id}/update`, { poster_url: downloadUrl });
+          await axios.post(`/api/events/${event.id}/update`, { poster_url: downloadUrl, ...values });
         } catch (error) {
           console.error(error);
         }

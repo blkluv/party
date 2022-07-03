@@ -13,7 +13,7 @@ const nextConfig = withPWA({
     runtimeCaching,
   },
   images: {
-    domains: ["party-box-bucket.s3.amazonaws.com"],
+    domains: ["party-box-bucket.s3.us-east-1.amazonaws.com"],
   },
   rewrites: async () => [
     {

@@ -32,7 +32,7 @@ class MyDocument extends Document {
 
           {/* End FONTS */}
         </Head>
-        <body>
+        <body className="dark">
           <Main />
           <NextScript />
         </body>

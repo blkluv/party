@@ -21,7 +21,7 @@ const App = ({ Component, pageProps }) => {
   }, [router.pathname]);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white min-h-screen md:pt-24 pb-24 md:pb-0 relative">
+    <div className="flex flex-col bg-gray-100 dark:bg-gray-900 text-black dark:text-white min-h-screen md:pt-24 pb-24 md:pb-2 relative px-2 pt-2">
       <TopNavigation setDrawerOpen={setDrawerOpen} />
       <Component {...pageProps} />
       {drawerOpen && <NavigationDrawer setOpen={setDrawerOpen} />}
