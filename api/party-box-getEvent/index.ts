@@ -34,7 +34,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     console.log(rows);
 
-    return rows;
+    return rows[0];
   } catch (error) {
     console.error(error);
     throw error;
