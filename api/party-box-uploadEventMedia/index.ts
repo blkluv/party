@@ -12,7 +12,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  * @method POST
  * @description Create event within Postgres and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<object>> => {
   console.log(event);
   const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
 
@@ -40,6 +40,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     let uploadUrl = "";
 
     busboy.on("file", async (_fieldName, file, { filename }) => {
+      console.log(filename);
       const uploadKey = `events/${eventId}/${uuid()}-${filename}.jpg`;
 
       uploadUrl = `https://party-box-bucket.s3.amazonaws.com/${uploadKey}`;
@@ -53,7 +54,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       );
     });
 
-    return uploadUrl;
+    return { url: uploadUrl };
   } catch (error) {
     console.error(error);
     throw error;
