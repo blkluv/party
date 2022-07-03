@@ -4,13 +4,14 @@ import { Client } from "pg";
 import stripe from "stripe";
 
 interface Body {
-  name?: string;
-  description?: string;
-  start_time?: string;
-  end_time?: string;
-  location?: string;
-  max_tickets?: string;
-  ticket_price?: number;
+  name: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  location: string;
+  max_tickets: string;
+  ticket_price: number;
+  poster_url: string;
 }
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -53,18 +54,51 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
 
+    const { rows: startingEventDataRows } = await client.query(`SELECT * FROM events WHERE id = $1`, [eventId]);
+    const startingEventData = startingEventDataRows[0];
+
     // Create event in pg without poster (we'll update after)
-    for (const [key, value] of Object.entries(body)) {
-      await client.query(`update events set $2 = $3 where id = $1;`, [eventId, key, value]);
-    }
+    const { rows: updatedEventDataRows } = await client.query(
+      `
+        update events
+          set name = $2,
+          set description = $3,
+          set start_time = $4,
+          set end_time = $5,
+          set location = $6,
+          set poster_url = $7,
+          set max_tickets = $8,
+          set ticket_price = $9
+        
+        where id = $1
+        
+        returning *;
+      `,
+      [
+        eventId,
+        body.name,
+        body.description,
+        body.start_time,
+        body.end_time,
+        body.location,
+        body.poster_url,
+        body.max_tickets,
+        body.ticket_price,
+      ]
+    );
 
-    const { rows } = await client.query(`select * from events where id = $1;`, [eventId]);
+    await stripeClient.products.update(startingEventData.stripe_product_id, {
+      name: body.name,
+      description: body.description,
+      default_price: body.ticket_price.toString(),
+      images: [body.poster_url],
+    });
 
-    return rows[0];
+    return updatedEventDataRows[0];
   } catch (error) {
     console.error(error);
     throw error;
   } finally {
-    // Code here
+    await client.end();
   }
 };
