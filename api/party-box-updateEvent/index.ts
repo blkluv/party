@@ -91,7 +91,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     await stripeClient.products.update(startingEventData.stripe_product_id, {
       name: body.name,
       description: body.description,
-      default_price: body.ticket_price.toString(),
       images: [body.poster_url],
     });
 
