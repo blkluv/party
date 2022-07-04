@@ -5,6 +5,7 @@ interface PartyBoxEvent {
   end_time: string;
   id: number;
   poster_url?: string;
+  thumbnail_url?: string;
 }
 
 export default PartyBoxEvent;

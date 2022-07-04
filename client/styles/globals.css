@@ -24,11 +24,15 @@
   }
 
   .nav-drawer-button {
-    @apply background-hover flex items-center gap-4 py-3 px-6;
+    @apply background-hover flex items-center gap-4 py-3 px-6 dark:text-white;
   }
 
   .form-label-group {
     @apply flex justify-between gap-2 mb-2 items-center;
+  }
+
+  .rainbow-text {
+    @apply bg-clip-text bg-gradient-to-r from-blue-400 to-red-400 fill-current text-transparent pb-2;
   }
 }
 
@@ -52,3 +56,4 @@
     box-shadow: 0px 0px 30px rgba(255, 255, 255, 0.2);
   }
 }
+

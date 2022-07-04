@@ -6,6 +6,7 @@ import FormGroup from "./form/FormGroup";
 
 const EventForm = () => {
   const [posterData, setPosterData] = useState<File | null>(null);
+  const [thumbnailData, setThumbnailData] = useState<File | null>(null);
 
   return (
     <Formik
@@ -19,14 +20,20 @@ const EventForm = () => {
           });
 
           const {
-            data: { uploadUrl, downloadUrl },
-          } = await axios.post(`/api/events/${event.id}/media/upload`);
+            data: { uploadUrl: posterUploadUrl, downloadUrl: posterDownloadUrl },
+          } = await axios.post(`/api/events/${event.id}/media/upload`, { name: posterData.name });
+          await axios.put(posterUploadUrl, posterData);
 
-          const formData = new FormData();
-          formData.append("file", posterData, posterData.name);
-          await axios.put(uploadUrl, posterData);
+          const {
+            data: { uploadUrl: thumbnailUploadUrl, downloadUrl: thumbnailDownloadUrl },
+          } = await axios.post(`/api/events/${event.id}/media/upload`, { name: thumbnailData.name });
+          await axios.put(thumbnailUploadUrl, thumbnailData);
 
-          await axios.post(`/api/events/${event.id}/update`, { poster_url: downloadUrl, ...values });
+          await axios.post(`/api/events/${event.id}/update`, {
+            poster_url: posterDownloadUrl,
+            thumbnail_url: thumbnailDownloadUrl,
+            ...values,
+          });
         } catch (error) {
           console.error(error);
         }
@@ -52,6 +59,7 @@ const EventForm = () => {
         <FormGroup label="Start Time" name="start_time" placeholder="Event start time" type="datetime-local" />
         <FormGroup label="Location" name="location" placeholder="Event location (address, etc.)" />
         <Input onChange={(e) => setPosterData(e.target.files[0])} type="file" />
+        <Input onChange={(e) => setThumbnailData(e.target.files[0])} type="file" />
         <Button type="submit">Submit</Button>
       </Form>
     </Formik>

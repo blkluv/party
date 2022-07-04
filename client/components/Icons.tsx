@@ -1,4 +1,9 @@
-export { AiOutlineHome as Home, AiOutlineLoading as LoadingIcon } from "react-icons/ai";
+export {
+  AiOutlineHome as Home,
+  AiOutlineLoading as LoadingIcon,
+  AiOutlineMinusCircle as OutlinedMinusIcon,
+  AiOutlinePlusCircle as OutlinedPlusIcon,
+} from "react-icons/ai";
 export { GiHamburgerMenu as Menu } from "react-icons/gi";
 export {
   MdLogin as Login,
@@ -19,4 +24,8 @@ export {
   IoGameControllerOutline as Games,
   IoDocumentTextOutline as DocumentIcon,
 } from "react-icons/io5";
-export { BsArrowUpCircle as ArrowUp, BsArrowDownCircle as ArrowDown, BsTrash as TrashIcon } from "react-icons/bs";
+export {
+  BsArrowUpCircle as ArrowUp,
+  BsArrowDownCircle as ArrowDown,
+  BsTrash as TrashIcon,
+} from "react-icons/bs";

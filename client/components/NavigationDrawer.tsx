@@ -1,3 +1,4 @@
+import Link from "next/link";
 import DarkModeToggleButton from "./DarkModeToggleButton";
 import { Drawer } from "./form";
 
@@ -9,9 +10,14 @@ const NavigationDrawer = ({ setOpen }: Props) => {
   return (
     <Drawer onClose={() => setOpen(false)}>
       <div className="flex flex-col h-full">
-        <div className="mt-auto">
+        <Link href="/events/create" passHref>
+          <div className="nav-drawer-button">
+            <p>Create Event</p>
+          </div>
+        </Link>
+        {/* <div className="mt-auto">
           <DarkModeToggleButton />
-        </div>
+        </div> */}
       </div>
     </Drawer>
   );
