@@ -63,6 +63,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       nickname: "Regular",
     });
 
+    const paymentLink = await stripeClient.paymentLinks.create({
+      line_items: [{ price: stripePrice.id, quantity: 1 }],
+      phone_number_collection: {
+        enabled: true,
+      },
+    });
+
     // Create event in pg without poster (we'll update after)
     const { rows } = await client.query(
       "insert into events(name,description,start_time,end_time,max_tickets,location,owner_id,stripe_product_id, prices) values($1,$2,$3,$4,$5,$6,$7,$8, $9) returning *;",
@@ -75,7 +82,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         location,
         owner_id,
         stripeProduct.id,
-        [{ id: stripePrice.id, name: "Default" }],
+        [{ id: stripePrice.id, name: "Regular", payment_link: paymentLink.url }],
       ]
     );
 
