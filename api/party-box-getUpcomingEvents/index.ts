@@ -25,7 +25,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     
     await client.connect();
 
-    const { rows } = await client.query("select * from events where start_time>now();");
+    const { rows } = await client.query("select * from events where start_time>now() order by start_time desc;");
 
     console.log(rows);
 
