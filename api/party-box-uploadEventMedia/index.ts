@@ -8,6 +8,10 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
 }
 
+interface Body {
+  name: string;
+}
+
 /**
  * @method POST
  * @description Create event within Postgres and Stripe
@@ -18,7 +22,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
   try {
     const { eventId } = event.pathParameters as PathParameters;
-
+    const { name } = JSON.parse(event.body ?? "{}") as Body;
     // const headers = event.headers;
 
     // Get access keys for S3 login
@@ -34,7 +38,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       },
     });
 
-    const uploadKey = `events/${eventId}/${uuid()}.jpg`;
+    const uploadKey = `events/${eventId}/${uuid()}-${name}`;
 
     const command = new PutObjectCommand({
       Bucket: "party-box-bucket",
