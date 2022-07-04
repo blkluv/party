@@ -54,16 +54,29 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     // Create stripe product
     const stripeProduct = await stripeClient.products.create({
       name,
-      default_price_data: {
-        currency: "CAD",
-        unit_amount: ticket_price,
-      },
+    });
+
+    const stripePrice = await stripeClient.prices.create({
+      product: stripeProduct.id,
+      unit_amount: ticket_price,
+      currency: "CAD",
+      nickname: "Regular",
     });
 
     // Create event in pg without poster (we'll update after)
     const { rows } = await client.query(
-      "insert into events(name,description,start_time,end_time,max_tickets,location,owner_id,stripe_product_id) values($1,$2,$3,$4,$5,$6,$7,$8) returning *;",
-      [name, description, start_time, end_time, max_tickets, location, owner_id, stripeProduct.id]
+      "insert into events(name,description,start_time,end_time,max_tickets,location,owner_id,stripe_product_id, prices) values($1,$2,$3,$4,$5,$6,$7,$8, $9) returning *;",
+      [
+        name,
+        description,
+        start_time,
+        end_time,
+        max_tickets,
+        location,
+        owner_id,
+        stripeProduct.id,
+        [{ id: stripePrice.id, name: "Default" }],
+      ]
     );
 
     return rows[0];
