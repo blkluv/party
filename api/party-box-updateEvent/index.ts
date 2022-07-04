@@ -12,6 +12,7 @@ interface Body {
   max_tickets: string;
   ticket_price: number;
   poster_url: string;
+  thumbnail_url: string;
 }
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -69,7 +70,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
             location = $6,
             poster_url = $7,
             max_tickets = $8,
-            ticket_price = $9
+            thumbnail_url = $9
         
         WHERE id = $1
         
@@ -84,7 +85,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         body.location,
         body.poster_url,
         body.max_tickets,
-        body.ticket_price,
+        body.thumbnail_url,
       ]
     );
 
