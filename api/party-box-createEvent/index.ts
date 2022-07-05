@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyResultV2 } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResultV2 } from "aws-lambda";
 import * as AWS from "@aws-sdk/client-secrets-manager";
 import { Client } from "pg";
 import stripe from "stripe";
@@ -12,6 +12,10 @@ interface Body {
   owner_id: string;
   max_tickets: string;
   ticket_price: number;
+}
+
+interface StageVariables extends APIGatewayProxyEventStageVariables {
+  websiteUrl: string;
 }
 
 /**
@@ -41,6 +45,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { name, description, start_time, end_time, location, owner_id, max_tickets, ticket_price } = JSON.parse(
       event.body ?? "{}"
     ) as Body;
+    const { websiteUrl } = event.stageVariables as StageVariables;
+
     // const headers = event.headers;
 
     // Get stripe keys
@@ -64,9 +70,24 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     });
 
     const paymentLink = await stripeClient.paymentLinks.create({
-      line_items: [{ price: stripePrice.id, quantity: 1 }],
+      line_items: [
+        {
+          price: stripePrice.id,
+          adjustable_quantity: {
+            enabled: true,
+            minimum: 1,
+          },
+          quantity: 1,
+        },
+      ],
       phone_number_collection: {
         enabled: true,
+      },
+      after_completion: {
+        type: "redirect",
+        redirect: {
+          url: `${websiteUrl}/tickets/{{CHECKOUT_SESSION_ID}}`,
+        },
       },
     });
 
