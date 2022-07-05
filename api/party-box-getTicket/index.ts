@@ -57,11 +57,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
     const session = await stripeClient.checkout.sessions.retrieve(session_id);
+    let customer;
     if (session?.customer) {
-      const customer = await stripeClient.customers.retrieve(session.customer.toString());
+      customer = await stripeClient.customers.retrieve(session.customer.toString());
       console.log(customer);
     }
 
+    console.log(session);
     await client.query(
       `
         select * from tickets
