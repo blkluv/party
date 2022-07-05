@@ -17,6 +17,7 @@ const EventForm = () => {
             start_time: values.start_time.replace("T", " "),
             end_time: values.end_time.replace("T", " "),
             owner_id: "something",
+            ticket_price: 500,
           });
 
           const {
@@ -46,11 +47,6 @@ const EventForm = () => {
         location: "",
         ticket_price: 0,
         max_tickets: 0,
-        poster: {
-          name: "",
-          alt_text: "",
-          type: "image",
-        },
       }}
     >
       <Form className="flex flex-col gap-2">

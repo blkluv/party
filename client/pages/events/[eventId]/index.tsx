@@ -9,6 +9,7 @@ interface Props {
 }
 
 const Page = ({ event }: Props) => {
+  console.log(event);
   return (
     <div className="flex flex-col mx-auto max-w-3xl w-full">
       <div className="relative overflow-hidden rounded-md">
