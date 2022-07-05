@@ -53,10 +53,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
     const session = await stripeClient.checkout.sessions.retrieve(ticketId);
-    let customer;
-    if (session?.customer) {
-      customer = await stripeClient.customers.retrieve(session.customer.toString());
-      console.log(customer);
+    let paymentIntent;
+    if (session.payment_intent) {
+      paymentIntent = await stripeClient.paymentIntents.retrieve(session.payment_intent.toString());
     }
 
     console.log(session);
@@ -68,7 +67,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       [ticketId]
     );
 
-    return { url: session.url, session, customer };
+    return { url: session.url, session, paymentIntent };
   } catch (error) {
     console.error(error);
     throw error;
