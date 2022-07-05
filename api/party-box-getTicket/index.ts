@@ -9,12 +9,8 @@ import * as AWS from "@aws-sdk/client-secrets-manager";
 import { Client } from "pg";
 import stripe from "stripe";
 
-interface Query extends APIGatewayProxyEventQueryStringParameters {
-  session_id: string;
-}
-
 interface PathParameters extends APIGatewayProxyEventPathParameters {
-  eventId: string;
+  ticketId: string;
 }
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
@@ -45,9 +41,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   await client.connect();
 
   try {
-    const { session_id } = event.queryStringParameters as Query;
+    // const { session_id } = event.queryStringParameters as Query;
     // const headers = event.headers;
-    const { eventId } = event.pathParameters as PathParameters;
+    const { ticketId } = event.pathParameters as PathParameters;
 
     // Get stripe keys
     const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
@@ -56,7 +52,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     if (!stripeSecretString) throw new Error("Access keys string was undefined.");
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
-    const session = await stripeClient.checkout.sessions.retrieve(session_id);
+    const session = await stripeClient.checkout.sessions.retrieve(ticketId);
     let customer;
     if (session?.customer) {
       customer = await stripeClient.customers.retrieve(session.customer.toString());
@@ -67,9 +63,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     await client.query(
       `
         select * from tickets
-        where event_id = $1 and session_id = $2;
+        where session_id = $2;
       `,
-      [eventId, session_id]
+      [ticketId]
     );
 
     return { url: session.url, session, customer };
