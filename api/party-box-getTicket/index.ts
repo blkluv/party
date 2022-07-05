@@ -63,7 +63,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     await client.query(
       `
         select * from tickets
-        where session_id = $2;
+        where stripe_session_id = $2;
       `,
       [ticketId]
     );
