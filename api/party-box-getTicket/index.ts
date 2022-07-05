@@ -54,6 +54,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       status: paymentIntent?.status ?? "pending",
       customer_phone_number: session.customer_details?.phone,
       customer_name: session.customer_details?.name,
+      ticket_quantity: session.line_items?.data[0].quantity,
     };
   } catch (error) {
     console.error(error);
