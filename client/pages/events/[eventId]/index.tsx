@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { NextPageContext } from "next";
+import Link from "next/link";
+import { Button } from "~/components/form";
 import TicketsForm from "~/components/TicketsForm";
 import { API_URL } from "~/config/config";
 import PartyBoxEvent from "~/types/PartyBoxEvent";
@@ -9,10 +11,9 @@ interface Props {
 }
 
 const Page = ({ event }: Props) => {
-  console.log(event);
   return (
     <div className="flex flex-col mx-auto max-w-3xl w-full">
-      <div className="relative overflow-hidden rounded-md">
+      <div className="relative overflow-hidden rounded-md mx-auto">
         {event.poster_url && <img src={event.poster_url} alt="Poster" loading="eager" />}
       </div>
       <div className="p-3 flex flex-col gap-6">
@@ -25,7 +26,11 @@ const Page = ({ event }: Props) => {
         <p className="text-sm">{event.description}</p>
 
         <h3 className="font-bold text-xl text-center">Get Tickets</h3>
-        <TicketsForm event={event} />
+        <Link href={event.prices[0].payment_link} passHref>
+          <div>
+            <Button>Get Tickets</Button>
+          </div>
+        </Link>
       </div>
     </div>
   );

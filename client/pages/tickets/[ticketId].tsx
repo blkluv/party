@@ -53,7 +53,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
   const data = await response.json();
 
   return {
-    props: { ...data },
+    props: data,
   };
 };
 

@@ -7,11 +7,11 @@ import { LoadingIcon } from "./Icons";
 const UpcomingEvents = () => {
   const [events, setEvents] = useState<PartyBoxEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
+  
   const getUpcomingEvents = async () => {
     try {
       setEventsLoading(true);
       const { data } = await axios.get("/api/events/upcoming");
-      console.log(data);
       setEvents(data);
     } catch (error) {
       console.error(error);

@@ -1,12 +1,16 @@
+import { CognitoHostedUIIdentityProvider } from "@aws-amplify/auth";
+import { useAuthenticator } from "@aws-amplify/ui-react";
+import { Auth } from "aws-amplify";
 import Link from "next/link";
-import DarkModeToggleButton from "./DarkModeToggleButton";
 import { Drawer } from "./form";
+import { SignInIcon, SignOutIcon } from "./Icons";
 
 interface Props {
   setOpen: (value: boolean) => void;
 }
 
 const NavigationDrawer = ({ setOpen }: Props) => {
+  const { user, signOut } = useAuthenticator();
   return (
     <Drawer onClose={() => setOpen(false)}>
       <div className="flex flex-col h-full">
@@ -15,9 +19,21 @@ const NavigationDrawer = ({ setOpen }: Props) => {
             <p>Create Event</p>
           </div>
         </Link>
-        {/* <div className="mt-auto">
-          <DarkModeToggleButton />
-        </div> */}
+        {!user && (
+          <div
+            className="nav-drawer-button mt-auto"
+            onClick={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })}
+          >
+            <SignInIcon size={20} />
+            <p>Sign In</p>
+          </div>
+        )}
+        {user && (
+          <div className="nav-drawer-button mt-auto" onClick={() => signOut()}>
+            <SignOutIcon size={20} />
+            <p>Sign Out</p>
+          </div>
+        )}
       </div>
     </Drawer>
   );

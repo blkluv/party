@@ -6,8 +6,8 @@ export {
 } from "react-icons/ai";
 export { GiHamburgerMenu as Menu } from "react-icons/gi";
 export {
-  MdLogin as Login,
-  MdLogout as Logout,
+  MdLogin as SignInIcon,
+  MdLogout as SignOutIcon,
   MdOutlineDarkMode as Moon,
   MdOutlineLightMode as Sun,
   MdFilterList as Filter,
