@@ -3,6 +3,7 @@ import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 interface Body {
   name: string;
@@ -32,6 +33,13 @@ export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRe
   try {
     const body = JSON.parse(event.body ?? "{}") as Body;
     const { eventId } = event.pathParameters as PathParameters;
+    const { Authorization } = event.headers;
+
+    if (!Authorization) throw new Error("Authorization header was undefined.");
+
+    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
+
+    if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
     // Get stripe keys
     const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({

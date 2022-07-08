@@ -4,7 +4,7 @@ import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuid } from "uuid";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 interface Body {
   name: string;
@@ -39,8 +39,12 @@ export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRe
     const { websiteUrl } = event.stageVariables as StageVariables;
 
     const { Authorization } = event.headers;
+
     if (!Authorization) throw new Error("Authorization header was undefined.");
-    const { sub } = jwt.decode(Authorization.replace("Bearer ", "")) as { sub: string };
+
+    const { sub, ...auth } = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
+    
+    if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
     // Get stripe keys
     const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
@@ -53,7 +57,7 @@ export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRe
     // Create stripe product
     const stripeProduct = await stripeClient.products.create({
       name,
-      description
+      description,
     });
 
     const stripePrice = await stripeClient.prices.create({
