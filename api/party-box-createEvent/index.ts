@@ -2,6 +2,11 @@ import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyRes
 import * as AWS from "@aws-sdk/client-secrets-manager";
 import { Client } from "pg";
 import stripe from "stripe";
+import { DynamoDB } from "@aws-sdk/client-dynamodb"; // ES6 import
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+// const { DynamoDB } = require("@aws-sdk/client-dynamodb"); // CommonJS import
+
+// Full DynamoDB Client
 
 interface Body {
   name: string;
@@ -24,6 +29,10 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2> => {
   console.log(event);
+
+  const dynamoClient = new DynamoDB({});
+  const dynamo = DynamoDBDocument.from(dynamoClient);
+
   const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
 
   // Get postgres login
@@ -88,6 +97,21 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         redirect: {
           url: `${websiteUrl}/tickets/{CHECKOUT_SESSION_ID}`,
         },
+      },
+    });
+
+    await dynamo.put({
+      TableName: "party-box",
+      Item: {
+        name,
+        description,
+        startTime: start_time,
+        endTime: end_time,
+        maxTickets: max_tickets,
+        location,
+        ownerId: owner_id,
+        stripeProductId: stripeProduct.id,
+        prices: [{ id: stripePrice.id, name: "Regular", payment_link: paymentLink.url }],
       },
     });
 
