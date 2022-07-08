@@ -91,7 +91,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
     });
 
-    const res = await dynamo.put({
+    const { Attributes: eventData } = await dynamo.put({
       TableName: "party-box-events",
       Item: {
         id: uuid(),
@@ -105,9 +105,10 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
         stripeProductId: stripeProduct.id,
         prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url }],
       },
+      ReturnValues: "ALL_NEW",
     });
 
-    return res.Attributes;
+    return eventData;
   } catch (error) {
     console.error(error);
     throw error;
