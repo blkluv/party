@@ -26,6 +26,7 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
  */
 export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRequestContext): Promise<unknown> => {
   console.log(event);
+  console.log(context);
 
   const dynamoClient = new DynamoDB({});
   const dynamo = DynamoDBDocument.from(dynamoClient);
