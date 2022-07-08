@@ -1,23 +1,19 @@
-import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResultV2 } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayEventRequestContext, APIGatewayProxyEventStageVariables } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
-import { Client } from "pg";
 import stripe from "stripe";
-import { DynamoDB } from "@aws-sdk/client-dynamodb"; // ES6 import
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuid } from "uuid";
-// const { DynamoDB } = require("@aws-sdk/client-dynamodb"); // CommonJS import
-
-// Full DynamoDB Client
+import jwt from "jsonwebtoken";
 
 interface Body {
   name: string;
   description: string;
-  start_time: string;
-  end_time?: string;
+  startTime: string;
+  endTime?: string;
   location: string;
-  owner_id: string;
-  max_tickets: string;
-  ticket_price: number;
+  maxTickets: string;
+  ticketPrice: number;
 }
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
@@ -26,42 +22,29 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
 
 /**
  * @method POST
- * @description Create event within Postgres and Stripe
+ * @description Create event within DynamoDB and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2> => {
+export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRequestContext): Promise<unknown> => {
   console.log(event);
 
   const dynamoClient = new DynamoDB({});
   const dynamo = DynamoDBDocument.from(dynamoClient);
 
-  const secretsManager = new SecretsManager({ region: "us-east-1" });
-
-  // Get postgres login
-  const { SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/postgres" });
-  if (!SecretString) throw new Error("Postgres login string was undefined.");
-  const { username: user, password, host, port, dbname } = JSON.parse(SecretString);
-
-  const client = new Client({
-    user,
-    password,
-    host,
-    port,
-    database: dbname,
-  });
-
-  await client.connect();
+  const secretsManager = new SecretsManager({});
 
   try {
-    const { name, description, start_time, end_time, location, owner_id, max_tickets, ticket_price } = JSON.parse(
+    const { name, description, startTime, endTime, location, maxTickets, ticketPrice } = JSON.parse(
       event.body ?? "{}"
     ) as Body;
     const { websiteUrl } = event.stageVariables as StageVariables;
 
-    // const headers = event.headers;
+    const { Authorization } = event.headers;
+    if (!Authorization) throw new Error("Authorization header was undefined.");
+    const { sub } = jwt.decode(Authorization.replace("Bearer ", "")) as { sub: string };
 
     // Get stripe keys
     const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
-      SecretId: "party-box/stripe",
+      SecretId: `${context.stage}/party-box/stripe`,
     });
     if (!stripeSecretString) throw new Error("Access keys string was undefined.");
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
@@ -70,11 +53,12 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     // Create stripe product
     const stripeProduct = await stripeClient.products.create({
       name,
+      description
     });
 
     const stripePrice = await stripeClient.prices.create({
       product: stripeProduct.id,
-      unit_amount: ticket_price,
+      unit_amount: ticketPrice,
       currency: "CAD",
       nickname: "Regular",
     });
@@ -101,43 +85,25 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       },
     });
 
-    await dynamo.put({
-      TableName: "party-box",
+    const res = await dynamo.put({
+      TableName: "party-box-events",
       Item: {
         id: uuid(),
         name,
         description,
-        startTime: start_time,
-        endTime: end_time,
-        maxTickets: max_tickets,
+        startTime,
+        endTime,
+        maxTickets,
         location,
-        ownerId: owner_id,
+        ownerId: sub,
         stripeProductId: stripeProduct.id,
-        prices: [{ id: stripePrice.id, name: "Regular", payment_link: paymentLink.url }],
+        prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url }],
       },
     });
 
-    // Create event in pg without poster (we'll update after)
-    const { rows } = await client.query(
-      "insert into events(name,description,start_time,end_time,max_tickets,location,owner_id,stripe_product_id, prices) values($1,$2,$3,$4,$5,$6,$7,$8, $9) returning *;",
-      [
-        name,
-        description,
-        start_time,
-        end_time,
-        max_tickets,
-        location,
-        owner_id,
-        stripeProduct.id,
-        [{ id: stripePrice.id, name: "Regular", payment_link: paymentLink.url }],
-      ]
-    );
-
-    return rows[0];
+    return res.Attributes;
   } catch (error) {
     console.error(error);
     throw error;
-  } finally {
-    await client.end();
   }
 };

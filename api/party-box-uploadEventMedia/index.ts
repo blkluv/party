@@ -18,7 +18,7 @@ interface Body {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<object>> => {
   console.log(event);
-  const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
+  const secretsManager = new AWS.SecretsManager({});
 
   try {
     const { eventId } = event.pathParameters as PathParameters;
@@ -31,7 +31,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { accessKeyId, secretAccessKey } = JSON.parse(s3SecretString);
 
     const s3 = new S3Client({
-      region: "us-east-1",
       credentials: {
         accessKeyId,
         secretAccessKey,
