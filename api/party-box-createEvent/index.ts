@@ -105,7 +105,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
         stripeProductId: stripeProduct.id,
         prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url }],
       },
-      ReturnValues: "ALL_NEW",
+      ReturnValues: "ALL_OLD",
     });
 
     return eventData;
