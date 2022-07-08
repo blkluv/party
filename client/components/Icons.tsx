@@ -12,6 +12,7 @@ export {
   MdOutlineLightMode as Sun,
   MdFilterList as Filter,
   MdOutlineError as ErrorIcon,
+  MdCheckCircle as CheckIcon,
   MdArrowDropDown as DropdownIcon,
   MdRadioButtonUnchecked as RadioButtonEmptyIcon,
   MdRadioButtonChecked as RadioButtonFilledIcon,
@@ -24,8 +25,4 @@ export {
   IoGameControllerOutline as Games,
   IoDocumentTextOutline as DocumentIcon,
 } from "react-icons/io5";
-export {
-  BsArrowUpCircle as ArrowUp,
-  BsArrowDownCircle as ArrowDown,
-  BsTrash as TrashIcon,
-} from "react-icons/bs";
+export { BsArrowUpCircle as ArrowUp, BsArrowDownCircle as ArrowDown, BsTrash as TrashIcon } from "react-icons/bs";
