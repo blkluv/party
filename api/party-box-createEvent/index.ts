@@ -38,12 +38,12 @@ export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRe
     ) as Body;
     const { websiteUrl } = event.stageVariables as StageVariables;
 
-    const { Authorization } = event.headers;
+    const { authorization } = event.headers;
 
-    if (!Authorization) throw new Error("Authorization header was undefined.");
+    if (!authorization) throw new Error("Authorization header was undefined.");
 
-    const { sub, ...auth } = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
-    
+    const { sub, ...auth } = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+
     if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
     // Get stripe keys

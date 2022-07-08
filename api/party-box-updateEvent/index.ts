@@ -33,11 +33,11 @@ export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRe
   try {
     const body = JSON.parse(event.body ?? "{}") as Body;
     const { eventId } = event.pathParameters as PathParameters;
-    const { Authorization } = event.headers;
+    const { authorization } = event.headers;
 
-    if (!Authorization) throw new Error("Authorization header was undefined.");
+    if (!authorization) throw new Error("Authorization header was undefined.");
 
-    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
+    const auth = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
 
     if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
