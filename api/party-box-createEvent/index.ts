@@ -1,9 +1,10 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResultV2 } from "aws-lambda";
-import * as AWS from "@aws-sdk/client-secrets-manager";
+import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import { Client } from "pg";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb"; // ES6 import
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { v4 as uuid } from "uuid";
 // const { DynamoDB } = require("@aws-sdk/client-dynamodb"); // CommonJS import
 
 // Full DynamoDB Client
@@ -33,7 +34,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const dynamoClient = new DynamoDB({});
   const dynamo = DynamoDBDocument.from(dynamoClient);
 
-  const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
+  const secretsManager = new SecretsManager({ region: "us-east-1" });
 
   // Get postgres login
   const { SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/postgres" });
@@ -103,6 +104,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     await dynamo.put({
       TableName: "party-box",
       Item: {
+        id: uuid(),
         name,
         description,
         startTime: start_time,
