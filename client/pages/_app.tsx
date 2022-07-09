@@ -9,13 +9,11 @@ import TopNavigation from "~/components/TopNavigation";
 import BottomNavigation from "~/components/BottomNavigation";
 import { Authenticator } from "@aws-amplify/ui-react";
 
+Amplify.configure(amplifyConfig);
+
 const App = ({ Component, pageProps }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    Amplify.configure(amplifyConfig);
-  }, []);
 
   useEffect(() => {
     setDrawerOpen(false);

@@ -23,13 +23,13 @@ const EventPreview = ({ event }: Props) => {
         }}
       >
         <div className="relative h-72 md:min-h-[150px] md:h-auto w-full md:flex-1 overflow-hidden">
-          {event.thumbnail_url && <Image src={event.thumbnail_url} alt="Poster" layout="fill" objectFit="cover" />}
+          {event.thumbnailUrl && <Image src={event.thumbnailUrl} alt="Poster" layout="fill" objectFit="cover" />}
         </div>
         <div className="p-3 flex flex-col gap-2 md:flex-1">
           <div className="flex items-center justify-between flex-col">
             <h4 className="font-bold text-xl md:text-2xl">{event.name}</h4>
             <p className="text-sm">
-              {new Date(event.start_time).toDateString()} at {new Date(event.start_time).toLocaleTimeString()}
+              {new Date(event.startTime).toDateString()} at {new Date(event.startTime).toLocaleTimeString()}
             </p>
           </div>
           <p className="text-sm">{event.description}</p>
