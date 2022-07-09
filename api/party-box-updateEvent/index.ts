@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayEventRequestContext, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
@@ -25,7 +25,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  * @method POST
  * @description Update event in Dynamo and Stripe
  */
-export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRequestContext): Promise<unknown> => {
+export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
   console.log(event);
   const secretsManager = new SecretsManager({});
   const dynamo = DynamoDBDocument.from(new DynamoDB({}));
@@ -34,6 +34,7 @@ export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRe
     const body = JSON.parse(event.body ?? "{}") as Body;
     const { eventId } = event.pathParameters as PathParameters;
     const { authorization } = event.headers;
+    const { stage } = event.requestContext;
 
     if (!authorization) throw new Error("Authorization header was undefined.");
 
@@ -43,7 +44,7 @@ export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRe
 
     // Get stripe keys
     const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
-      SecretId: `${context.stage}/party-box/stripe`,
+      SecretId: `${stage}/party-box/stripe`,
     });
     if (!stripeSecretString) throw new Error("Access keys string was undefined.");
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
