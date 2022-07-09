@@ -5,6 +5,7 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuid } from "uuid";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { SNS } from "@aws-sdk/client-sns";
 
 interface Body {
   name: string;
@@ -29,8 +30,8 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
 
   const dynamoClient = new DynamoDB({});
   const dynamo = DynamoDBDocument.from(dynamoClient);
-
   const secretsManager = new SecretsManager({});
+  const sns = new SNS({});
 
   try {
     const { name, description, startTime, endTime, location, maxTickets, ticketPrice } = JSON.parse(
@@ -97,6 +98,11 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
     });
 
+    // Create topic in SNS for SMS messages
+    const snsTopic = await sns.createTopic({
+      Name: `${stage}-party-box-event-notifications-${eventId}`,
+    });
+
     const eventData = {
       id: eventId,
       name,
@@ -108,10 +114,11 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       ownerId: sub,
       stripeProductId: stripeProduct.id,
       prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url }],
+      snsTopicArn: snsTopic.TopicArn,
     };
 
     await dynamo.put({
-      TableName: "party-box-events",
+      TableName: `${stage}-party-box-events`,
       Item: eventData,
     });
 
