@@ -27,8 +27,8 @@ const EventPreview = ({ event }: Props) => {
         </div>
         <div className="p-3 flex flex-col gap-2 md:flex-1">
           <div className="flex items-center justify-between flex-col">
-            <h4 className="font-bold text-xl md:text-2xl">{event.name}</h4>
-            <p className="text-sm">
+            <h4 className="font-bold text-xl md:text-2xl text-center">{event.name}</h4>
+            <p className="text-sm text-center">
               {new Date(event.startTime).toDateString()} at {new Date(event.startTime).toLocaleTimeString()}
             </p>
           </div>

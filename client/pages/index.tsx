@@ -6,11 +6,13 @@ import getUserGroups from "~/utils/getUserGroups";
 
 const Page = () => {
   const { user } = useAuthenticator();
+
   useEffect(() => {
     (() => {
       console.log(getUserGroups(user));
     })();
   }, [user]);
+
   return (
     <div className="mx-auto max-w-2xl w-full">
       <h1 className="rainbow-text text-6xl font-bold text-center my-4">Party Box</h1>
