@@ -14,7 +14,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<object>> => {
   console.log(event);
-  
+
   const secretsManager = new SecretsManager({});
   const dynamo = DynamoDBDocument.from(new DynamoDB({}));
 
@@ -32,8 +32,11 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
 
     const session = await stripeClient.checkout.sessions.retrieve(ticketId);
+    console.log(session);
     const product = await stripeClient.products.retrieve(session?.line_items?.data[0].product?.toString() ?? "");
+    console.log(product);
     const paymentIntent = await stripeClient.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
+    console.log(paymentIntent);
 
     const { Item: eventData } = await dynamo.get({
       TableName: "party-box-events",
