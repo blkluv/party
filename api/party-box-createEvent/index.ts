@@ -56,10 +56,15 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
 
+    const eventId = uuid();
+
     // Create stripe product
     const stripeProduct = await stripeClient.products.create({
       name,
       description,
+      metadata: {
+        eventId,
+      },
     });
 
     const stripePrice = await stripeClient.prices.create({
@@ -92,7 +97,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     });
 
     const eventData = {
-      id: uuid(),
+      id: eventId,
       name,
       description,
       startTime,
