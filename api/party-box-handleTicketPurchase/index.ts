@@ -38,7 +38,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     console.log(paymentIntent);
     console.log(session);
 
-    const eventId = paymentIntent.metadata.eventId;
+    const eventId = session?.data[0]?.metadata?.eventId;
     const customerPhoneNumber = session.data[0].customer_details?.phone;
 
     const ticketData = {
