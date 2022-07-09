@@ -35,7 +35,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     const paymentIntent = await stripeClient.paymentIntents.retrieve(data.payment_intent);
     const sessionList = await stripeClient.checkout.sessions.list({
       payment_intent: paymentIntent.id,
-      expand: ["line_items"],
+      expand: ["data.line_items"],
     });
     const session = await stripeClient.checkout.sessions.retrieve(sessionList.data[0].id);
 
