@@ -35,9 +35,6 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     const paymentIntent = await stripeClient.paymentIntents.retrieve(data.payment_intent);
     const session = await stripeClient.checkout.sessions.list({ payment_intent: paymentIntent.id });
 
-    console.log(paymentIntent);
-    console.log(session);
-
     const eventId = session?.data[0]?.metadata?.eventId;
     const customerPhoneNumber = session.data[0].customer_details?.phone;
 
@@ -51,8 +48,6 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       customerPhoneNumber,
       timestamp: new Date().toISOString(),
     };
-
-    console.log(ticketData);
 
     await dynamo.put({
       TableName: "party-box-tickets",
