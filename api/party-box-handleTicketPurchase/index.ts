@@ -2,10 +2,8 @@ import {
   APIGatewayEvent,
   APIGatewayProxyEventPathParameters,
   APIGatewayProxyEventStageVariables,
-  APIGatewayProxyResultV2,
 } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
-import { Client } from "pg";
 import stripe from "stripe";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
