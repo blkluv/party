@@ -1,41 +1,25 @@
-import { APIGatewayEvent, APIGatewayProxyResultV2 } from "aws-lambda";
-import * as AWS from "@aws-sdk/client-secrets-manager";
-import { Client } from "pg";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 
 /**
  * @method POST
  * @description Create event within Postgres and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<object>> => {
+export const handler = async (): Promise<unknown> => {
   try {
-    const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
-    // const headers = event.headers;
+    const dynamo = DynamoDBDocument.from(new DynamoDB({}));
 
-    const { SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/postgres" });
-    if (!SecretString) throw new Error("Secret string was undefined.");
-    const { username: user, password, host, port, dbname } = JSON.parse(SecretString);
-
-    const client = new Client({
-      user,
-      password,
-      host,
-      port,
-      database: dbname,
+    const { Items: events } = await dynamo.query({
+      TableName: "party-box-events",
+      KeyConditionExpression: "startTime > :st",
+      ExpressionAttributeValues: {
+        ":st": new Date().toISOString(),
+      },
     });
-    
-    await client.connect();
 
-    const { rows } = await client.query("select * from events where start_time>now() order by start_time desc;");
-
-    console.log(rows);
-
-    await client.end();
-
-    return rows;
+    return events;
   } catch (error) {
     console.error(error);
     throw error;
-  } finally {
-    // Code here
   }
 };
