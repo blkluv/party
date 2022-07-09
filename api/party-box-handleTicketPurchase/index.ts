@@ -37,6 +37,11 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
 
     const eventId = session?.data[0]?.metadata?.eventId;
     const customerPhoneNumber = session.data[0].customer_details?.phone;
+    const ticketQuantity = session.data[0].line_items?.data[0].quantity;
+
+    console.log(session.data[0]);
+    console.log(session.data[0].line_items);
+    console.log(session.data[0].line_items?.data);
 
     const ticketData = {
       id: session.data[0].id,
@@ -47,6 +52,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       customerEmail,
       customerPhoneNumber,
       timestamp: new Date().toISOString(),
+      ticketQuantity,
     };
 
     await dynamo.put({
