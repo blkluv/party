@@ -81,6 +81,7 @@ export const handler = async (event: APIGatewayEvent, context: APIGatewayEventRe
           Value: body.thumbnailUrl,
         },
       },
+      ReturnValues: "ALL_NEW",
     });
 
     if (!eventData) throw new Error("Event was not found.");
