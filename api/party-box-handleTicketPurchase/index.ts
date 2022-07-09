@@ -34,25 +34,29 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
 
     const paymentIntent = await stripeClient.paymentIntents.retrieve(data.payment_intent);
     const session = await stripeClient.checkout.sessions.list({ payment_intent: paymentIntent.id });
-    
+
     console.log(paymentIntent);
     console.log(session);
 
     const eventId = paymentIntent.metadata.eventId;
     const customerPhoneNumber = session.data[0].customer_details?.phone;
 
+    const ticketData = {
+      id: session.data[0].id,
+      eventId,
+      stripeChargeId: chargeId,
+      receiptUrl,
+      customerName,
+      customerEmail,
+      customerPhoneNumber,
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log(ticketData);
+
     await dynamo.put({
       TableName: "party-box-tickets",
-      Item: {
-        id: session.data[0].id,
-        eventId,
-        stripeChargeId: chargeId,
-        receiptUrl,
-        customerName,
-        customerEmail,
-        customerPhoneNumber,
-        timestamp: new Date().toISOString(),
-      },
+      Item: ticketData,
     });
 
     return {};
