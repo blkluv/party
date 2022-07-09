@@ -1,8 +1,11 @@
+import { useAuthenticator } from "@aws-amplify/ui-react";
 import { NextPageContext } from "next";
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import LoadingScreen from "~/components/LoadingScreen";
+import MetaData from "~/components/MetaData";
 import { API_URL } from "~/config/config";
+import isUserAdmin from "~/utils/isUserAdmin";
 
 interface Props {
   status: "succeeded" | "failed" | "pending";
@@ -24,15 +27,31 @@ const statusTranslation = {
 
 const Page = ({ status, customer_name, customer_phone_number }: Props) => {
   const [path, setPath] = useState("");
+  const { user } = useAuthenticator();
 
   useEffect(() => {
     setPath(window.location.href);
   }, []);
 
+  const updateTicketUse = async () => {
+    try {
+      await Promise.resolve(null);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    if (user && isUserAdmin(user)) {
+      updateTicketUse();
+    }
+  }, [user]);
+
   if (path.length === 0) return <LoadingScreen />;
 
   return (
     <div className="mx-auto max-w-2xl w-full gap-4 flex flex-col items-center">
+      <MetaData title={`${customer_name}'s Ticket`}/>
       <QRCode value={window.location.href} className="mx-auto" />
       <div className={`rounded-full py-0.5 text-center px-4 ${statusColor[status]} max-w-sm`}>
         <p>{statusTranslation[status]}</p>
