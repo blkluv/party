@@ -2,6 +2,7 @@
 import { NextPageContext } from "next";
 import Link from "next/link";
 import { Button } from "~/components/form";
+import MetaData from "~/components/MetaData";
 import { API_URL } from "~/config/config";
 import PartyBoxEvent from "~/types/PartyBoxEvent";
 
@@ -12,6 +13,7 @@ interface Props {
 const Page = ({ event }: Props) => {
   return (
     <div className="flex flex-col mx-auto max-w-3xl w-full">
+      <MetaData title={`${event.name}`} />
       <div className="relative overflow-hidden rounded-md mx-auto">
         {event.posterUrl && <img src={event.posterUrl} alt="Poster" loading="eager" />}
       </div>
@@ -41,7 +43,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
 
   const data = await fetch(`${API_URL}/events/${eventId}`, { method: "GET" });
   const event = await data.json();
-  
+
   return {
     props: {
       event,
