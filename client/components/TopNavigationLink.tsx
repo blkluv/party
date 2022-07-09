@@ -7,7 +7,7 @@ interface Props {
 
 const TopNavigationLink = ({ href, text }: Props) => {
   return (
-    <Link href="/" passHref>
+    <Link href={href} passHref>
       <a className="big-screen-nav-button">{text}</a>
     </Link>
   );
