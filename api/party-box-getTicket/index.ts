@@ -18,14 +18,21 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
   try {
     const { ticketId } = event.pathParameters as PathParameters;
 
-    const { Item: eventData } = await dynamo.get({
+    const { Item: ticketData } = await dynamo.get({
       TableName: "party-box-tickets",
       Key: {
         id: ticketId,
       },
     });
 
-    return eventData;
+    const { Item: eventData } = await dynamo.get({
+      TableName: "party-box-tickets",
+      Key: {
+        id: ticketData?.eventId,
+      },
+    });
+
+    return { ...ticketData, event: eventData };
   } catch (error) {
     console.error(error);
     throw error;
