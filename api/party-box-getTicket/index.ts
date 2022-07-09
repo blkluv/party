@@ -25,6 +25,8 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
     });
 
+    console.log(ticketData);
+
     const { Item: eventData } = await dynamo.get({
       TableName: "party-box-events",
       Key: {
