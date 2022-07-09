@@ -51,6 +51,18 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
 
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
 
+    const { Item: previousEventData } = await dynamo.get({
+      TableName: "party-box-events",
+      Key: {
+        id: eventId,
+      },
+    });
+
+    const newEventData = {
+      ...previousEventData,
+      ...body,
+    };
+
     const { Attributes: eventData } = await dynamo.update({
       TableName: "party-box-events",
       Key: {
@@ -58,28 +70,28 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
       AttributeUpdates: {
         name: {
-          Value: body.name,
+          Value: newEventData.name,
         },
         description: {
-          Value: body.description,
+          Value: newEventData.description,
         },
         location: {
-          Value: body.location,
+          Value: newEventData.location,
         },
         startTime: {
-          Value: body.startTime,
+          Value: newEventData.startTime,
         },
         endTime: {
-          Value: body.endTime,
+          Value: newEventData.endTime,
         },
         maxTickets: {
-          Value: body.maxTickets,
+          Value: newEventData.maxTickets,
         },
         posterUrl: {
-          Value: body.posterUrl,
+          Value: newEventData.posterUrl,
         },
         thumbnailUrl: {
-          Value: body.thumbnailUrl,
+          Value: newEventData.thumbnailUrl,
         },
       },
       ReturnValues: "ALL_NEW",
