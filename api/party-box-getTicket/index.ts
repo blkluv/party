@@ -1,7 +1,8 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResultV2 } from "aws-lambda";
-import * as AWS from "@aws-sdk/client-secrets-manager";
-import { Client } from "pg";
+import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   ticketId: string;
@@ -13,53 +14,44 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<object>> => {
   console.log(event);
-  const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
-
-  // Get postgres login
-  const { SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/postgres" });
-  if (!SecretString) throw new Error("Postgres login string was undefined.");
-  const { username: user, password, host, port, dbname } = JSON.parse(SecretString);
-
-  const client = new Client({
-    user,
-    password,
-    host,
-    port,
-    database: dbname,
-  });
-
-  await client.connect();
+  
+  const secretsManager = new SecretsManager({});
+  const dynamo = DynamoDBDocument.from(new DynamoDB({}));
 
   try {
-    // const { session_id } = event.queryStringParameters as Query;
-    // const headers = event.headers;
+    const { stage } = event.requestContext;
     const { ticketId } = event.pathParameters as PathParameters;
 
     // Get stripe keys
     const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
-      SecretId: "party-box/stripe",
+      SecretId: `${stage}/party-box/stripe`,
     });
 
     if (!stripeSecretString) throw new Error("Access keys string was undefined.");
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
-    const session = await stripeClient.checkout.sessions.retrieve(ticketId);
 
-    let paymentIntent;
-    if (session.payment_intent) {
-      paymentIntent = await stripeClient.paymentIntents.retrieve(session.payment_intent.toString());
-    }
+    const session = await stripeClient.checkout.sessions.retrieve(ticketId);
+    const product = await stripeClient.products.retrieve(session?.line_items?.data[0].product?.toString() ?? "");
+    const paymentIntent = await stripeClient.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
+
+    const { Item: eventData } = await dynamo.get({
+      TableName: "party-box-events",
+      Key: {
+        id: product.metadata.eventId,
+      },
+    });
 
     return {
       status: paymentIntent?.status ?? "pending",
-      customer_phone_number: session.customer_details?.phone,
-      customer_name: session.customer_details?.name,
-      ticket_quantity: session.line_items?.data[0].quantity,
+      customerPhoneNumber: session.customer_details?.phone,
+      customerName: session.customer_details?.name,
+      ticketQuantity: session.line_items?.data[0].quantity,
+      event: eventData,
+      used: true,
     };
   } catch (error) {
     console.error(error);
     throw error;
-  } finally {
-    await client.end();
   }
 };
