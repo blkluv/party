@@ -34,11 +34,8 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
 
     const paymentIntent = await stripeClient.paymentIntents.retrieve(data.payment_intent);
     const session = await stripeClient.checkout.sessions.list({ payment_intent: paymentIntent.id });
-    const product = await stripeClient.products.retrieve(
-      session.data[0]?.line_items?.data[0].product?.toString() ?? ""
-    );
 
-    const eventId = product.metadata.eventId;
+    const eventId = paymentIntent.metadata.eventId;
     const customerPhoneNumber = session.data[0].customer_details?.phone;
 
     await dynamo.put({
