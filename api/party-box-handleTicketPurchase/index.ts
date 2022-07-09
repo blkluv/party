@@ -3,6 +3,7 @@ import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { SNS } from "@aws-sdk/client-sns";
 
 /**
  * @method POST
@@ -12,6 +13,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
   console.log(event);
   const secretsManager = new SecretsManager({});
   const dynamo = DynamoDBDocument.from(new DynamoDB({}));
+  const sns = new SNS({});
 
   try {
     const { stage } = event.requestContext;
@@ -42,6 +44,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     const customerPhoneNumber = session.data[0].customer_details?.phone;
     const ticketQuantity = session.data[0].line_items?.data[0].quantity;
 
+    // Create ticket in DynamoDB
     const ticketData = {
       id: session.data[0].id,
       eventId,
@@ -56,8 +59,24 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     };
 
     await dynamo.put({
-      TableName: "party-box-tickets",
+      TableName: `${stage}-party-box-tickets`,
       Item: ticketData,
+    });
+
+    // Subscribe customerPhoneNumber to the event's SNS topic
+    const { Item: eventData } = await dynamo.get({
+      TableName: `${stage}-party-box-events`,
+      Key: {
+        id: eventId,
+      },
+    });
+
+    if (!eventData) throw new Error("Couldn't find event data");
+
+    await sns.subscribe({
+      TopicArn: eventData?.snsTopicArn,
+      Protocol: "sms",
+      Endpoint: customerPhoneNumber?.toString(),
     });
 
     return {};
