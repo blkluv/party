@@ -2,6 +2,7 @@ import { CognitoHostedUIIdentityProvider } from "@aws-amplify/auth";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { Auth } from "aws-amplify";
 import Link from "next/link";
+import isUserAdmin from "~/utils/isUserAdmin";
 import { Drawer } from "./form";
 import { SignInIcon, SignOutIcon } from "./Icons";
 
@@ -11,14 +12,18 @@ interface Props {
 
 const NavigationDrawer = ({ setOpen }: Props) => {
   const { user, signOut } = useAuthenticator();
+  const admin = isUserAdmin(user);
+
   return (
     <Drawer onClose={() => setOpen(false)}>
       <div className="flex flex-col h-full">
-        <Link href="/events/create" passHref>
-          <div className="nav-drawer-button">
-            <p>Create Event</p>
-          </div>
-        </Link>
+        {admin && (
+          <Link href="/events/create" passHref>
+            <div className="nav-drawer-button">
+              <p>Create Event</p>
+            </div>
+          </Link>
+        )}
         {!user && (
           <div
             className="nav-drawer-button mt-auto"

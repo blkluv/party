@@ -1,18 +1,20 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResultV2 } from "aws-lambda";
-import * as AWS from "@aws-sdk/client-secrets-manager";
-import { Client } from "pg";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 interface Body {
   name: string;
   description: string;
-  start_time: string;
-  end_time: string;
+  startTime: string;
+  endTime: string;
   location: string;
-  max_tickets: string;
-  ticket_price: number;
-  poster_url: string;
-  thumbnail_url: string;
+  maxTickets: string;
+  ticketPrice: number;
+  posterUrl: string;
+  thumbnailUrl: string;
 }
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -20,86 +22,92 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
 }
 
 /**
- * @method method
- * @description Description
+ * @method POST
+ * @description Update event in Dynamo and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<{ message: string }>> => {
+export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
   console.log(event);
-  const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
-
-  // Get postgres login
-  const { SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/postgres" });
-  if (!SecretString) throw new Error("Postgres login string was undefined.");
-  const { username: user, password, host, port, dbname } = JSON.parse(SecretString);
-
-  const client = new Client({
-    user,
-    password,
-    host,
-    port,
-    database: dbname,
-  });
-
-  await client.connect();
+  const secretsManager = new SecretsManager({});
+  const dynamo = DynamoDBDocument.from(new DynamoDB({}));
 
   try {
     const body = JSON.parse(event.body ?? "{}") as Body;
     const { eventId } = event.pathParameters as PathParameters;
-    // const headers = event.headers;
+    const { authorization } = event.headers;
+    const { stage } = event.requestContext;
+
+    if (!authorization) throw new Error("Authorization header was undefined.");
+
+    const auth = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+
+    if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
     // Get stripe keys
     const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
-      SecretId: "party-box/stripe",
+      SecretId: `${stage}/party-box/stripe`,
     });
     if (!stripeSecretString) throw new Error("Access keys string was undefined.");
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
+
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
 
-    const { rows: startingEventDataRows } = await client.query(`SELECT * FROM events WHERE id = $1`, [eventId]);
-    const startingEventData = startingEventDataRows[0];
-
-    // Create event in pg without poster (we'll update after)
-    const { rows: updatedEventDataRows } = await client.query(
-      `
-        UPDATE events
-          SET 
-            name = $2,
-            description = $3,
-            start_time = $4,
-            end_time = $5,
-            location = $6,
-            poster_url = $7,
-            max_tickets = $8,
-            thumbnail_url = $9
-        
-        WHERE id = $1
-        
-        RETURNING *;
-      `,
-      [
-        eventId,
-        body.name,
-        body.description,
-        body.start_time,
-        body.end_time,
-        body.location,
-        body.poster_url,
-        body.max_tickets,
-        body.thumbnail_url,
-      ]
-    );
-
-    await stripeClient.products.update(startingEventData.stripe_product_id, {
-      name: body.name,
-      description: body.description,
-      images: [body.poster_url],
+    const { Item: previousEventData } = await dynamo.get({
+      TableName: "party-box-events",
+      Key: {
+        id: eventId,
+      },
     });
 
-    return updatedEventDataRows[0];
+    const newEventData = {
+      ...previousEventData,
+      ...body,
+    };
+
+    const { Attributes: eventData } = await dynamo.update({
+      TableName: "party-box-events",
+      Key: {
+        id: eventId,
+      },
+      AttributeUpdates: {
+        name: {
+          Value: newEventData.name,
+        },
+        description: {
+          Value: newEventData.description,
+        },
+        location: {
+          Value: newEventData.location,
+        },
+        startTime: {
+          Value: newEventData.startTime,
+        },
+        endTime: {
+          Value: newEventData.endTime,
+        },
+        maxTickets: {
+          Value: newEventData.maxTickets,
+        },
+        posterUrl: {
+          Value: newEventData.posterUrl,
+        },
+        thumbnailUrl: {
+          Value: newEventData.thumbnailUrl,
+        },
+      },
+      ReturnValues: "ALL_NEW",
+    });
+
+    if (!eventData) throw new Error("Event was not found.");
+
+    await stripeClient.products.update(eventData.stripeProductId, {
+      name: body.name,
+      description: body.description,
+      images: [body.posterUrl],
+    });
+
+    return eventData;
   } catch (error) {
     console.error(error);
     throw error;
-  } finally {
-    await client.end();
   }
 };

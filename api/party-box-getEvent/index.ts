@@ -1,44 +1,31 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResultV2 } from "aws-lambda";
-import * as AWS from "@aws-sdk/client-secrets-manager";
-import { Client } from "pg";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
 }
 
 /**
- * @method POST
- * @description Create event within Postgres and Stripe
+ * @method GET
+ * @description Get event with given ID from DynamoDB
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<object>> => {
-  const secretsManager = new AWS.SecretsManager({ region: "us-east-1" });
-  const { SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/postgres" });
-  if (!SecretString) throw new Error("Secret string was undefined.");
-  const { username: user, password, host, port, dbname } = JSON.parse(SecretString);
-
-  const client = new Client({
-    user,
-    password,
-    host,
-    port,
-    database: dbname,
-  });
-
-  await client.connect();
-
+export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
   try {
     const { eventId } = event.pathParameters as PathParameters;
-    // const headers = event.headers;
 
-    const { rows } = await client.query("select * from events where id = $1;", [eventId]);
+    const dynamo = DynamoDBDocument.from(new DynamoDB({}));
 
-    console.log(rows);
+    const { Item: eventData } = await dynamo.get({
+      TableName: "party-box-events",
+      Key: {
+        id: eventId,
+      },
+    });
 
-    return rows[0];
+    return eventData;
   } catch (error) {
     console.error(error);
     throw error;
-  } finally {
-    await client.end();
   }
 };
