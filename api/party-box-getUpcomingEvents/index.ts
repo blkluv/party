@@ -9,9 +9,9 @@ export const handler = async (): Promise<unknown> => {
   try {
     const dynamo = DynamoDBDocument.from(new DynamoDB({}));
 
-    const { Items: events } = await dynamo.query({
+    const { Items: events } = await dynamo.scan({
       TableName: "party-box-events",
-      KeyConditionExpression: "startTime > :st",
+      FilterExpression: "startTime > :st",
       ExpressionAttributeValues: {
         ":st": new Date().toISOString(),
       },
