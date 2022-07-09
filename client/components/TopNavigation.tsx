@@ -1,5 +1,6 @@
+import Image from "next/image";
+import Link from "next/link";
 import { Menu } from "./Icons";
-import TopNavigationLink from "./TopNavigationLink";
 
 interface Props {
   setDrawerOpen: (open: boolean) => void;
@@ -11,7 +12,11 @@ const TopNavigation = ({ setDrawerOpen }: Props) => {
       <div className="cursor-pointer primary-hover" onClick={() => setDrawerOpen(true)}>
         <Menu size={20} />
       </div>
-      <TopNavigationLink href="/" text="Home" />
+      <Link passHref href="/">
+        <div className="w-24 h-12 relative cursor-pointer">
+          <Image src="/images/Party_Box.svg" layout="fill" objectFit="cover" alt="Orange text reading Party Box" />
+        </div>
+      </Link>
     </div>
   );
 };
