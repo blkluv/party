@@ -130,7 +130,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       TableName: "party-box-event-notifications",
       Item: {
         id: uuid(),
-        messageTime: startTime,
+        messageTime: dayjs(startTime).toISOString(),
         message: `${name} starts now! Address is ${location}.`,
         eventSnsTopicArn: snsTopic.TopicArn,
       },
@@ -139,7 +139,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       TableName: "party-box-event-notifications",
       Item: {
         id: uuid(),
-        messageTime: dayjs(startTime).subtract(1, "hour").format(),
+        messageTime: dayjs(startTime).subtract(1, "hour").toISOString(),
         message: `${name} is starting in 1h! Address is ${location}.`,
         eventSnsTopicArn: snsTopic.TopicArn,
       },
@@ -148,7 +148,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       TableName: "party-box-event-notifications",
       Item: {
         id: uuid(),
-        messageTime: dayjs(startTime).subtract(4, "hour").format(),
+        messageTime: dayjs(startTime).subtract(4, "hour").toISOString(),
         message: `${name} is starting in 4h! Address is ${location}.`,
         eventSnsTopicArn: snsTopic.TopicArn,
       },
