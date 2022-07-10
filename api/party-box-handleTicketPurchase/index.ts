@@ -1,9 +1,13 @@
-import { APIGatewayEvent } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventStageVariables } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { SNS } from "@aws-sdk/client-sns";
+
+interface StageVariables extends APIGatewayProxyEventStageVariables {
+  websiteUrl: string;
+}
 
 /**
  * @method POST
@@ -11,12 +15,14 @@ import { SNS } from "@aws-sdk/client-sns";
  */
 export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
   console.log(event);
+  
   const secretsManager = new SecretsManager({});
   const dynamo = DynamoDBDocument.from(new DynamoDB({}));
   const sns = new SNS({});
 
   try {
     const { stage } = event.requestContext;
+    const { websiteUrl } = event.stageVariables as StageVariables;
     const {
       data: { object: data },
     } = JSON.parse(event.body ?? "{}");
@@ -77,6 +83,17 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       TopicArn: eventData?.snsTopicArn,
       Protocol: "sms",
       Endpoint: customerPhoneNumber?.toString(),
+    });
+
+    await sns.publish({
+      Message: `
+      Thank you for purchasing ${ticketQuantity} ticket${ticketQuantity ?? 0 > 1 ? "s" : ""} to ${eventData?.name}!
+
+      View your ticket at ${websiteUrl}/tickets/${ticketData.id}
+
+      Receipt: ${receiptUrl}
+      `,
+      PhoneNumber: eventData?.phoneNumber,
     });
 
     return {};
