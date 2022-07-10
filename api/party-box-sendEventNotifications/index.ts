@@ -7,6 +7,7 @@ interface EventNotification {
   messageTime: string;
   eventSnsTopicArn: string;
   message: string;
+  id: string;
 }
 
 /**
@@ -35,6 +36,14 @@ export const handler = async (event: EventBridgeEvent<"SendEventNotifications", 
       await sns.publish({
         Message: e.message,
         TopicArn: e.eventSnsTopicArn,
+      });
+
+      // Delete record from DynamoDB
+      await dynamo.delete({
+        TableName: "party-box-event-notifications",
+        Key: {
+          messageTime: e.id,
+        },
       });
     }
 
