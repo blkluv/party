@@ -93,7 +93,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       after_completion: {
         type: "redirect",
         redirect: {
-          url: `${websiteUrl}/tickets/{CHECKOUT_SESSION_ID}`,
+          url: `${websiteUrl}/tickets/purchase-success?eventId=${eventId}`,
         },
       },
     });
