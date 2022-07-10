@@ -4,7 +4,7 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 
 interface EventNotification {
-  timestamp: string;
+  messageTime: string;
   eventSnsTopicArn: string;
   message: string;
 }
@@ -22,7 +22,7 @@ export const handler = async (event: EventBridgeEvent<"SendEventNotifications", 
     // Get all notifications that are past due
     const { Items: notifications } = await dynamo.scan({
       TableName: "party-box-event-notifications",
-      FilterExpression: "timestamp <= :now",
+      FilterExpression: "messageTime <= :now",
       ExpressionAttributeValues: {
         ":now": new Date().toISOString(),
       },
