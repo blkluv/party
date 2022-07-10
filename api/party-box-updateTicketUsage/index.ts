@@ -4,7 +4,7 @@ import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
-  eventId: string;
+  ticketId: string;
 }
 
 interface Body {
@@ -23,7 +23,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
   try {
     const { stage } = event.requestContext;
     const { value } = JSON.parse(event.body ?? "{}") as Body;
-    const { eventId } = event.pathParameters as PathParameters;
+    const { ticketId } = event.pathParameters as PathParameters;
     const { authorization } = event.headers;
 
     if (!authorization) throw new Error("Authorization header was undefined.");
@@ -36,7 +36,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     await dynamo.update({
       TableName: `${stage}-party-box-tickets`,
       Key: {
-        id: eventId,
+        id: ticketId,
       },
       AttributeUpdates: {
         used: {
