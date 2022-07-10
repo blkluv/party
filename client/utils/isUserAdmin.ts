@@ -4,7 +4,9 @@ import { UseAuthenticator } from "@aws-amplify/ui-react/dist/types/components/Au
  * @param user Current signed in user.
  * @returns True if the user is in the "admin" group. False otherwise.
  */
-const isUserAdmin = (user: UseAuthenticator["user"]): boolean => {
+const isUserAdmin = (user?: UseAuthenticator["user"]): boolean => {
+  if (!user) return false;
+
   return user
     ?.getSignInUserSession()
     .getIdToken()
