@@ -15,9 +15,10 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     const { eventId } = event.pathParameters as PathParameters;
 
     const dynamo = DynamoDBDocument.from(new DynamoDB({}));
+    const { stage } = event.requestContext;
 
     const { Item: eventData } = await dynamo.get({
-      TableName: "party-box-events",
+      TableName: `${stage}-party-box-events`,
       Key: {
         id: eventId,
       },
