@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
@@ -96,13 +97,13 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       Endpoint: customerPhoneNumber?.toString(),
     });
 
+    if (ticketQuantity === null || ticketQuantity === undefined) throw new Error("Ticket quantity was undefined");
+
     await sns.publish({
       Message: `
-        Thank you for purchasing ${ticketQuantity} ticket${ticketQuantity ?? 0 > 1 ? "s" : ""} to ${eventData?.name}!
-
-        View your ticket at ${websiteUrl}/tickets/${ticketData.id}
-
-        Receipt: ${receiptUrl}
+        Thank you for purchasing ${ticketQuantity} ticket${ticketQuantity > 0 ? "s" : ""} to ${
+        eventData?.name
+      }!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.id}\n\nReceipt: ${receiptUrl}
       `,
       TopicArn: tempTopic.TopicArn,
     });
