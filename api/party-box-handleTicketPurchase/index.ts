@@ -62,7 +62,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       customerPhoneNumber,
       timestamp: new Date().toISOString(),
       ticketQuantity,
-      used: 0,
+      used: false,
     };
 
     await dynamo.put({
