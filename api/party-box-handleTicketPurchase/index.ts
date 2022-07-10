@@ -15,7 +15,7 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
  */
 export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
   console.log(event);
-  
+
   const secretsManager = new SecretsManager({});
   const dynamo = DynamoDBDocument.from(new DynamoDB({}));
   const sns = new SNS({});
@@ -85,15 +85,30 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       Endpoint: customerPhoneNumber?.toString(),
     });
 
+    // Create a temp topic to send a one-time sms message to the customer
+    const tempTopic = await sns.createTopic({
+      Name: `${stage}-party-box-ticket-temp-${ticketData.id}`,
+    });
+
+    await sns.subscribe({
+      TopicArn: tempTopic.TopicArn,
+      Protocol: "sms",
+      Endpoint: customerPhoneNumber?.toString(),
+    });
+
     await sns.publish({
       Message: `
-      Thank you for purchasing ${ticketQuantity} ticket${ticketQuantity ?? 0 > 1 ? "s" : ""} to ${eventData?.name}!
+        Thank you for purchasing ${ticketQuantity} ticket${ticketQuantity ?? 0 > 1 ? "s" : ""} to ${eventData?.name}!
 
-      View your ticket at ${websiteUrl}/tickets/${ticketData.id}
+        View your ticket at ${websiteUrl}/tickets/${ticketData.id}
 
-      Receipt: ${receiptUrl}
+        Receipt: ${receiptUrl}
       `,
-      PhoneNumber: eventData?.phoneNumber,
+      TopicArn: tempTopic.TopicArn,
+    });
+
+    await sns.deleteTopic({
+      TopicArn: tempTopic.TopicArn,
     });
 
     return {};
