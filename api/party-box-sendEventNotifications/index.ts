@@ -42,7 +42,7 @@ export const handler = async (event: EventBridgeEvent<"SendEventNotifications", 
       await dynamo.delete({
         TableName: "party-box-event-notifications",
         Key: {
-          messageTime: e.id,
+          id: e.id,
         },
       });
     }
