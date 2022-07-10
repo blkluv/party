@@ -32,7 +32,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
 
     const { Item: ticketData } = await dynamo.get({
-      TableName: "party-box-tickets",
+      TableName: `${stage}-party-box-tickets`,
       Key: {
         id: ticketId,
       },
@@ -41,7 +41,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     console.log(ticketData);
 
     const { Item: eventData } = await dynamo.get({
-      TableName: "party-box-events",
+      TableName: `${stage}-party-box-events`,
       Key: {
         id: ticketData?.eventId,
       },
