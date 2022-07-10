@@ -86,8 +86,10 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
     });
 
+    const ticketsSold = tickets?.reduce((acc, curr) => acc + curr.ticketQuantity, 0);
+
     // Once enough stock is sold, disable product on stripe
-    if (tickets?.length >= eventData?.maxTickets) {
+    if (ticketsSold >= eventData?.maxTickets) {
       await stripeClient.products.update(eventData?.stripeProductId, {
         active: false,
       });
@@ -101,7 +103,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
       UpdateExpression: "set ticketsSold = :ticketsSold",
       ExpressionAttributeValues: {
-        ":ticketsSold": tickets.length,
+        ":ticketsSold": ticketsSold,
       },
     });
 
