@@ -70,7 +70,6 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       Item: ticketData,
     });
 
-    // Subscribe customerPhoneNumber to the event's SNS topic
     const { Item: eventData } = await dynamo.get({
       TableName: `${stage}-party-box-events`,
       Key: {
@@ -78,8 +77,37 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
     });
 
+    // Get all current tickets
+    const { Items: tickets = [] } = await dynamo.scan({
+      TableName: `${stage}-party-box-tickets`,
+      FilterExpression: "eventId = :eventId",
+      ExpressionAttributeValues: {
+        ":eventId": eventId,
+      },
+    });
+
+    // Once enough stock is sold, disable product on stripe
+    if (tickets?.length >= eventData?.maxTickets) {
+      await stripeClient.products.update(eventData?.stripeProductId, {
+        active: false,
+      });
+    }
+
+    // Update DynamoDB with current ticket count
+    await dynamo.update({
+      TableName: `${stage}-party-box-events`,
+      Key: {
+        id: eventId,
+      },
+      UpdateExpression: "set ticketsSold = :ticketsSold",
+      ExpressionAttributeValues: {
+        ":ticketsSold": tickets.length,
+      },
+    });
+
     if (!eventData) throw new Error("Couldn't find event data");
 
+    // Subscribe customerPhoneNumber to the event's SNS topic
     await sns.subscribe({
       TopicArn: eventData?.snsTopicArn,
       Protocol: "sms",
