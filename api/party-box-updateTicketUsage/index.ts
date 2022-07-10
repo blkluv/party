@@ -1,6 +1,7 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -23,6 +24,13 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     const { stage } = event.requestContext;
     const { value } = JSON.parse(event.body ?? "{}") as Body;
     const { eventId } = event.pathParameters as PathParameters;
+    const { authorization } = event.headers;
+
+    if (!authorization) throw new Error("Authorization header was undefined.");
+
+    const auth = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+
+    if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
     // Subscribe customerPhoneNumber to the event's SNS topic
     await dynamo.update({
@@ -30,9 +38,10 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       Key: {
         id: eventId,
       },
-      UpdateExpression: "set used = :ticketUsage",
-      ExpressionAttributeValues: {
-        ":ticketUsage": value,
+      AttributeUpdates: {
+        used: {
+          Value: value,
+        },
       },
     });
 
