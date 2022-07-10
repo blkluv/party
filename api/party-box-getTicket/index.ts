@@ -50,7 +50,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     const session = await stripeClient.checkout.sessions.retrieve(ticketId);
     const paymentIntent = await stripeClient.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
 
-    return { ...ticketData, status: paymentIntent?.status ?? "pending", event: eventData };
+    return { ...ticketData, status: paymentIntent?.status ?? "pending", event: { ...eventData, location: null } };
   } catch (error) {
     console.error(error);
     throw error;

@@ -19,7 +19,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
     });
 
-    return events;
+    return events?.map((e) => ({ ...e, location: null }));
   } catch (error) {
     console.error(error);
     throw error;

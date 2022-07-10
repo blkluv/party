@@ -24,7 +24,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
     });
 
-    return eventData;
+    return { ...eventData, location: null };
   } catch (error) {
     console.error(error);
     throw error;
