@@ -1,21 +1,20 @@
-import { useAuthenticator } from "@aws-amplify/ui-react";
-import { useEffect } from "react";
+import Image from "next/image";
 import MetaData from "~/components/MetaData";
 import UpcomingEvents from "~/components/UpcomingEvents";
-import getUserGroups from "~/utils/getUserGroups";
 
 const Page = () => {
-  const { user } = useAuthenticator();
-
-  useEffect(() => {
-    (() => {
-      console.log(getUserGroups(user));
-    })();
-  }, [user]);
-
   return (
     <div className="mx-auto max-w-2xl w-full">
-      <h1 className="rainbow-text text-6xl font-bold text-center my-4">Party Box</h1>
+      <div className="w-full h-72 relative mx-auto">
+        <Image
+          src="/images/Party_Box.svg"
+          layout="fill"
+          objectFit="cover"
+          alt="Orange text reading Party Box"
+          priority
+          loading="eager"
+        />
+      </div>
       <MetaData title="Home" />
       <UpcomingEvents />
     </div>

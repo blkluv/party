@@ -1,9 +1,9 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import axios from "axios";
-import { Form, Formik } from "formik";
+import { ErrorMessage, Field, Form, Formik } from "formik";
 import { useState } from "react";
 import getToken from "~/utils/getToken";
-import { Button, Input } from "./form";
+import { Button, CustomErrorMessage, Input, TextArea } from "./form";
 import FormGroup from "./form/FormGroup";
 import { LoadingIcon } from "./Icons";
 
@@ -73,9 +73,17 @@ const EventForm = () => {
         <Form className="flex flex-col gap-2">
           {isSubmitting && <LoadingIcon className="animate-spin" size={30} />}
           <FormGroup label="Event Name" name="name" placeholder="Event name" />
-          <FormGroup label="Description" name="description" placeholder="Event description" />
+          <div>
+            <div className="form-label-group">
+              <p>Description</p>
+              <ErrorMessage name={"description"} component={CustomErrorMessage} />
+            </div>
+            <Field component={TextArea} name={"description"} placeholder={"Description"} type={"text"} />
+          </div>
           <FormGroup label="Start Time" name="startTime" placeholder="Event start time" type="datetime-local" />
           <FormGroup label="Location" name="location" placeholder="Event location (address, etc.)" />
+          <FormGroup label="Ticket Price" name="ticketPrice" placeholder="Ticket price" type="number" />
+          <FormGroup label="Maximum Tickets Sold" name="maxTickets" placeholder="Max tickets" type="number" />
           <p>Poster</p>
           <Input onChange={(e) => setPosterData(e.target.files[0])} type="file" />
           <p>Thumbnail</p>

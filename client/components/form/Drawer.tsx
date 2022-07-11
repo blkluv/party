@@ -1,5 +1,5 @@
 import React, { MouseEvent, ReactNode, TouchEvent, useEffect, useRef } from "react";
-import { motion, useAnimation } from "framer-motion";
+import { motion } from "framer-motion";
 import Portal from "./Portal";
 
 export interface DrawerProps {

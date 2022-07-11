@@ -6,7 +6,6 @@ import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuid } from "uuid";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { SNS } from "@aws-sdk/client-sns";
-import dayjs from "dayjs";
 
 interface Body {
   name: string;
@@ -65,7 +64,6 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       metadata: {
         eventId,
       },
-      unit_label: "ticket",
     });
 
     const stripePrice = await stripeClient.prices.create({
@@ -117,41 +115,11 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       stripeProductId: stripeProduct.id,
       prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url }],
       snsTopicArn: snsTopic.TopicArn,
-      ticketsSold: 0,
     };
 
     await dynamo.put({
       TableName: `${stage}-party-box-events`,
       Item: eventData,
-    });
-
-    // Schedule some messages
-    await dynamo.put({
-      TableName: "party-box-event-notifications",
-      Item: {
-        id: uuid(),
-        messageTime: dayjs(startTime).toISOString(),
-        message: `${name} starts now! Location is ${location}.`,
-        eventSnsTopicArn: snsTopic.TopicArn,
-      },
-    });
-    await dynamo.put({
-      TableName: "party-box-event-notifications",
-      Item: {
-        id: uuid(),
-        messageTime: dayjs(startTime).subtract(1, "hour").toISOString(),
-        message: `${name} is starting in 1h! Location is ${location}.`,
-        eventSnsTopicArn: snsTopic.TopicArn,
-      },
-    });
-    await dynamo.put({
-      TableName: "party-box-event-notifications",
-      Item: {
-        id: uuid(),
-        messageTime: dayjs(startTime).subtract(4, "hour").toISOString(),
-        message: `${name} is starting in 4h! Location is ${location}.`,
-        eventSnsTopicArn: snsTopic.TopicArn,
-      },
     });
 
     return eventData;

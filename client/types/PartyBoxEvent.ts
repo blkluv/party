@@ -9,7 +9,6 @@ export interface PartyBoxEvent {
   ownerId: string;
   stripeProductId: string;
   posterUrl: string;
-  data: null;
   ticketPrice: null;
   thumbnailUrl: string;
   prices: Price[];
