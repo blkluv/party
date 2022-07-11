@@ -78,10 +78,12 @@ const EventForm = () => {
               <p>Description</p>
               <ErrorMessage name={"description"} component={CustomErrorMessage} />
             </div>
-            <Field component={TextArea} name={name} placeholder={"Description"} type={"text"} />
+            <Field component={TextArea} name={"description"} placeholder={"Description"} type={"text"} />
           </div>
           <FormGroup label="Start Time" name="startTime" placeholder="Event start time" type="datetime-local" />
           <FormGroup label="Location" name="location" placeholder="Event location (address, etc.)" />
+          <FormGroup label="Ticket Price" name="ticketPrice" placeholder="Ticket price" type="number" />
+          <FormGroup label="Maximum Tickets Sold" name="maxTickets" placeholder="Max tickets" type="number" />
           <p>Poster</p>
           <Input onChange={(e) => setPosterData(e.target.files[0])} type="file" />
           <p>Thumbnail</p>
