@@ -131,7 +131,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       Item: {
         id: uuid(),
         messageTime: dayjs(startTime).toISOString(),
-        message: `${name} starts now! Address is ${location}.`,
+        message: `${name} starts now! Location is ${location}.`,
         eventSnsTopicArn: snsTopic.TopicArn,
       },
     });
@@ -140,7 +140,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       Item: {
         id: uuid(),
         messageTime: dayjs(startTime).subtract(1, "hour").toISOString(),
-        message: `${name} is starting in 1h! Address is ${location}.`,
+        message: `${name} is starting in 1h! Location is ${location}.`,
         eventSnsTopicArn: snsTopic.TopicArn,
       },
     });
@@ -149,7 +149,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       Item: {
         id: uuid(),
         messageTime: dayjs(startTime).subtract(4, "hour").toISOString(),
-        message: `${name} is starting in 4h! Address is ${location}.`,
+        message: `${name} is starting in 4h! Location is ${location}.`,
         eventSnsTopicArn: snsTopic.TopicArn,
       },
     });
