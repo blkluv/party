@@ -10,7 +10,7 @@ interface Props {
 const EventPreview = ({ event }: Props) => {
   return (
     <Link href={`/events/${event.id}`} passHref>
-      <motion.div
+      <motion.a
         className="flex flex-col md:flex-row rounded-xl shadow-md border border-gray-800 overflow-hidden cursor-pointer"
         whileHover={{
           scale: 1.02,
@@ -34,7 +34,7 @@ const EventPreview = ({ event }: Props) => {
           </div>
           <p className="text-sm">{event.description}</p>
         </div>
-      </motion.div>
+      </motion.a>
     </Link>
   );
 };
