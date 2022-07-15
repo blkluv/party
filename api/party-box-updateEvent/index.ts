@@ -91,6 +91,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
         ":endTime": newEventData.endTime,
         ":location": newEventData.location,
         ":maxTickets": newEventData.maxTickets,
+        ":ticketPrice": newEventData.ticketPrice,
         ":media": newEventData.media,
         ":thumbnail": newEventData.thumbnail,
       },
