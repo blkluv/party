@@ -65,36 +65,36 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       ...body,
     };
 
+    console.log(newEventData);
+
     const { Attributes: eventData } = await dynamo.update({
       TableName: `${stage}-party-box-events`,
       Key: {
         id: eventId,
       },
-      AttributeUpdates: {
-        name: {
-          Value: newEventData.name,
-        },
-        description: {
-          Value: newEventData.description,
-        },
-        location: {
-          Value: newEventData.location,
-        },
-        startTime: {
-          Value: newEventData.startTime,
-        },
-        endTime: {
-          Value: newEventData.endTime,
-        },
-        maxTickets: {
-          Value: newEventData.maxTickets,
-        },
-        media: {
-          Value: newEventData.media,
-        },
-        thumbnail: {
-          Value: newEventData.thumbnail,
-        },
+      UpdateExpression: `
+        SET 
+          name = :name,
+          description = :description,
+          startTime = :startTime,
+          endTime = :endTime,
+          location = :location,
+          maxTickets = :maxTickets,
+          ticketPrice = :ticketPrice,
+          posterUrl = :posterUrl,
+          thumbnailUrl = :thumbnailUrl,
+          media = :media,
+          thumbnail = :thumbnail
+        `,
+      ExpressionAttributeValues: {
+        ":name": newEventData.name,
+        ":description": newEventData.description,
+        ":startTime": newEventData.startTime,
+        ":endTime": newEventData.endTime,
+        ":location": newEventData.location,
+        ":maxTickets": newEventData.maxTickets,
+        ":media": newEventData.media,
+        ":thumbnail": newEventData.thumbnail,
       },
       ReturnValues: "ALL_NEW",
     });
