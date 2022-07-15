@@ -118,6 +118,9 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url, paymentLinkId: paymentLink.id }],
       snsTopicArn: snsTopic.TopicArn,
       ticketsSold: 0,
+      published: false,
+      media: [],
+      thumbnail: "",
     };
 
     await dynamo.put({
