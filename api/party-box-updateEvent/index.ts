@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
@@ -27,7 +27,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  * @method POST
  * @description Update event in Dynamo and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
   const secretsManager = new SecretsManager({});
   const dynamo = DynamoDBDocument.from(new DynamoDB({}));
@@ -117,7 +117,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       images: newEventData.media,
     });
 
-    return eventData;
+    return { statusCode: 200, body: JSON.stringify(eventData) };
   } catch (error) {
     console.error(error);
     throw error;

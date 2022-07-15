@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyResultV2, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { v4 as uuid } from "uuid";
@@ -17,7 +17,7 @@ interface Body {
  * @method POST
  * @description Create event within Postgres and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<object>> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
   const secretsManager = new SecretsManager({});
 
@@ -52,7 +52,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 120 });
 
-    return { uploadUrl, downloadUrl: `https://party-box-bucket.s3.us-east-1.amazonaws.com/${uploadKey}` };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        uploadUrl,
+        downloadUrl: `https://party-box-bucket.s3.us-east-1.amazonaws.com/${uploadKey}`,
+      }),
+    };
   } catch (error) {
     console.error(error);
     throw error;

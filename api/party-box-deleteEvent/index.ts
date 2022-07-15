@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
@@ -14,7 +14,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  * @method DELETE
  * @description Delete event within Dynamo, Stripe, and SNS
  */
-export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
 
   const dynamo = DynamoDBDocument.from(new DynamoDB({}));
@@ -71,7 +71,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     } catch (error) {
       console.warn(error);
     }
-    
+
     try {
       // Delete SNS topic
       await sns.deleteTopic({
@@ -108,7 +108,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       }
     }
 
-    return { message: "Event deleted successfully." };
+    return { statusCode: 200, body: JSON.stringify({ message: "Event deleted." }) };
   } catch (error) {
     console.error(error);
     throw error;
