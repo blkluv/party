@@ -115,7 +115,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       location,
       ownerId: sub,
       stripeProductId: stripeProduct.id,
-      prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url }],
+      prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url, paymentLinkId: paymentLink.id }],
       snsTopicArn: snsTopic.TopicArn,
       ticketsSold: 0,
     };
