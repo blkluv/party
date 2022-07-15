@@ -53,21 +53,33 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     // Delete all stripe prices associated with this event
     // We can't actually delete them, but we can make them inactive
     for (const price of eventItem.prices) {
-      await stripeClient.prices.update(price.id, { active: false });
-      await stripeClient.paymentLinks.update(price.paymentLinkId, {
-        active: false,
-      });
+      try {
+        await stripeClient.prices.update(price.id, { active: false });
+        await stripeClient.paymentLinks.update(price.paymentLinkId, {
+          active: false,
+        });
+      } catch (error) {
+        continue;
+      }
     }
 
-    // Delete stripe product
-    // We won't be able to delete it because we didn't actually delete the prices above
-    // So we're also going to make this inactive
-    await stripeClient.products.update(eventItem.stripeProductId, { active: false });
-
-    // Create topic in SNS for SMS messages
-    await sns.deleteTopic({
-      TopicArn: eventItem.snsTopicArn,
-    });
+    try {
+      // Delete stripe product
+      // We won't be able to delete it because we didn't actually delete the prices above
+      // So we're also going to make this inactive
+      await stripeClient.products.update(eventItem.stripeProductId, { active: false });
+    } catch (error) {
+      console.warn(error);
+    }
+    
+    try {
+      // Delete SNS topic
+      await sns.deleteTopic({
+        TopicArn: eventItem.snsTopicArn,
+      });
+    } catch (error) {
+      console.warn(error);
+    }
 
     await dynamo.delete({
       TableName: `${stage}-party-box-events`,
