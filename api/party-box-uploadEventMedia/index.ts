@@ -24,10 +24,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   try {
     const { eventId } = event.pathParameters as PathParameters;
     const { name } = JSON.parse(event.body ?? "{}") as Body;
-    const { authorization } = event.headers;
+    const { Authorization } = event.headers;
 
-    if (!authorization) throw new Error("Authorization header was undefined.");
-    const auth = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+    if (!Authorization) throw new Error("Authorization header was undefined.");
+    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
     if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
     // Get access keys for S3 login

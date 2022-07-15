@@ -24,11 +24,11 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { stage } = event.requestContext;
     const { value } = JSON.parse(event.body ?? "{}") as Body;
     const { ticketId } = event.pathParameters as PathParameters;
-    const { authorization } = event.headers;
+    const { Authorization } = event.headers;
 
-    if (!authorization) throw new Error("Authorization header was undefined.");
+    if (!Authorization) throw new Error("Authorization header was undefined.");
 
-    const auth = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
 
     if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 

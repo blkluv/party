@@ -40,11 +40,11 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     ) as Body;
     const { websiteUrl } = event.stageVariables as StageVariables;
     const { stage } = event.requestContext;
-    const { authorization } = event.headers;
+    const { Authorization } = event.headers;
 
-    if (!authorization) throw new Error("Authorization header was undefined.");
+    if (!Authorization) throw new Error("Authorization header was undefined.");
 
-    const { sub, ...auth } = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+    const { sub, ...auth } = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
 
     if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
