@@ -75,16 +75,14 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       UpdateExpression: `
         SET 
           #name = :eventNname,
-          description = :description,
-          startTime = :startTime,
-          endTime = :endTime,
-          location = :location,
-          maxTickets = :maxTickets,
-          ticketPrice = :ticketPrice,
-          posterUrl = :posterUrl,
-          thumbnailUrl = :thumbnailUrl,
-          media = :media,
-          thumbnail = :thumbnail
+          #description = :description,
+          #startTime = :startTime,
+          #endTime = :endTime,
+          #location = :location,
+          #maxTickets = :maxTickets,
+          #ticketPrice = :ticketPrice,
+          #media = :media,
+          #thumbnail = :thumbnail
         `,
       ExpressionAttributeValues: {
         ":name": newEventData.name,
@@ -98,6 +96,14 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
       ExpressionAttributeNames: {
         "#name": "name",
+        "#description": "description",
+        "#startTime": "startTime",
+        "#endTime": "endTime",
+        "#location": "location",
+        "#maxTickets": "maxTickets",
+        "#ticketPrice": "ticketPrice",
+        "#media": "media",
+        "#thumbnail": "thumbnail",
       },
       ReturnValues: "ALL_NEW",
     });
