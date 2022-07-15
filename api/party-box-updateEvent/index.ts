@@ -74,7 +74,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
       UpdateExpression: `
         SET 
-          #name = :eventNname,
+          #name = :name,
           #description = :description,
           #startTime = :startTime,
           #endTime = :endTime,
