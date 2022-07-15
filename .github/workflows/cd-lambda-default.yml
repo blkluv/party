@@ -55,6 +55,7 @@ jobs:
 
       - name: Publish new function version
         run: |
+          aws lambda wait function-updated --function-name ${{ inputs.function-name }}
           aws lambda publish-version \
           --function-name ${{ inputs.function-name }} \
           --description "{{{ inputs.function-name }}}"
