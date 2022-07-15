@@ -89,12 +89,6 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
         maxTickets: {
           Value: newEventData.maxTickets,
         },
-        posterUrl: {
-          Value: newEventData.posterUrl,
-        },
-        thumbnailUrl: {
-          Value: newEventData.thumbnailUrl,
-        },
         media: {
           Value: newEventData.media,
         },
@@ -110,7 +104,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     await stripeClient.products.update(eventData.stripeProductId, {
       name: body.name,
       description: body.description,
-      images: [body.posterUrl],
+      images: newEventData.media,
     });
 
     return eventData;
