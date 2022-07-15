@@ -74,7 +74,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
       UpdateExpression: `
         SET 
-          name = :name,
+          #name = :eventNname,
           description = :description,
           startTime = :startTime,
           endTime = :endTime,
@@ -95,6 +95,9 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
         ":maxTickets": newEventData.maxTickets,
         ":media": newEventData.media,
         ":thumbnail": newEventData.thumbnail,
+      },
+      ExpressionAttributeNames: {
+        "#name": "name",
       },
       ReturnValues: "ALL_NEW",
     });
