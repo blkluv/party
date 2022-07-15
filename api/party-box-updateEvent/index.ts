@@ -15,6 +15,8 @@ interface Body {
   ticketPrice: number;
   posterUrl: string;
   thumbnailUrl: string;
+  media: string[];
+  thumbnail: string;
 }
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -92,6 +94,12 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
         },
         thumbnailUrl: {
           Value: newEventData.thumbnailUrl,
+        },
+        media: {
+          Value: newEventData.media,
+        },
+        thumbnail: {
+          Value: newEventData.thumbnail,
         },
       },
       ReturnValues: "ALL_NEW",

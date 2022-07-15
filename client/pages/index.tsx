@@ -4,7 +4,7 @@ import UpcomingEvents from "~/components/UpcomingEvents";
 
 const Page = () => {
   return (
-    <div className="mx-auto max-w-2xl w-full">
+    <div className="mx-auto max-w-4xl w-full">
       <div className="w-full h-72 relative mx-auto">
         <Image
           src="/images/Party_Box.svg"

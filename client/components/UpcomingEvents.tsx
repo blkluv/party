@@ -25,7 +25,7 @@ const UpcomingEvents = () => {
   }, []);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {events.length === 0 && !eventsLoading && <p className="text-center">No events</p>}
       {events.map((event) => (
         <EventPreview event={event} key={`event-${event.id}`} />
