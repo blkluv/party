@@ -1,6 +1,6 @@
 import "../styles/globals.css";
 import "@aws-amplify/ui-react/styles.css";
-import { Amplify } from "aws-amplify";
+import { Amplify, Auth } from "aws-amplify";
 import { useEffect, useState } from "react";
 import amplifyConfig from "~/config/amplify";
 import { useRouter } from "next/router";
@@ -14,6 +14,16 @@ Amplify.configure(amplifyConfig);
 const App = ({ Component, pageProps }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      await Auth.currentSession();
+    }, 1 * 1000 * 5);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     setDrawerOpen(false);

@@ -1,5 +1,5 @@
 export interface PartyBoxEvent {
-  id: number;
+  id: string;
   name: string;
   description: string;
   startTime: string;
@@ -8,9 +8,9 @@ export interface PartyBoxEvent {
   maxTickets: number;
   ownerId: string;
   stripeProductId: string;
-  posterUrl: string;
+  media: string[];
   ticketPrice: null;
-  thumbnailUrl: string;
+  thumbnail: string;
   prices: Price[];
 }
 
