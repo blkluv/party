@@ -1,4 +1,4 @@
-name: CD/party-box-handleTicketPurchase
+name: Dev/API/party-box-handleTicketPurchase
 
 on:
   push:
@@ -6,13 +6,13 @@ on:
       - dev
     paths:
       - "api/party-box-handleTicketPurchase/**"
-      - ".github/workflows/cd-party-box-handleTicketPurchase.yml"
-      - ".github/workflows/cd-lambda-default.yml"
+      - ".github/workflows/dev-party-box-handleTicketPurchase.yml"
+      - ".github/workflows/cd-lambda-dev.yml"
 
 jobs:
   deploy:
     name: Deploy Lambda
-    uses: ./.github/workflows/cd-lambda-default.yml
+    uses: ./.github/workflows/cd-lambda-dev.yml
     with:
       function-name: party-box-handleTicketPurchase
     secrets: inherit

@@ -1,4 +1,4 @@
-name: CD/party-box-getEvent
+name: Dev/API/party-box-getEvent
 
 on:
   push:
@@ -6,13 +6,13 @@ on:
       - dev
     paths:
       - "api/party-box-getEvent/**"
-      - ".github/workflows/cd-party-box-getEvent.yml"
-      - ".github/workflows/cd-lambda-default.yml"
+      - ".github/workflows/dev-party-box-getEvent.yml"
+      - ".github/workflows/cd-lambda-dev.yml"
 
 jobs:
   deploy:
     name: Deploy Lambda
-    uses: ./.github/workflows/cd-lambda-default.yml
+    uses: ./.github/workflows/cd-lambda-dev.yml
     with:
       function-name: party-box-getEvent
     secrets: inherit

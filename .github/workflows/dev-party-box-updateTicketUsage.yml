@@ -1,4 +1,4 @@
-name: CD/party-box-updateTicketUsage
+name: Dev/API/party-box-updateTicketUsage
 
 on:
   push:
@@ -6,13 +6,13 @@ on:
       - dev
     paths:
       - "api/party-box-updateTicketUsage/**"
-      - ".github/workflows/cd-party-box-updateTicketUsage.yml"
-      - ".github/workflows/cd-lambda-default.yml"
+      - ".github/workflows/dev-party-box-updateTicketUsage.yml"
+      - ".github/workflows/cd-lambda-dev.yml"
 
 jobs:
   deploy:
     name: Deploy Lambda
-    uses: ./.github/workflows/cd-lambda-default.yml
+    uses: ./.github/workflows/cd-lambda-dev.yml
     with:
       function-name: party-box-updateTicketUsage
     secrets: inherit
