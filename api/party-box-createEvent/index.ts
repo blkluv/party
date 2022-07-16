@@ -115,7 +115,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       location,
       ownerId: sub,
       stripeProductId: stripeProduct.id,
-      prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url, paymentLinkId: paymentLink.id }],
+      prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url, paymentLinkId: paymentLink.id, price: ticketPrice }],
       snsTopicArn: snsTopic.TopicArn,
       ticketsSold: 0,
       published: false,
