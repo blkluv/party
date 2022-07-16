@@ -90,7 +90,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     // Get all event notifications
     const { Items: eventNotifications } = await dynamo.scan({
-      TableName: `${stage}-party-box-event-notifications`,
+      TableName: `party-box-event-notifications`,
       FilterExpression: "eventId = :eventId",
       ExpressionAttributeValues: {
         ":eventId": eventId,
