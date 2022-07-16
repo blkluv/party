@@ -27,5 +27,5 @@ jobs:
         - name: Deploy API
           run: |
             aws apigateway create-deployment \
-            --rest-api-id walooe9owi \
+            --rest-api-id ${{ secrets.REST_API_ID }} \
             --stage-name prod
