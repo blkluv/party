@@ -7,12 +7,12 @@ on:
     paths:
       - "api/party-box-createEvent/**"
       - ".github/workflows/cd-party-box-createEvent.yml"
-      - ".github/workflows/cd-lambda-default.yml"
+      - ".github/workflows/cd-lambda-dev.yml"
 
 jobs:
   deploy:
     name: Deploy Lambda
-    uses: ./.github/workflows/cd-lambda-default.yml
+    uses: ./.github/workflows/cd-lambda-dev.yml
     with:
       function-name: party-box-createEvent
     secrets: inherit
