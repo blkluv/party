@@ -1,0 +1,36 @@
+name: cd-lambda-default
+
+on:
+  workflow_call:
+    inputs:
+      function-name:
+        required: true
+        type: string
+
+jobs:
+  move-lambda-prod-pointer:
+      name: Move Lambda Prod Pointer
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET }}
+            aws-region: ${{ secrets.AWS_REGION }}
+
+        - name: Create new function version
+          id: create-function-version
+          run: |
+            echo "::set-output name=version::$(aws lambda publish-version --function-name ${{ inputs.function-name }} --description "${{ github.event.head_commit.message }}" | grep "Version" | grep -Po "[0-9]+")""
+
+        - name: Update Lambda Prod Pointer
+          run: |
+            aws lambda update-alias \
+            --function-name ${{ inputs.function-name }} \
+            --name prod \
+            --function-version ${{ steps.create-function-version.outputs.Version }}
