@@ -7,7 +7,7 @@ import { LoadingIcon } from "./Icons";
 const UpcomingEvents = () => {
   const [events, setEvents] = useState<PartyBoxEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
-  
+
   const getUpcomingEvents = async () => {
     try {
       setEventsLoading(true);
@@ -25,13 +25,17 @@ const UpcomingEvents = () => {
   }, []);
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      {events.length === 0 && !eventsLoading && <p className="text-center">No events</p>}
-      {events.map((event) => (
-        <EventPreview event={event} key={`event-${event.id}`} />
-      ))}
+    <>
+      {events.length === 0 && !eventsLoading && <p className="text-center text-xl">No events</p>}
+      {events.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {events.map((event) => (
+            <EventPreview event={event} key={`event-${event.id}`} />
+          ))}
+        </div>
+      )}
       {eventsLoading && <LoadingIcon className="animate-spin mx-auto" size={50} />}
-    </div>
+    </>
   );
 };
 
