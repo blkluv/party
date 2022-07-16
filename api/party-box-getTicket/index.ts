@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
@@ -12,7 +12,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  * @method POST
  * @description Retrieve ticket data from postgres and stripe given a session id (treated as ticketId)
  */
-export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
 
   const dynamo = DynamoDBDocument.from(new DynamoDB({}));
@@ -50,7 +50,14 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     const session = await stripeClient.checkout.sessions.retrieve(ticketId);
     const paymentIntent = await stripeClient.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
 
-    return { ...ticketData, status: paymentIntent?.status ?? "pending", event: { ...eventData, location: null } };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        ...ticketData,
+        status: paymentIntent?.status ?? "pending",
+        event: { ...eventData, location: null },
+      }),
+    };
   } catch (error) {
     console.error(error);
     throw error;

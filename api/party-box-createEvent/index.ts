@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyEventStageVariables } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
@@ -26,7 +26,7 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
  * @method POST
  * @description Create event within DynamoDB and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
 
   const dynamoClient = new DynamoDB({});
@@ -40,11 +40,11 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     ) as Body;
     const { websiteUrl } = event.stageVariables as StageVariables;
     const { stage } = event.requestContext;
-    const { authorization } = event.headers;
+    const { Authorization } = event.headers;
 
-    if (!authorization) throw new Error("Authorization header was undefined.");
+    if (!Authorization) throw new Error("Authorization header was undefined.");
 
-    const { sub, ...auth } = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+    const { sub, ...auth } = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
 
     if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
@@ -115,9 +115,12 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       location,
       ownerId: sub,
       stripeProductId: stripeProduct.id,
-      prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url }],
+      prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url, paymentLinkId: paymentLink.id, price: ticketPrice }],
       snsTopicArn: snsTopic.TopicArn,
       ticketsSold: 0,
+      published: false,
+      media: [],
+      thumbnail: "",
     };
 
     await dynamo.put({
@@ -154,7 +157,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
     });
 
-    return eventData;
+    return { statusCode: 201, body: JSON.stringify(eventData) };
   } catch (error) {
     console.error(error);
     throw error;

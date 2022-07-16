@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 
@@ -10,7 +10,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  * @method GET
  * @description Get event with given ID from DynamoDB
  */
-export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   try {
     const { eventId } = event.pathParameters as PathParameters;
 
@@ -24,7 +24,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
     });
 
-    return { ...eventData, location: null };
+    return { statusCode: 200, body: JSON.stringify({ ...eventData, location: null }) };
   } catch (error) {
     console.error(error);
     throw error;

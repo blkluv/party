@@ -1,0 +1,18 @@
+name: Prod/API/party-box-updateEvent
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "api/party-box-updateEvent/**"
+      - ".github/workflows/prod-party-box-updateEvent.yml"
+      - ".github/workflows/cd-lambda-prod.yml"
+
+jobs:
+  deploy:
+    name: Deploy Lambda
+    uses: ./.github/workflows/cd-lambda-prod.yml
+    with:
+      function-name: party-box-updateEvent
+    secrets: inherit

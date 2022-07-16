@@ -18,7 +18,7 @@ const nextConfig = withPWA({
   rewrites: async () => [
     {
       source: "/api/:path*",
-      destination: `https://fm2aaoc5el.execute-api.us-east-1.amazonaws.com/${prod ? "prod" : "dev"}/:path*`,
+      destination: `https://walooe9owi.execute-api.us-east-1.amazonaws.com/${prod ? "prod" : "dev"}/:path*`,
     },
   ],
 });

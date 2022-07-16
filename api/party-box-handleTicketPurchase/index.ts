@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import { APIGatewayEvent, APIGatewayProxyEventStageVariables } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
@@ -14,7 +14,7 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
  * @method POST
  * @description Create ticket within DynamoDB and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
 
   const secretsManager = new SecretsManager({});
@@ -142,7 +142,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       TopicArn: tempTopic.TopicArn,
     });
 
-    return {};
+    return { statusCode: 200, body: JSON.stringify({ message: "Success" }) };
   } catch (error) {
     console.error(error);
     throw error;

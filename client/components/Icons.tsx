@@ -3,6 +3,8 @@ export {
   AiOutlineLoading as LoadingIcon,
   AiOutlineMinusCircle as OutlinedMinusIcon,
   AiOutlinePlusCircle as OutlinedPlusIcon,
+  AiFillCaretRight as RightCaretIcon,
+  AiFillCaretLeft as LeftCaretIcon,
 } from "react-icons/ai";
 export { GiHamburgerMenu as Menu } from "react-icons/gi";
 export {

@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyResultV2, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { v4 as uuid } from "uuid";
@@ -17,17 +17,17 @@ interface Body {
  * @method POST
  * @description Create event within Postgres and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResultV2<object>> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
   const secretsManager = new SecretsManager({});
 
   try {
     const { eventId } = event.pathParameters as PathParameters;
     const { name } = JSON.parse(event.body ?? "{}") as Body;
-    const { authorization } = event.headers;
+    const { Authorization } = event.headers;
 
-    if (!authorization) throw new Error("Authorization header was undefined.");
-    const auth = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+    if (!Authorization) throw new Error("Authorization header was undefined.");
+    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
     if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
     // Get access keys for S3 login
@@ -52,7 +52,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 120 });
 
-    return { uploadUrl, downloadUrl: `https://party-box-bucket.s3.us-east-1.amazonaws.com/${uploadKey}` };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        uploadUrl,
+        downloadUrl: `https://party-box-bucket.s3.us-east-1.amazonaws.com/${uploadKey}`,
+      }),
+    };
   } catch (error) {
     console.error(error);
     throw error;

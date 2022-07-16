@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
@@ -15,6 +15,8 @@ interface Body {
   ticketPrice: number;
   posterUrl: string;
   thumbnailUrl: string;
+  media: string[];
+  thumbnail: string;
 }
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -25,7 +27,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  * @method POST
  * @description Update event in Dynamo and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
   const secretsManager = new SecretsManager({});
   const dynamo = DynamoDBDocument.from(new DynamoDB({}));
@@ -33,12 +35,12 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
   try {
     const body = JSON.parse(event.body ?? "{}") as Body;
     const { eventId } = event.pathParameters as PathParameters;
-    const { authorization } = event.headers;
+    const { Authorization } = event.headers;
     const { stage } = event.requestContext;
 
-    if (!authorization) throw new Error("Authorization header was undefined.");
+    if (!Authorization) throw new Error("Authorization header was undefined.");
 
-    const auth = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
 
     if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
@@ -63,36 +65,46 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       ...body,
     };
 
+    console.log(newEventData);
+
     const { Attributes: eventData } = await dynamo.update({
       TableName: `${stage}-party-box-events`,
       Key: {
         id: eventId,
       },
-      AttributeUpdates: {
-        name: {
-          Value: newEventData.name,
-        },
-        description: {
-          Value: newEventData.description,
-        },
-        location: {
-          Value: newEventData.location,
-        },
-        startTime: {
-          Value: newEventData.startTime,
-        },
-        endTime: {
-          Value: newEventData.endTime,
-        },
-        maxTickets: {
-          Value: newEventData.maxTickets,
-        },
-        posterUrl: {
-          Value: newEventData.posterUrl,
-        },
-        thumbnailUrl: {
-          Value: newEventData.thumbnailUrl,
-        },
+      UpdateExpression: `
+        SET 
+          #name = :name,
+          #description = :description,
+          #startTime = :startTime,
+          #endTime = :endTime,
+          #location = :location,
+          #maxTickets = :maxTickets,
+          #ticketPrice = :ticketPrice,
+          #media = :media,
+          #thumbnail = :thumbnail
+        `,
+      ExpressionAttributeValues: {
+        ":name": newEventData.name,
+        ":description": newEventData.description,
+        ":startTime": newEventData.startTime,
+        ":endTime": newEventData.endTime,
+        ":location": newEventData.location,
+        ":maxTickets": newEventData.maxTickets,
+        ":ticketPrice": newEventData.ticketPrice,
+        ":media": newEventData.media,
+        ":thumbnail": newEventData.thumbnail,
+      },
+      ExpressionAttributeNames: {
+        "#name": "name",
+        "#description": "description",
+        "#startTime": "startTime",
+        "#endTime": "endTime",
+        "#location": "location",
+        "#maxTickets": "maxTickets",
+        "#ticketPrice": "ticketPrice",
+        "#media": "media",
+        "#thumbnail": "thumbnail",
       },
       ReturnValues: "ALL_NEW",
     });
@@ -102,10 +114,10 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     await stripeClient.products.update(eventData.stripeProductId, {
       name: body.name,
       description: body.description,
-      images: [body.posterUrl],
+      images: newEventData.media,
     });
 
-    return eventData;
+    return { statusCode: 200, body: JSON.stringify(eventData) };
   } catch (error) {
     console.error(error);
     throw error;

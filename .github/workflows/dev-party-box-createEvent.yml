@@ -1,0 +1,18 @@
+name: Dev/API/party-box-uploadEventMedia
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "api/party-box-uploadEventMedia/**"
+      - ".github/workflows/dev-party-box-uploadEventMedia.yml"
+      - ".github/workflows/cd-lambda-dev.yml"
+
+jobs:
+  deploy:
+    name: Deploy Lambda
+    uses: ./.github/workflows/cd-lambda-dev.yml
+    with:
+      function-name: party-box-uploadEventMedia
+    secrets: inherit

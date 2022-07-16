@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import jwt, { JwtPayload } from "jsonwebtoken";
@@ -15,7 +15,7 @@ interface Body {
  * @method POST
  * @description Create ticket within DynamoDB and Stripe
  */
-export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
 
   const dynamo = DynamoDBDocument.from(new DynamoDB({}));
@@ -24,11 +24,11 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     const { stage } = event.requestContext;
     const { value } = JSON.parse(event.body ?? "{}") as Body;
     const { ticketId } = event.pathParameters as PathParameters;
-    const { authorization } = event.headers;
+    const { Authorization } = event.headers;
 
-    if (!authorization) throw new Error("Authorization header was undefined.");
+    if (!Authorization) throw new Error("Authorization header was undefined.");
 
-    const auth = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
 
     if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
@@ -45,7 +45,7 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
       },
     });
 
-    return {};
+    return { statusCode: 200, body: JSON.stringify({ message: "Success" }) };
   } catch (error) {
     console.error(error);
     throw error;

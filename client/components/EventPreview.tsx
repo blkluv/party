@@ -10,7 +10,7 @@ interface Props {
 const EventPreview = ({ event }: Props) => {
   return (
     <Link href={`/events/${event.id}`} passHref>
-      <motion.div
+      <motion.a
         className="flex flex-col md:flex-row rounded-xl shadow-md border border-gray-800 overflow-hidden cursor-pointer"
         whileHover={{
           scale: 1.02,
@@ -22,19 +22,18 @@ const EventPreview = ({ event }: Props) => {
           stiffness: 100,
         }}
       >
-        <div className="relative h-72 md:min-h-[150px] md:h-auto w-full md:flex-1 overflow-hidden">
-          {event.thumbnailUrl && <Image src={event.thumbnailUrl} alt="Poster" layout="fill" objectFit="cover" />}
-        </div>
-        <div className="p-3 flex flex-col gap-2 md:flex-1">
-          <div className="flex items-center justify-between flex-col">
-            <h4 className="font-bold text-xl md:text-2xl text-center">{event.name}</h4>
-            <p className="text-sm text-center">
-              {new Date(event.startTime).toDateString()} at {new Date(event.startTime).toLocaleTimeString()}
-            </p>
+        <div className="relative h-72 md:h-96 w-full md:flex-1 overflow-hidden">
+          {event.thumbnail && <Image src={event.thumbnail} alt="Poster" layout="fill" objectFit="cover" />}
+          <div className="p-2 flex flex-col gap-2 absolute left-4 right-4 bottom-4 bg-gray-900 backdrop-blur-sm bg-opacity-75 backdrop-filter rounded-xl">
+            <div className="flex flex-col">
+              <h4 className="font-medium text-lg md:text-2xl text-center">{event.name}</h4>
+              <p className="text-sm text-center">
+                {new Date(event.startTime).toDateString()}
+              </p>
+            </div>
           </div>
-          <p className="text-sm">{event.description}</p>
         </div>
-      </motion.div>
+      </motion.a>
     </Link>
   );
 };

@@ -1,0 +1,31 @@
+name: Prod/API/Deploy API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "api/**"
+      - ".github/workflows/deploy-api.yml"
+
+jobs:
+  deploy-api:
+      name: Deploy REST API to Production
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET }}
+            aws-region: ${{ secrets.AWS_REGION }}
+
+        - name: Deploy API
+          run: |
+            aws apigatewayv2 create-deployment \
+            --stage-name prod \
+            --api-id ${{ secrets.REST_API_ID }}

@@ -1,49 +1,34 @@
-import { APIGatewayEvent, APIGatewayProxyEventStageVariables } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
-import { v4 as uuid } from "uuid";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { SNS } from "@aws-sdk/client-sns";
 
-interface Body {
-  name: string;
-  description: string;
-  startTime: string;
-  endTime?: string;
-  location: string;
-  maxTickets: string;
-  ticketPrice: number;
-}
-
-interface StageVariables extends APIGatewayProxyEventStageVariables {
-  websiteUrl: string;
+interface PathParameters extends APIGatewayProxyEventPathParameters {
+  eventId: string;
 }
 
 /**
- * @method POST
- * @description Create event within DynamoDB and Stripe
+ * @method DELETE
+ * @description Delete event within Dynamo, Stripe, and SNS
  */
-export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
 
-  const dynamoClient = new DynamoDB({});
-  const dynamo = DynamoDBDocument.from(dynamoClient);
+  const dynamo = DynamoDBDocument.from(new DynamoDB({}));
   const secretsManager = new SecretsManager({});
   const sns = new SNS({});
 
   try {
-    const { name, description, startTime, endTime, location, maxTickets, ticketPrice } = JSON.parse(
-      event.body ?? "{}"
-    ) as Body;
-    const { websiteUrl } = event.stageVariables as StageVariables;
     const { stage } = event.requestContext;
-    const { authorization } = event.headers;
+    const { Authorization } = event.headers;
+    const { eventId } = event.pathParameters as PathParameters;
 
-    if (!authorization) throw new Error("Authorization header was undefined.");
+    if (!Authorization) throw new Error("Authorization header was undefined.");
 
-    const { sub, ...auth } = jwt.decode(authorization.replace("Bearer ", "")) as JwtPayload;
+    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
 
     if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
 
@@ -53,76 +38,79 @@ export const handler = async (event: APIGatewayEvent): Promise<unknown> => {
     });
     if (!stripeSecretString) throw new Error("Access keys string was undefined.");
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
+
+    // Get event from Dynamo
+    const { Item: eventItem } = await dynamo.get({
+      TableName: `${stage}-party-box-events`,
+      Key: {
+        id: eventId,
+      },
+    });
+    if (!eventItem) throw new Error("Event was not found.");
+
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
 
-    const eventId = uuid();
+    // Delete all stripe prices associated with this event
+    // We can't actually delete them, but we can make them inactive
+    for (const price of eventItem.prices) {
+      try {
+        await stripeClient.prices.update(price.id, { active: false });
+        await stripeClient.paymentLinks.update(price.paymentLinkId, {
+          active: false,
+        });
+      } catch (error) {
+        continue;
+      }
+    }
 
-    // Create stripe product
-    const stripeProduct = await stripeClient.products.create({
-      name,
-      description,
-      metadata: {
-        eventId,
-      },
-    });
+    try {
+      // Delete stripe product
+      // We won't be able to delete it because we didn't actually delete the prices above
+      // So we're also going to make this inactive
+      await stripeClient.products.update(eventItem.stripeProductId, { active: false });
+    } catch (error) {
+      console.warn(error);
+    }
 
-    const stripePrice = await stripeClient.prices.create({
-      product: stripeProduct.id,
-      unit_amount: ticketPrice,
-      currency: "CAD",
-      nickname: "Regular",
-    });
+    try {
+      // Delete SNS topic
+      await sns.deleteTopic({
+        TopicArn: eventItem.snsTopicArn,
+      });
+    } catch (error) {
+      console.warn(error);
+    }
 
-    const paymentLink = await stripeClient.paymentLinks.create({
-      line_items: [
-        {
-          price: stripePrice.id,
-          adjustable_quantity: {
-            enabled: true,
-            minimum: 1,
-          },
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        eventId,
-      },
-      phone_number_collection: {
-        enabled: true,
-      },
-      after_completion: {
-        type: "redirect",
-        redirect: {
-          url: `${websiteUrl}/tickets/purchase-success?eventId=${eventId}`,
-        },
-      },
-    });
-
-    // Create topic in SNS for SMS messages
-    const snsTopic = await sns.createTopic({
-      Name: `${stage}-party-box-event-notifications-${eventId}`,
-    });
-
-    const eventData = {
-      id: eventId,
-      name,
-      description,
-      startTime,
-      endTime,
-      maxTickets,
-      location,
-      ownerId: sub,
-      stripeProductId: stripeProduct.id,
-      prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url }],
-      snsTopicArn: snsTopic.TopicArn,
-    };
-
-    await dynamo.put({
+    await dynamo.delete({
       TableName: `${stage}-party-box-events`,
-      Item: eventData,
+      Key: {
+        id: eventId,
+      },
     });
 
-    return eventData;
+    // Get all event notifications
+    const { Items: eventNotifications } = await dynamo.scan({
+      TableName: `${stage}-party-box-event-notifications`,
+      FilterExpression: "eventId = :eventId",
+      ExpressionAttributeValues: {
+        ":eventId": eventId,
+      },
+    });
+
+    console.log(eventNotifications);
+
+    if (eventNotifications && eventNotifications?.length > 0) {
+      for (const eventNotification of eventNotifications) {
+        await dynamo.delete({
+          TableName: `party-box-event-notifications`,
+          Key: {
+            id: eventNotification.id,
+          },
+        });
+      }
+    }
+
+    return { statusCode: 200, body: JSON.stringify({ message: "Event deleted." }) };
   } catch (error) {
     console.error(error);
     throw error;
