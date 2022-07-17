@@ -76,10 +76,20 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const stripePrice = await stripeClient.prices.create({
       product: stripeProduct.id,
-      unit_amount: ticketPrice,
+      unit_amount: ticketPrice === 0 ? 100 : ticketPrice * 100,
       currency: "CAD",
       nickname: "Regular",
     });
+
+    if (ticketPrice === 0) {
+      await stripeClient.coupons.create({
+        percent_off: 100,
+        duration: "forever",
+        applies_to: {
+          products: [stripeProduct.id],
+        },
+      });
+    }
 
     const paymentLink = await stripeClient.paymentLinks.create({
       line_items: [
