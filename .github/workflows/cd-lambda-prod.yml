@@ -28,8 +28,11 @@ jobs:
           run: |
             aws lambda wait function-updated --function-name ${{ inputs.function-name }}
             echo "::set-output name=version::$(aws lambda publish-version \
-             --function-name ${{ inputs.function-name }} \
-             --description "${{ github.event.head_commit.message }}" | grep "Version" | grep -Po "[0-9]+")"
+              --function-name ${{ inputs.function-name }} \
+              --description "${{ github.event.head_commit.message }}" \
+              --query Version \
+              --output text \
+            )"
 
         - name: Update Lambda Prod Pointer
           run: |

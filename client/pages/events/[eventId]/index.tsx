@@ -91,14 +91,17 @@ const Page = ({ event }: Props) => {
           {event.prices.map((price) => (
             <div
               key={price.id}
-              className="flex justify-between mx-auto max-w-lg w-full rounded-md bg-gray-800 p-3 shadow-md items-center"
+              className="flex gap-4 mx-auto max-w-lg w-full rounded-md bg-gray-800 p-3 shadow-md items-center"
             >
               <h3 className="font-medium">{price.name}</h3>
-              <Link href={price.paymentLink} passHref>
-                <a>
-                  <Button>Get Tickets</Button>
-                </a>
-              </Link>
+              <p>${price.price.toFixed(2)}</p>
+              <div className="ml-auto">
+                <Link href={price.paymentLink} passHref>
+                  <a>
+                    <Button>Get Tickets</Button>
+                  </a>
+                </Link>
+              </div>
             </div>
           ))}
         </div>

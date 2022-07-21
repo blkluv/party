@@ -1,7 +1,7 @@
 /* eslint-disable indent */
 import React, { ForwardedRef, forwardRef } from "react";
 
-export interface TextAreaProps extends React.InputHTMLAttributes<HTMLTextAreaElement> {
+export interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   variant?: "default" | "blank" | "file";
   error?: boolean;
   field?: object;
