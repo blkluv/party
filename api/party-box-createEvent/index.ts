@@ -16,6 +16,13 @@ interface Body {
   location: string;
   maxTickets: string;
   ticketPrice: number;
+  hashtags: string[];
+  notifications: {
+    days: number;
+    hours: number;
+    minutes: number;
+    message: string;
+  }[];
 }
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
@@ -35,9 +42,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sns = new SNS({});
 
   try {
-    const { name, description, startTime, endTime, location, maxTickets, ticketPrice } = JSON.parse(
-      event.body ?? "{}"
-    ) as Body;
+    const { name, description, startTime, endTime, location, maxTickets, ticketPrice, hashtags, notifications } =
+      JSON.parse(event.body ?? "{}") as Body;
     const { websiteUrl } = event.stageVariables as StageVariables;
     const { stage } = event.requestContext;
     const { Authorization } = event.headers;
@@ -70,10 +76,20 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const stripePrice = await stripeClient.prices.create({
       product: stripeProduct.id,
-      unit_amount: ticketPrice,
+      unit_amount: ticketPrice === 0 ? 100 : ticketPrice * 100,
       currency: "CAD",
       nickname: "Regular",
     });
+
+    if (ticketPrice === 0) {
+      await stripeClient.coupons.create({
+        percent_off: 100,
+        duration: "forever",
+        applies_to: {
+          products: [stripeProduct.id],
+        },
+      });
+    }
 
     const paymentLink = await stripeClient.paymentLinks.create({
       line_items: [
@@ -115,12 +131,21 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       location,
       ownerId: sub,
       stripeProductId: stripeProduct.id,
-      prices: [{ id: stripePrice.id, name: "Regular", paymentLink: paymentLink.url, paymentLinkId: paymentLink.id, price: ticketPrice }],
+      prices: [
+        {
+          id: stripePrice.id,
+          name: "Regular",
+          paymentLink: paymentLink.url,
+          paymentLinkId: paymentLink.id,
+          price: ticketPrice,
+        },
+      ],
       snsTopicArn: snsTopic.TopicArn,
       ticketsSold: 0,
       published: false,
       media: [],
       thumbnail: "",
+      hashtags,
     };
 
     await dynamo.put({
@@ -128,34 +153,22 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       Item: eventData,
     });
 
-    // Schedule some messages
-    await dynamo.put({
-      TableName: "party-box-event-notifications",
-      Item: {
-        id: uuid(),
-        messageTime: dayjs(startTime).toISOString(),
-        message: `${name} starts now! Location is ${location}.`,
-        eventSnsTopicArn: snsTopic.TopicArn,
-      },
-    });
-    await dynamo.put({
-      TableName: "party-box-event-notifications",
-      Item: {
-        id: uuid(),
-        messageTime: dayjs(startTime).subtract(1, "hour").toISOString(),
-        message: `${name} is starting in 1h! Location is ${location}.`,
-        eventSnsTopicArn: snsTopic.TopicArn,
-      },
-    });
-    await dynamo.put({
-      TableName: "party-box-event-notifications",
-      Item: {
-        id: uuid(),
-        messageTime: dayjs(startTime).subtract(4, "hour").toISOString(),
-        message: `${name} is starting in 4h! Location is ${location}.`,
-        eventSnsTopicArn: snsTopic.TopicArn,
-      },
-    });
+    for (const n of notifications) {
+      // Schedule some messages
+      await dynamo.put({
+        TableName: "party-box-event-notifications",
+        Item: {
+          id: uuid(),
+          messageTime: dayjs(startTime)
+            .subtract(n.days, "day")
+            .subtract(n.hours, "hour")
+            .subtract(n.minutes, "minute")
+            .toISOString(),
+          message: n.message.replace("{location}", location).replace("{startTime}", startTime).replace("{name}", name),
+          eventSnsTopicArn: snsTopic.TopicArn,
+        },
+      });
+    }
 
     return { statusCode: 201, body: JSON.stringify(eventData) };
   } catch (error) {

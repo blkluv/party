@@ -1,14 +1,14 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import axios from "axios";
-import { ErrorMessage, Field, Form, Formik } from "formik";
+import { ErrorMessage, Field, FieldArray, Form, Formik } from "formik";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import deleteEvent from "~/utils/deleteEvent";
 import getToken from "~/utils/getToken";
-import { Button, CustomErrorMessage, FileUploadField, TextArea } from "./form";
+import { Button, CustomErrorMessage, FileUploadField, Input, TextArea } from "./form";
 import FormGroup from "./form/FormGroup";
 import FormPreviewImage from "./FormPreviewImage";
-import { LoadingIcon } from "./Icons";
+import { CloseIcon, LoadingIcon } from "./Icons";
 
 const EventForm = () => {
   const { user } = useAuthenticator();
@@ -86,7 +86,13 @@ const EventForm = () => {
               ...values,
               startTime: values.startTime.replace("T", " "),
               endTime: values.endTime.replace("T", " "),
-              ticketPrice: values.ticketPrice * 100,
+              ticketPrice: Number(values.ticketPrice),
+              notifications: values.notifications.map((n) => ({
+                days: Number(n.days),
+                hours: Number(n.hours),
+                minutes: Number(n.minutes),
+                message: n.message,
+              })),
             },
             { headers: { Authorization: `Bearer ${getToken(user)}` } }
           );
@@ -124,7 +130,7 @@ const EventForm = () => {
           await axios.put(thumbnailUploadUrl, thumbnail);
 
           setUploadState("Updating event");
-          
+
           await axios.post(
             `/api/events/${event.id}/update`,
             {
@@ -154,9 +160,11 @@ const EventForm = () => {
         location: "",
         ticketPrice: 0,
         maxTickets: 0,
+        hashtags: [],
+        notifications: [],
       }}
     >
-      {({ isSubmitting }) => (
+      {({ isSubmitting, values, handleChange }) => (
         <Form className="flex flex-col gap-2">
           <FormGroup label="Event Name" name="name" placeholder="Event name" />
           <div>
@@ -164,7 +172,13 @@ const EventForm = () => {
               <p>Description</p>
               <ErrorMessage name={"description"} component={CustomErrorMessage} />
             </div>
-            <Field component={TextArea} name={"description"} placeholder={"Description"} type={"text"} />
+            <TextArea
+              name="description"
+              placeholder="Description"
+              className="h-36"
+              onChange={handleChange}
+              value={values.description}
+            />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormGroup label="Start Time" name="startTime" placeholder="Event start time" type="datetime-local" />
@@ -202,6 +216,50 @@ const EventForm = () => {
               />
             </div>
           )}
+          <p>Notifications</p>
+
+          <FieldArray name="notifications">
+            {({ push, remove }) => (
+              <>
+                {values.notifications.map((e, i) => (
+                  <div
+                    key={`notification ${i}`}
+                    className="flex flex-col gap-2 bg-gray-800 p-3 rounded-md shadow-md relative"
+                  >
+                    <div
+                      className="bg-gray-900 rounded-full p-0.5 flex justify-center items-center absolute top-0 right-0 z-10 transform -translate-y-1/2 translate-x-1/2 border border-gray-700 shadow-md hover:bg-gray-700 transition cursor-pointer"
+                      onClick={() => remove(i)}
+                    >
+                      <CloseIcon />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <FormGroup name={`notifications.${i}.days`} placeholder="Days" type="number" label="Days" />
+                      <FormGroup name={`notifications.${i}.hours`} placeholder="Hours" type="number" label="Hours" />
+                      <FormGroup
+                        name={`notifications.${i}.minutes`}
+                        placeholder="Minutes"
+                        type="number"
+                        label="Minutes"
+                      />
+                    </div>
+                    <TextArea
+                      name={`notifications.${i}.message`}
+                      placeholder="Message"
+                      className="h-24"
+                      onChange={handleChange}
+                      value={values.notifications[i].message}
+                    />
+                  </div>
+                ))}
+                <div className="flex ">
+                  <Button variant="outline" onClick={() => push({ message: "", days: "", hours: "", minutes: "" })}>
+                    New Notification
+                  </Button>
+                </div>
+              </>
+            )}
+          </FieldArray>
+
           {!isSubmitting && (
             <div className="flex justify-center">
               <Button type="submit">Submit</Button>
