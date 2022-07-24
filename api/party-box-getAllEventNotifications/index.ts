@@ -27,7 +27,7 @@ export const handler = async (event: APIGatewayEvent) => {
     // Get all notifications that are past due
     const { Items: notifications } = await dynamo.scan({
       TableName: "party-box-event-notifications",
-      FilterExpression: "eventId <= :eventId",
+      FilterExpression: "eventId = :eventId",
       ExpressionAttributeValues: {
         ":eventId": eventId,
       },
