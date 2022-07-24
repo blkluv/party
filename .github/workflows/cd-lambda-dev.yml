@@ -37,24 +37,25 @@ jobs:
           path: lambda-cache
           key: lambda-${{inputs.function-name}}
 
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        working-directory: api/${{inputs.function-name}}
-        env:
-          IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ inputs.function-name }}
+      - name: Set image name
+        id: set-image-name
         run: |
-          docker build \
-          --cache-to lambda-cache \
-          --cache-from lambda-cache \
-          -t ${{env.IMAGE}} .
-          docker push ${{env.IMAGE}}
-          echo "::set-output name=image::${{env.IMAGE}}"
+          echo "::set-output name=image::${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ inputs.function-name }}"
+
+      - name: Build and push to ECR
+        uses: docker/build-push-action@v2
+        with:
+          context: api/${{ inputs.function-name }}
+          push: true
+          tags: ${{ steps.set-image-name.outputs.image }}
+          cache-from: type=local,src=/tmp/lambda-${{inputs.function-name}}
+          cache-to: type=local,dest=/tmp/lambda-${{inputs.function-name}}
 
       - name: Deploy function
         run: |
           aws lambda update-function-code \
           --function-name ${{ inputs.function-name }} \
-          --image-uri ${{ steps.build-image.outputs.image }}
+          --image-uri ${{ steps.set-image-name.outputs.image }}
 
       - name: Configure function
         run: |
