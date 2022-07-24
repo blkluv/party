@@ -33,13 +33,12 @@ jobs:
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
+        working-directory: ./api/${{inputs.function-name}}
         env:
-          DOCKERFILE_PATH: ./api/${{inputs.function-name}}
           IMAGE: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ inputs.function-name }}
         run: |
           docker build \
-          -t ${{env.IMAGE}} \
-          -f ${{ env.DOCKERFILE_PATH }}/Dockerfile
+          -t ${{env.IMAGE}} .
           docker push ${{env.IMAGE}}
           echo "::set-output name=image::${{env.IMAGE}}"
 
