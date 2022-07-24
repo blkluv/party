@@ -17,54 +17,46 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Configure AWS credentials
+      - name: Login to AWS
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR
+      - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Cache
-        uses: actions/cache@v3.0.5
-        with:
-          path: lambda-cache
-          key: lambda-${{inputs.function-name}}
-
-      - name: Set image name
+      - name: Set Docker image name
         id: set-image-name
         run: |
           echo "::set-output name=image::${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ inputs.function-name }}"
 
-      - name: Build and push to ECR
+      - name: Build and push to AWS ECR
         uses: docker/build-push-action@v2
         with:
           context: api/${{ inputs.function-name }}
           push: true
           tags: ${{ steps.set-image-name.outputs.image }}
-          cache-from: type=local,src=/tmp/lambda-${{inputs.function-name}}
-          cache-to: type=local,dest=/tmp/lambda-${{inputs.function-name}}
 
-      - name: Deploy function
+      - name: Deploy code to Lambda
         run: |
           aws lambda update-function-code \
           --function-name ${{ inputs.function-name }} \
           --image-uri ${{ steps.set-image-name.outputs.image }}
 
-      - name: Configure function
+      - name: Update Lambda configuration
         run: |
           aws lambda wait function-updated --function-name ${{ inputs.function-name }}
           aws lambda update-function-configuration \
           --function-name ${{ inputs.function-name }} \
           --timeout 60
 
-      - name: Publish new function version
+      - name: Publish new Lambda version
         run: |
           aws lambda wait function-updated --function-name ${{ inputs.function-name }}
           aws lambda publish-version --function-name ${{ inputs.function-name }} --description "${{ github.event.head_commit.message }}"
