@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import jwt, { JwtPayload } from "jsonwebtoken";
@@ -10,7 +10,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
 /**
  * @description Send out event notifications to all event ticket holders.
  */
-export const handler = async (event: APIGatewayEvent) => {
+export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   try {
     console.log(event);
 
@@ -33,7 +33,10 @@ export const handler = async (event: APIGatewayEvent) => {
       },
     });
 
-    return notifications;
+    return {
+      statusCode: 200,
+      body: JSON.stringify(notifications),
+    };
   } catch (error) {
     console.error(error);
 
