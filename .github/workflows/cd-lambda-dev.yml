@@ -38,11 +38,13 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           FUNCTION_NAME: ${{ inputs.function-name }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          DOCKERFILE_PATH: ./api/${{inputs.function-name}}
         run: |
           docker build \
           --cache-from /tmp/$ECR_REGISTRY-$ECR_REPOSITORY-$FUNCTION_NAME \ 
           --cache-to /tmp/$ECR_REGISTRY-$ECR_REPOSITORY-$FUNCTION_NAME \
-          -t $ECR_REGISTRY/$ECR_REPOSITORY:$FUNCTION_NAME .
+          -t $ECR_REGISTRY/$ECR_REPOSITORY:$FUNCTION_NAME \
+          -f ${{ env.DOCKERFILE_PATH }}/Dockerfile
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$FUNCTION_NAME
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$FUNCTION_NAME"
 
