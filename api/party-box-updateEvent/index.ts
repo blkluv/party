@@ -4,6 +4,8 @@ import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import dayjs from "dayjs";
+import { v4 as uuid } from "uuid";
 
 interface Body {
   name: string;
@@ -12,11 +14,23 @@ interface Body {
   endTime: string;
   location: string;
   maxTickets: string;
-  ticketPrice: number;
-  posterUrl: string;
-  thumbnailUrl: string;
   media: string[];
   thumbnail: string;
+  published: boolean;
+  stripeProductId: string;
+  snsTopicArn: string;
+  prices: {
+    price: number;
+    name: string;
+  }[];
+  ticketPrice: number;
+  hashtags: string[];
+  notifications: {
+    days: number;
+    hours: number;
+    minutes: number;
+    message: string;
+  }[];
 }
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -67,6 +81,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     console.log(newEventData);
 
+    // Update event in Dynamo
     const { Attributes: eventData } = await dynamo.update({
       TableName: `${stage}-party-box-events`,
       Key: {
@@ -82,7 +97,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           #maxTickets = :maxTickets,
           #ticketPrice = :ticketPrice,
           #media = :media,
-          #thumbnail = :thumbnail
+          #thumbnail = :thumbnail,
+          #published = :published
         `,
       ExpressionAttributeValues: {
         ":name": newEventData.name,
@@ -94,6 +110,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         ":ticketPrice": newEventData.ticketPrice,
         ":media": newEventData.media,
         ":thumbnail": newEventData.thumbnail,
+        ":published": newEventData.published,
       },
       ExpressionAttributeNames: {
         "#name": "name",
@@ -105,21 +122,67 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         "#ticketPrice": "ticketPrice",
         "#media": "media",
         "#thumbnail": "thumbnail",
+        "#published": "published",
       },
       ReturnValues: "ALL_NEW",
     });
 
-    if (!eventData) throw new Error("Event was not found.");
-
-    await stripeClient.products.update(eventData.stripeProductId, {
+    await stripeClient.products.update(newEventData.stripeProductId, {
       name: body.name,
       description: body.description,
       images: newEventData.media,
     });
 
-    return { statusCode: 200, body: JSON.stringify(eventData) };
+    const { Items: oldNotifications = [] } = await dynamo.scan({
+      TableName: "party-box-event-notifications",
+      FilterExpression: "eventId = :eventId",
+      ExpressionAttributeValues: {
+        ":eventId": eventId,
+      },
+    });
+
+    // Delete notifications from DynamoDB
+    for (const e of oldNotifications) {
+      await dynamo.delete({
+        TableName: "party-box-event-notifications",
+        Key: {
+          id: e.id,
+        },
+      });
+    }
+
+    for (const n of newEventData.notifications) {
+      // Schedule some messages
+      await dynamo.put({
+        TableName: "party-box-event-notifications",
+        Item: {
+          id: uuid(),
+          eventId,
+          messageTime: dayjs(newEventData.startTime)
+            .subtract(n.days, "day")
+            .subtract(n.hours, "hour")
+            .subtract(n.minutes, "minute")
+            .toISOString(),
+          message: n.message
+            .replace("{location}", newEventData.location)
+            .replace("{startTime}", newEventData.startTime)
+            .replace("{name}", newEventData.name),
+          eventSnsTopicArn: newEventData.snsTopicArn,
+        },
+      });
+    }
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(eventData),
+    };
   } catch (error) {
     console.error(error);
-    throw error;
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error,
+      }),
+    };
   }
 };

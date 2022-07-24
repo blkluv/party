@@ -15,7 +15,10 @@ interface Body {
   endTime?: string;
   location: string;
   maxTickets: string;
-  ticketPrice: number;
+  prices: {
+    price: number;
+    name: string;
+  }[];
   hashtags: string[];
   notifications: {
     days: number;
@@ -42,8 +45,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sns = new SNS({});
 
   try {
-    const { name, description, startTime, endTime, location, maxTickets, ticketPrice, hashtags, notifications } =
-      JSON.parse(event.body ?? "{}") as Body;
+    const { name, description, startTime, endTime, location, maxTickets, prices, hashtags, notifications } = JSON.parse(
+      event.body ?? "{}"
+    ) as Body;
     const { websiteUrl } = event.stageVariables as StageVariables;
     const { stage } = event.requestContext;
     const { Authorization } = event.headers;
@@ -74,47 +78,56 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       unit_label: "ticket",
     });
 
-    const stripePrice = await stripeClient.prices.create({
-      product: stripeProduct.id,
-      unit_amount: ticketPrice === 0 ? 100 : ticketPrice * 100,
-      currency: "CAD",
-      nickname: "Regular",
-    });
-
-    if (ticketPrice === 0) {
-      await stripeClient.coupons.create({
-        percent_off: 100,
-        duration: "forever",
-        applies_to: {
-          products: [stripeProduct.id],
-        },
-      });
-    }
-
-    const paymentLink = await stripeClient.paymentLinks.create({
-      line_items: [
-        {
-          price: stripePrice.id,
-          adjustable_quantity: {
-            enabled: true,
-            minimum: 1,
+    // Upload price data
+    const newPrices = [];
+    for (const price of prices) {
+      if (price.price > 0.5) {
+        const stripePrice = await stripeClient.prices.create({
+          product: stripeProduct.id,
+          unit_amount: price.price * 100,
+          currency: "CAD",
+          nickname: "Regular",
+        });
+        const paymentLink = await stripeClient.paymentLinks.create({
+          line_items: [
+            {
+              price: stripePrice.id,
+              adjustable_quantity: {
+                enabled: true,
+                minimum: 1,
+              },
+              quantity: 1,
+            },
+          ],
+          metadata: {
+            eventId,
           },
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        eventId,
-      },
-      phone_number_collection: {
-        enabled: true,
-      },
-      after_completion: {
-        type: "redirect",
-        redirect: {
-          url: `${websiteUrl}/tickets/purchase-success?eventId=${eventId}`,
-        },
-      },
-    });
+          phone_number_collection: {
+            enabled: true,
+          },
+          after_completion: {
+            type: "redirect",
+            redirect: {
+              url: `${websiteUrl}/tickets/purchase-success?eventId=${eventId}`,
+            },
+          },
+        });
+
+        newPrices.push({
+          id: stripePrice.id,
+          name: "Regular",
+          paymentLink: paymentLink.url,
+          paymentLinkId: paymentLink.id,
+          price: price.price,
+        });
+      } else {
+        newPrices.push({
+          id: uuid(),
+          name: "Regular",
+          price: price.price,
+        });
+      }
+    }
 
     // Create topic in SNS for SMS messages
     const snsTopic = await sns.createTopic({
@@ -131,15 +144,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       location,
       ownerId: sub,
       stripeProductId: stripeProduct.id,
-      prices: [
-        {
-          id: stripePrice.id,
-          name: "Regular",
-          paymentLink: paymentLink.url,
-          paymentLinkId: paymentLink.id,
-          price: ticketPrice,
-        },
-      ],
+      prices: newPrices,
       snsTopicArn: snsTopic.TopicArn,
       ticketsSold: 0,
       published: false,
@@ -166,6 +171,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
             .toISOString(),
           message: n.message.replace("{location}", location).replace("{startTime}", startTime).replace("{name}", name),
           eventSnsTopicArn: snsTopic.TopicArn,
+          eventId,
         },
       });
     }
