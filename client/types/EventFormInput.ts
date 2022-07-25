@@ -1,17 +1,22 @@
-interface EventFormInput {
+export interface EventFormData {
   name: string;
   description: string;
-  start_time: string;
-  end_time?: string;
+  startTime: string;
+  endTime: string;
   location: string;
-  max_tickets: number;
-  ticket_price: number;
-  poster: {
+  maxTickets: string;
+  hashtags: string[];
+  notifications: {
+    days: string;
+    hours: string;
+    minutes: string;
+    message: string;
+  }[];
+  prices: {
+    id?: string;
     name: string;
-    type: string;
-    alt_text: string;
-    data: Buffer;
-  };
+    paymentLink?: string;
+    paymentLinkId?: string;
+    price: string;
+  }[];
 }
-
-export default EventFormInput;

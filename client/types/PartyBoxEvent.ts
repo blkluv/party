@@ -23,6 +23,7 @@ export interface PartyBoxEvent {
   prices: Price[];
   ownerId: string;
   stripeProductId: string;
+  hashtags: string[];
 }
 
 export interface Price {

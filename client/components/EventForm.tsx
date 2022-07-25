@@ -1,28 +1,77 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import axios from "axios";
-import { ErrorMessage, Field, FieldArray, Form, Formik } from "formik";
+import { ErrorMessage, FieldArray, Form, Formik } from "formik";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
+import PartyBoxEvent from "~/types/PartyBoxEvent";
+import PartyBoxEventNotification from "~/types/PartyBoxEventNotification";
 import deleteEvent from "~/utils/deleteEvent";
 import getToken from "~/utils/getToken";
-import { Button, CustomErrorMessage, FileUploadField, Input, TextArea } from "./form";
+import { Button, CustomErrorMessage, FileUploadField, TextArea } from "./form";
 import FormGroup from "./form/FormGroup";
 import FormPreviewImage from "./FormPreviewImage";
 import { CloseIcon, LoadingIcon } from "./Icons";
+import { EventFormData } from "~/types/EventFormInput";
+import formatEventFormValues from "~/utils/formatEventFormValues";
+import dayjs from "dayjs";
 
-const EventForm = () => {
+interface Props {
+  initialValues?: {
+    event: PartyBoxEvent;
+    notifications: PartyBoxEventNotification[];
+  };
+}
+
+const defaultEventData: EventFormData = {
+  name: "",
+  description: "",
+  startTime: dayjs().format("YYYY-MM-DDTHH:mm"),
+  endTime: dayjs().add(4, "hour").format("YYYY-MM-DDTHH:mm"),
+  prices: [
+    {
+      name: "Regular",
+      price: "10",
+    },
+  ],
+  location: "TBD",
+  maxTickets: "100",
+  hashtags: [],
+  notifications: [
+    {
+      days: "0",
+      hours: "6",
+      minutes: "0",
+      message: "{name} starts in 6h. Location is {location}",
+    },
+    {
+      days: "0",
+      hours: "3",
+      minutes: "0",
+      message: "{name} starts in 3h. Location is {location}",
+    },
+    {
+      days: "0",
+      hours: "0",
+      minutes: "0",
+      message: "{name} starts now. Location is {location}",
+    },
+  ],
+};
+
+const EventForm: FC<Props> = ({ initialValues }) => {
   const { user } = useAuthenticator();
   const router = useRouter();
+  const mode = initialValues ? "edit" : "create";
 
-  const [media, setMedia] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [media, setMedia] = useState<(File | string)[]>(initialValues?.event.media ?? []);
+  const [previewUrls, setPreviewUrls] = useState<string[]>(initialValues?.event.media ?? []);
   const [uploadState, setUploadState] = useState("");
-  const [thumbnail, setThumbnail] = useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState("");
+  const [thumbnail, setThumbnail] = useState<File | string>(initialValues?.event.thumbnail ?? null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(initialValues?.event.thumbnail ?? "");
 
   // Every time media changes, generate preview URLs for all media in the array
   useEffect(() => {
-    const newPreviews = media.map((e) => URL.createObjectURL(e));
+    const newPreviews = media.map((e) => (typeof e === "string" ? e : URL.createObjectURL(e)));
     setPreviewUrls(newPreviews);
 
     return () => {
@@ -34,7 +83,7 @@ const EventForm = () => {
 
   // Every time the thumbnail changes, update the preview URL
   useEffect(() => {
-    if (!thumbnail) return;
+    if (!thumbnail || typeof thumbnail === "string") return;
     const url = URL.createObjectURL(thumbnail);
     setThumbnailPreview(url);
 
@@ -80,24 +129,29 @@ const EventForm = () => {
         let eventId = "";
         try {
           setUploadState("Creating event");
-          const { data: event } = await axios.post(
-            "/api/events/create",
-            {
-              ...values,
-              startTime: values.startTime.replace("T", " "),
-              endTime: values.endTime.replace("T", " "),
-              ticketPrice: Number(values.ticketPrice),
-              notifications: values.notifications.map((n) => ({
-                days: Number(n.days),
-                hours: Number(n.hours),
-                minutes: Number(n.minutes),
-                message: n.message,
-              })),
-            },
-            { headers: { Authorization: `Bearer ${getToken(user)}` } }
-          );
 
-          eventId = event.id;
+          if (mode === "create") {
+            const { data: event } = await axios.post(
+              "/api/events/create",
+              {
+                ...values,
+                maxTickets: Number(values.maxTickets),
+                startTime: new Date(values.startTime).toISOString(),
+                endTime: new Date(values.endTime).toISOString(),
+                prices: values.prices.map((p) => ({ ...p, price: Number(p.price) })),
+                notifications: values.notifications.map((n) => ({
+                  days: Number(n.days),
+                  hours: Number(n.hours),
+                  minutes: Number(n.minutes),
+                  message: n.message,
+                })),
+              },
+              { headers: { Authorization: `Bearer ${getToken(user)}` } }
+            );
+            eventId = event.id;
+          } else {
+            eventId = initialValues.event.id;
+          }
 
           const posters = [];
           let mediaUploadCount = 0;
@@ -105,10 +159,17 @@ const EventForm = () => {
           // We can only upload one file at a time.
           for (const file of media) {
             setUploadState(`Uploading media: ${++mediaUploadCount}/${media.length}`);
+
+            // If this is a string, we must have already uploaded this
+            if (typeof file === "string") {
+              posters.push(file);
+              continue;
+            }
+
             const {
               data: { uploadUrl: posterUploadUrl, downloadUrl: posterDownloadUrl },
             } = await axios.post(
-              `/api/events/${event.id}/media/upload`,
+              `/api/events/${eventId}/media/upload`,
               { name: file.name },
               { headers: { Authorization: `Bearer ${getToken(user)}` } }
             );
@@ -120,30 +181,48 @@ const EventForm = () => {
 
           setUploadState("Uploading thumbnail");
 
-          const {
-            data: { uploadUrl: thumbnailUploadUrl, downloadUrl: thumbnailDownloadUrl },
-          } = await axios.post(
-            `/api/events/${event.id}/media/upload`,
-            { name: thumbnail.name },
-            { headers: { Authorization: `Bearer ${getToken(user)}` } }
-          );
-          await axios.put(thumbnailUploadUrl, thumbnail);
+          let thumbnailDownloadUrl = "";
+
+          // If thumbnail is a string, we know we've already uploaded it
+          // Since it's an S3 link
+          if (typeof thumbnail !== "string") {
+            const {
+              data: { uploadUrl: thumbnailUploadUrl, downloadUrl },
+            } = await axios.post(
+              `/api/events/${eventId}/media/upload`,
+              { name: thumbnail.name },
+              { headers: { Authorization: `Bearer ${getToken(user)}` } }
+            );
+            await axios.put(thumbnailUploadUrl, thumbnail);
+
+            thumbnailDownloadUrl = downloadUrl;
+          }
 
           setUploadState("Updating event");
 
           await axios.post(
-            `/api/events/${event.id}/update`,
+            `/api/events/${eventId}/update`,
             {
+              ...values,
+              maxTickets: Number(values.maxTickets),
+              startTime: new Date(values.startTime).toISOString(),
+              endTime: new Date(values.endTime).toISOString(),
+              prices: values.prices.map((p) => ({ ...p, price: Number(p.price) })),
+              notifications: values.notifications.map((n) => ({
+                days: Number(n.days),
+                hours: Number(n.hours),
+                minutes: Number(n.minutes),
+                message: n.message,
+              })),
               media: posters,
               thumbnail: thumbnailDownloadUrl,
-              ...values,
               published: true,
             },
             { headers: { Authorization: `Bearer ${getToken(user)}` } }
           );
           setUploadState("Done");
 
-          router.push(`/events/${eventId}`);
+          await router.push(`/events/${eventId}`);
         } catch (error) {
           // Delete the event and its resources if we run into an error during creation
           console.error(error);
@@ -152,17 +231,7 @@ const EventForm = () => {
           await deleteEvent(eventId, getToken(user));
         }
       }}
-      initialValues={{
-        name: "",
-        description: "",
-        startTime: new Date().toISOString().slice(0, 16),
-        endTime: new Date().toISOString().slice(0, 16),
-        location: "",
-        ticketPrice: 0,
-        maxTickets: 0,
-        hashtags: [],
-        notifications: [],
-      }}
+      initialValues={initialValues ? formatEventFormValues(initialValues) : defaultEventData}
     >
       {({ isSubmitting, values, handleChange }) => (
         <Form className="flex flex-col gap-2">
@@ -175,7 +244,7 @@ const EventForm = () => {
             <TextArea
               name="description"
               placeholder="Description"
-              className="h-36"
+              rows={15}
               onChange={handleChange}
               value={values.description}
             />
@@ -185,7 +254,6 @@ const EventForm = () => {
             <FormGroup label="End Time" name="endTime" placeholder="Event end time" type="datetime-local" />
           </div>
           <FormGroup label="Location" name="location" placeholder="Event location (address, etc.)" />
-          <FormGroup label="Ticket Price" name="ticketPrice" placeholder="Ticket price" type="number" />
           <FormGroup label="Maximum Tickets Sold" name="maxTickets" placeholder="Max tickets" type="number" />
           <p>Media</p>
           <FileUploadField onChange={addMediaImage} />
@@ -194,7 +262,11 @@ const EventForm = () => {
               <FormPreviewImage
                 key={`preview ${previewIndex}`}
                 removeImage={() => removeImage(previewIndex)}
-                name={media[previewIndex].name}
+                name={
+                  typeof media[previewIndex] === "string"
+                    ? (media[previewIndex] as string)
+                    : (media[previewIndex] as File)?.name
+                }
                 image={image}
                 position={previewIndex + 1}
                 onMoveLeft={() => moveMedia(previewIndex, "left")}
@@ -211,13 +283,39 @@ const EventForm = () => {
                   setThumbnail(null);
                   setThumbnailPreview("");
                 }}
-                name={thumbnail.name}
+                name={typeof thumbnail === "string" ? thumbnail : thumbnail.name}
                 image={thumbnailPreview}
               />
             </div>
           )}
-          <p>Notifications</p>
+          <p>Ticket Prices</p>
 
+          <FieldArray name="prices">
+            {({ push, remove }) => (
+              <>
+                {values.prices.map((e, i) => (
+                  <div key={`price ${i}`} className="flex flex-col gap-2 bg-gray-800 p-3 rounded-md shadow-md relative">
+                    <div
+                      className="bg-gray-900 rounded-full p-0.5 flex justify-center items-center absolute top-0 right-0 z-10 transform -translate-y-1/2 translate-x-1/2 border border-gray-700 shadow-md hover:bg-gray-700 transition cursor-pointer"
+                      onClick={() => remove(i)}
+                    >
+                      <CloseIcon />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormGroup name={`prices.${i}.name`} placeholder="Name" label="Name" />
+                      <FormGroup name={`prices.${i}.price`} placeholder="Price" type="number" label="Price" />
+                    </div>
+                  </div>
+                ))}
+                <div className="flex">
+                  <Button variant="outline" onClick={() => push({ name: "", price: "0" })}>
+                    New Price
+                  </Button>
+                </div>
+              </>
+            )}
+          </FieldArray>
+          <p>Notifications</p>
           <FieldArray name="notifications">
             {({ push, remove }) => (
               <>
@@ -232,7 +330,7 @@ const EventForm = () => {
                     >
                       <CloseIcon />
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       <FormGroup name={`notifications.${i}.days`} placeholder="Days" type="number" label="Days" />
                       <FormGroup name={`notifications.${i}.hours`} placeholder="Hours" type="number" label="Hours" />
                       <FormGroup
@@ -251,7 +349,7 @@ const EventForm = () => {
                     />
                   </div>
                 ))}
-                <div className="flex ">
+                <div className="flex">
                   <Button variant="outline" onClick={() => push({ message: "", days: "", hours: "", minutes: "" })}>
                     New Notification
                   </Button>
