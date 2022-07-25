@@ -95,7 +95,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           #endTime = :endTime,
           #location = :location,
           #maxTickets = :maxTickets,
-          #ticketPrice = :ticketPrice,
           #media = :media,
           #thumbnail = :thumbnail,
           #published = :published
@@ -107,7 +106,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         ":endTime": newEventData.endTime,
         ":location": newEventData.location,
         ":maxTickets": newEventData.maxTickets,
-        ":ticketPrice": newEventData.ticketPrice,
         ":media": newEventData.media,
         ":thumbnail": newEventData.thumbnail,
         ":published": newEventData.published,
@@ -119,7 +117,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         "#endTime": "endTime",
         "#location": "location",
         "#maxTickets": "maxTickets",
-        "#ticketPrice": "ticketPrice",
         "#media": "media",
         "#thumbnail": "thumbnail",
         "#published": "published",
