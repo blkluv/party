@@ -20,6 +20,7 @@ export {
   MdRadioButtonChecked as RadioButtonFilledIcon,
   MdLink as LinkIcon,
   MdLocalDining as FoodIcon,
+  MdOutlineEdit as PencilIcon,
 } from "react-icons/md";
 export {
   IoCloseOutline as CloseIcon,
