@@ -24,7 +24,21 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       },
     });
 
-    return { statusCode: 200, body: JSON.stringify({ ...eventData, location: null }) };
+    if (!eventData) throw new Error("Event not found");
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        name: eventData.name,
+        description: eventData.description,
+        startTime: eventData.startTime,
+        endTime: eventData.endTime,
+        prices:eventData.prices,
+        ticketsSold: eventData.ticketsSold,
+        media: eventData.media,
+        thumbnail: eventData.thumbnail,
+      }),
+    };
   } catch (error) {
     console.error(error);
     throw error;
