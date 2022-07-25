@@ -56,7 +56,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const { sub, ...auth } = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
 
-    if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
+    if (!auth["cognito:groups"].includes("admin")) throw new Error("Insufficient permissions");
 
     // Get stripe keys
     const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
