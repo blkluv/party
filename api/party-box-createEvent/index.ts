@@ -140,7 +140,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       description,
       startTime,
       endTime,
-      maxTickets,
+      maxTickets: parseInt(maxTickets),
       location,
       ownerId: sub,
       stripeProductId: stripeProduct.id,
