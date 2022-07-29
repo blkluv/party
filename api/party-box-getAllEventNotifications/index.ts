@@ -32,10 +32,25 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         ":eventId": eventId,
       },
     });
+    
+    const { Item: eventData } = await dynamo.get({
+      TableName: "${stage]-party-box-event-notifications",
+      Key: {
+        id: eventId,
+      },
+    });
 
     return {
       statusCode: 200,
-      body: JSON.stringify(notifications),
+      body: JSON.stringify(
+        notifications?.map((e) => ({
+          ...e,
+          message: e.message
+            .replace(eventData?.location, "{location}")
+            .replace(eventData?.startTime, "{startTime}")
+            .replace(eventData?.name, "{name}"),
+        }))
+      ),
     };
   } catch (error) {
     console.error(error);
