@@ -29,11 +29,12 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     return {
       statusCode: 200,
       body: JSON.stringify({
+        id: eventData.id,
         name: eventData.name,
         description: eventData.description,
         startTime: eventData.startTime,
         endTime: eventData.endTime,
-        prices:eventData.prices,
+        prices: eventData.prices,
         ticketsSold: eventData.ticketsSold,
         media: eventData.media,
         thumbnail: eventData.thumbnail,
