@@ -18,6 +18,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const { eventId } = event.pathParameters as PathParameters;
     const { Authorization } = event.headers;
+    const { stage } = event.requestContext;
 
     if (!Authorization) throw new Error("Authorization header was undefined.");
 
@@ -32,9 +33,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         ":eventId": eventId,
       },
     });
-    
+
     const { Item: eventData } = await dynamo.get({
-      TableName: "${stage]-party-box-event-notifications",
+      TableName: `${stage}-party-box-events`,
       Key: {
         id: eventId,
       },
