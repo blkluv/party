@@ -1,4 +1,4 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
@@ -20,8 +20,10 @@ interface Body {
   stripeProductId: string;
   snsTopicArn: string;
   prices: {
-    price: number;
+    id?: string;
     name: string;
+    paymentLink: string;
+    price: number;
   }[];
   ticketPrice: number;
   hashtags: string[];
@@ -31,6 +33,10 @@ interface Body {
     minutes: number;
     message: string;
   }[];
+}
+
+interface StageVariables extends APIGatewayProxyEventStageVariables {
+  websiteUrl: string;
 }
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -51,6 +57,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { eventId } = event.pathParameters as PathParameters;
     const { Authorization } = event.headers;
     const { stage } = event.requestContext;
+    const { websiteUrl } = event.stageVariables as StageVariables;
 
     if (!Authorization) throw new Error("Authorization header was undefined.");
 
@@ -129,6 +136,61 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       description: body.description,
       images: newEventData.media,
     });
+
+    // Add price to price array and Stirpe if it doesn't have an ID
+    const newPrices = [];
+    for (const price of newEventData.prices) {
+      if (!price?.id) {
+        if (price.price > 0.5) {
+          const stripePrice = await stripeClient.prices.create({
+            product: newEventData.stripeProductId,
+            unit_amount: price.price * 100,
+            currency: "CAD",
+            nickname: price.name,
+          });
+          const paymentLink = await stripeClient.paymentLinks.create({
+            line_items: [
+              {
+                price: stripePrice.id,
+                adjustable_quantity: {
+                  enabled: true,
+                  minimum: 1,
+                },
+                quantity: 1,
+              },
+            ],
+            metadata: {
+              eventId,
+            },
+            phone_number_collection: {
+              enabled: true,
+            },
+            after_completion: {
+              type: "redirect",
+              redirect: {
+                url: `${websiteUrl}/tickets/purchase-success?eventId=${eventId}`,
+              },
+            },
+          });
+
+          newPrices.push({
+            id: stripePrice.id,
+            name: price.name,
+            paymentLink: paymentLink.url,
+            paymentLinkId: paymentLink.id,
+            price: price.price,
+          });
+        } else {
+          newPrices.push({
+            id: uuid(),
+            name: price.name,
+            price: price.price,
+          });
+        }
+      }else{
+        newPrices.push(price);
+      }
+    }
 
     const { Items: oldNotifications = [] } = await dynamo.scan({
       TableName: "party-box-event-notifications",
