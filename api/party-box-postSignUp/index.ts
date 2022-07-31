@@ -27,6 +27,7 @@ export const handler = async (
       id: userName,
       name: event.request.userAttributes.name,
       email: event.request.userAttributes.email,
+      roles: ["user"],
     };
 
     await pgDev("users").insert(userData);
