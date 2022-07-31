@@ -1,6 +1,7 @@
 import { Callback, Context, PostConfirmationTriggerEvent } from "aws-lambda";
 import { CognitoIdentityProvider } from "@aws-sdk/client-cognito-identity-provider";
-import { getPostgresClient } from "@party-box/common";
+import { SecretsManager } from "@aws-sdk/client-secrets-manager";
+import knex from "knex";
 
 /**
  * @method POST
@@ -14,17 +15,27 @@ export const handler = async (
   const { userPoolId, userName } = event;
 
   try {
-    const params = {
-      GroupName: "user",
-      UserPoolId: userPoolId,
-      Username: userName,
-    };
+    const cognito = new CognitoIdentityProvider({ region: "us-east-1" });
+    const secretsManager = new SecretsManager({});
 
-    const pgDev = await getPostgresClient("dev");
+    // Get Postgres access
+    const { SecretString: pgSecretString } = await secretsManager.getSecretValue({
+      SecretId: "prod/party-box/pg",
+    });
+    if (!pgSecretString) throw new Error("Postgres secret was undefined.");
+    const pgAccess = JSON.parse(pgSecretString);
+
+    const pgDev = knex({
+      client: "pg",
+      connection: {
+        user: pgAccess.username,
+        password: pgAccess.password,
+        host: pgAccess.host,
+        port: pgAccess.port,
+        database: "dev",
+      },
+    });
     // const pgProd = await getPostgresClient("prod");
-
-    console.log(pgDev);
-    // console.log(pgProd);
 
     const userData = {
       id: userName,
@@ -35,9 +46,11 @@ export const handler = async (
 
     await pgDev("users").insert(userData);
 
-    const cognito = new CognitoIdentityProvider({ region: "us-east-1" });
-
-    await cognito.adminAddUserToGroup(params);
+    await cognito.adminAddUserToGroup({
+      GroupName: "user",
+      UserPoolId: userPoolId,
+      Username: userName,
+    });
 
     return callback(null, event);
   } catch (error) {
