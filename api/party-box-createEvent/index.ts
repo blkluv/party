@@ -1,32 +1,16 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
-import { SecretsManager } from "@aws-sdk/client-secrets-manager";
-import stripe from "stripe";
 import { v4 as uuid } from "uuid";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { SNS } from "@aws-sdk/client-sns";
 import dayjs from "dayjs";
-import knex from "knex";
-import { PartyBoxEvent, PartyBoxEventInput, PartyBoxEventPrice } from "@party-box/common";
-
-interface Body {
-  name: string;
-  description: string;
-  startTime: string;
-  endTime?: string;
-  location: string;
-  maxTickets: string;
-  prices: {
-    price: number;
-    name: string;
-  }[];
-  hashtags: string[];
-  notifications: {
-    days: number;
-    hours: number;
-    minutes: number;
-    message: string;
-  }[];
-}
+import {
+  PartyBoxEvent,
+  PartyBoxEventInput,
+  PartyBoxEventPrice,
+  getStripeClient,
+  getPostgresClient,
+  decodeJwt,
+  decodeNotificationMessage,
+} from "@party-box/common";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -39,47 +23,27 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
 
-  const secretsManager = new SecretsManager({});
   const sns = new SNS({});
 
   try {
-    const { name, description, startTime, endTime, location, maxTickets, prices, hashtags, notifications } = JSON.parse(
-      event.body ?? "{}"
-    ) as Body;
+    const {
+      name,
+      description,
+      startTime,
+      endTime,
+      location,
+      maxTickets,
+      prices,
+      hashtags,
+      notifications = [],
+    } = JSON.parse(event.body ?? "{}") as PartyBoxEventInput;
     const { websiteUrl } = event.stageVariables as StageVariables;
     const { stage } = event.requestContext;
     const { Authorization } = event.headers;
 
-    // Check if the user has a admin permissions
-    if (!Authorization) throw new Error("Authorization header was undefined.");
-    const { sub, ...auth } = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
-    if (!auth["cognito:groups"].includes("admin")) throw new Error("Insufficient permissions");
-
-    // Get stripe access keys
-    const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
-      SecretId: `${stage}/party-box/stripe`,
-    });
-    if (!stripeSecretString) throw new Error("Access keys string was undefined.");
-    const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
-    const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
-
-    // Get Postgres access
-    const { SecretString: pgSecretString } = await secretsManager.getSecretValue({
-      SecretId: "prod/party-box/pg",
-    });
-    if (!pgSecretString) throw new Error("Postgres secret was undefined.");
-    const pgAccess = JSON.parse(pgSecretString);
-
-    const pg = knex({
-      client: "pg",
-      connection: {
-        user: pgAccess.username,
-        password: pgAccess.password,
-        host: pgAccess.host,
-        port: pgAccess.port,
-        database: stage,
-      },
-    });
+    const { sub } = decodeJwt(Authorization, ["admin"]);
+    const stripeClient = await getStripeClient(stage);
+    const pg = await getPostgresClient(stage);
 
     const { id: eventId } = await pg("events")
       .insert<PartyBoxEventInput>({
@@ -167,14 +131,14 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     });
 
     // Update the event with data created above
-    const eventData = await pg("events")
+    const [eventData] = await pg<PartyBoxEvent>("events")
       .where("id", eventId)
-      .update<PartyBoxEventInput>({
+      .update<Partial<PartyBoxEventInput>>({
         stripeProductId: stripeProduct.id,
         prices: newPrices,
         snsTopicArn: snsTopic.TopicArn,
       })
-      .returning<PartyBoxEvent>("*");
+      .returning("*");
 
     // Schedule some messages
     await pg("notifications").insert(
@@ -185,7 +149,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           .subtract(n.hours, "hour")
           .subtract(n.minutes, "minute")
           .toISOString(),
-        message: n.message.replace("{location}", location).replace("{startTime}", startTime).replace("{name}", name),
+        message: decodeNotificationMessage(n.message, eventData),
         eventSnsTopicArn: snsTopic.TopicArn,
         eventId,
       }))
