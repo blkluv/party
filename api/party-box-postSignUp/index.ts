@@ -13,6 +13,9 @@ export const handler = async (
 ): Promise<void> => {
   const { userPoolId, userName } = event;
 
+  console.log(JSON.stringify(event));
+  console.log(JSON.stringify(_context));
+
   try {
     const params = {
       GroupName: "user",
@@ -23,6 +26,9 @@ export const handler = async (
     const pgDev = await getPostgresClient("dev");
     const pgProd = await getPostgresClient("prod");
 
+    console.log(pgDev);
+    console.log(pgProd);
+    
     const userData = {
       id: userName,
       name: event.request.userAttributes.name,
@@ -32,6 +38,7 @@ export const handler = async (
 
     await pgDev("users").insert(userData);
     await pgProd("users").insert(userData);
+
 
     const cognito = new CognitoIdentityProvider({ region: "us-east-1" });
 
