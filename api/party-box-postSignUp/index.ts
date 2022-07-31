@@ -1,5 +1,6 @@
 import { Callback, Context, PostConfirmationTriggerEvent } from "aws-lambda";
 import { CognitoIdentityProvider } from "@aws-sdk/client-cognito-identity-provider";
+import { getPostgresClient } from "@party-box/common";
 
 /**
  * @method POST
@@ -18,6 +19,18 @@ export const handler = async (
       UserPoolId: userPoolId,
       Username: userName,
     };
+
+    const pgDev = await getPostgresClient("dev");
+    const pgProd = await getPostgresClient("prod");
+
+    const userData = {
+      id: userName,
+      name: event.request.userAttributes.name,
+      email: event.request.userAttributes.email,
+    };
+
+    await pgDev("users").insert(userData);
+    await pgProd("users").insert(userData);
 
     const cognito = new CognitoIdentityProvider({ region: "us-east-1" });
 

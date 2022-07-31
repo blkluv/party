@@ -12,6 +12,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-cognito-identity-provider": "^3.121.0"
+    "@aws-sdk/client-cognito-identity-provider": "^3.121.0",
+    "@party-box/common": "^1.0.18",
+    "knex": "^2.2.0",
+    "pg": "^8.7.3"
   }
 }
