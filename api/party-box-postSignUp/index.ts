@@ -56,6 +56,8 @@ export const handler = async (
 
     console.log("Group added in Cognito");
 
+    await pgDev.destroy();
+
     callback(null, event);
   } catch (error) {
     console.error(error);
