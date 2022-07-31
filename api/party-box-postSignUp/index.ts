@@ -17,7 +17,7 @@ export const handler = async (
     const cognito = new CognitoIdentityProvider({ region: "us-east-1" });
 
     const pgDev = await getPostgresClient("dev");
-    const pgProd = await getPostgresClient("dev");
+    const pgProd = await getPostgresClient("prod");
 
     try {
       const userData = {
