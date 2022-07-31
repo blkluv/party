@@ -21,8 +21,6 @@ const getPostgresClient = async (stage: string) => {
     },
   });
 
-  console.log(pg);
-
   return pg;
 };
 
