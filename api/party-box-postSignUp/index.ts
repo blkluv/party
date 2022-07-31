@@ -46,15 +46,19 @@ export const handler = async (
 
     await pgDev("users").insert(userData);
 
+    console.log("User created in dev database.");
+
     await cognito.adminAddUserToGroup({
       GroupName: "user",
       UserPoolId: userPoolId,
       Username: userName,
     });
 
-    return callback(null, event);
+    console.log("Group added in Cognito");
+
+    callback(null, event);
   } catch (error) {
     console.error(error);
-    return callback(error as Error, event);
+    callback(error as Error, event);
   }
 };
