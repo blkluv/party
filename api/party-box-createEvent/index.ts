@@ -1,12 +1,12 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import stripe from "stripe";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuid } from "uuid";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { SNS } from "@aws-sdk/client-sns";
 import dayjs from "dayjs";
+import knex from "knex";
+import { PartyBoxEvent, PartyBoxEventInput, PartyBoxEventPrice } from "@party-box/common";
 
 interface Body {
   name: string;
@@ -39,8 +39,6 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
 
-  const dynamoClient = new DynamoDB({});
-  const dynamo = DynamoDBDocument.from(dynamoClient);
   const secretsManager = new SecretsManager({});
   const sns = new SNS({});
 
@@ -52,13 +50,12 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { stage } = event.requestContext;
     const { Authorization } = event.headers;
 
+    // Check if the user has a admin permissions
     if (!Authorization) throw new Error("Authorization header was undefined.");
-
     const { sub, ...auth } = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
-
     if (!auth["cognito:groups"].includes("admin")) throw new Error("Insufficient permissions");
 
-    // Get stripe keys
+    // Get stripe access keys
     const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
       SecretId: `${stage}/party-box/stripe`,
     });
@@ -66,7 +63,40 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
     const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
 
-    const eventId = uuid();
+    // Get Postgres access
+    const { SecretString: pgSecretString } = await secretsManager.getSecretValue({
+      SecretId: "prod/party-box/pg",
+    });
+    if (!pgSecretString) throw new Error("Postgres secret was undefined.");
+    const pgAccess = JSON.parse(pgSecretString);
+
+    const pg = knex({
+      client: "pg",
+      connection: {
+        user: pgAccess.username,
+        password: pgAccess.password,
+        host: pgAccess.host,
+        port: pgAccess.port,
+        database: stage,
+      },
+    });
+
+    const { id: eventId } = await pg("events")
+      .insert<PartyBoxEventInput>({
+        ownerId: sub,
+        name,
+        description,
+        maxTickets: Number(maxTickets),
+        startTime,
+        endTime,
+        location,
+        ticketsSold: 0,
+        published: false,
+        media: [],
+        thumbnail: "",
+        hashtags,
+      })
+      .returning<PartyBoxEvent>("*");
 
     // Create stripe product
     const stripeProduct = await stripeClient.products.create({
@@ -79,7 +109,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     });
 
     // Upload price data
-    const newPrices = [];
+    const newPrices: PartyBoxEventPrice[] = [];
     for (const price of prices) {
       if (price.price > 0.5) {
         const stripePrice = await stripeClient.prices.create({
@@ -119,12 +149,14 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           paymentLink: paymentLink.url,
           paymentLinkId: paymentLink.id,
           price: price.price,
+          free: false,
         });
       } else {
         newPrices.push({
           id: uuid(),
           name: "Regular",
           price: price.price,
+          free: true,
         });
       }
     }
@@ -134,47 +166,30 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       Name: `${stage}-party-box-event-notifications-${eventId}`,
     });
 
-    const eventData = {
-      id: eventId,
-      name,
-      description,
-      startTime,
-      endTime,
-      maxTickets: parseInt(maxTickets),
-      location,
-      ownerId: sub,
-      stripeProductId: stripeProduct.id,
-      prices: newPrices,
-      snsTopicArn: snsTopic.TopicArn,
-      ticketsSold: 0,
-      published: false,
-      media: [],
-      thumbnail: "",
-      hashtags,
-    };
+    // Update the event with data created above
+    const eventData = await pg("events")
+      .where("id", eventId)
+      .update<PartyBoxEventInput>({
+        stripeProductId: stripeProduct.id,
+        prices: newPrices,
+        snsTopicArn: snsTopic.TopicArn,
+      })
+      .returning<PartyBoxEvent>("*");
 
-    await dynamo.put({
-      TableName: `${stage}-party-box-events`,
-      Item: eventData,
-    });
-
-    for (const n of notifications) {
-      // Schedule some messages
-      await dynamo.put({
-        TableName: "party-box-event-notifications",
-        Item: {
-          id: uuid(),
-          messageTime: dayjs(startTime)
-            .subtract(n.days, "day")
-            .subtract(n.hours, "hour")
-            .subtract(n.minutes, "minute")
-            .toISOString(),
-          message: n.message.replace("{location}", location).replace("{startTime}", startTime).replace("{name}", name),
-          eventSnsTopicArn: snsTopic.TopicArn,
-          eventId,
-        },
-      });
-    }
+    // Schedule some messages
+    await pg("notifications").insert(
+      notifications.map((n) => ({
+        id: uuid(),
+        messageTime: dayjs(startTime)
+          .subtract(n.days, "day")
+          .subtract(n.hours, "hour")
+          .subtract(n.minutes, "minute")
+          .toISOString(),
+        message: n.message.replace("{location}", location).replace("{startTime}", startTime).replace("{name}", name),
+        eventSnsTopicArn: snsTopic.TopicArn,
+        eventId,
+      }))
+    );
 
     return { statusCode: 201, body: JSON.stringify(eventData) };
   } catch (error) {
