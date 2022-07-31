@@ -24,6 +24,13 @@ interface PartyBoxEventInput {
   ownerId: string;
   stripeProductId?: string;
   hashtags: string[];
+
+  notifications?: {
+    days: number;
+    hours: number;
+    minutes: number;
+    message: string;
+  }[];
 }
 
 export default PartyBoxEventInput;

@@ -5,6 +5,9 @@ interface PartyBoxEvent {
   name: string;
   description: string;
 
+  // SNS topic where notifications about this event are sent to
+  snsTopicArn?: string;
+
   // ISO date string
   startTime: string;
 
