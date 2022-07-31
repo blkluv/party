@@ -13,9 +13,6 @@ export const handler = async (
 ): Promise<void> => {
   const { userPoolId, userName } = event;
 
-  console.log(JSON.stringify(event));
-  console.log(JSON.stringify(_context));
-
   try {
     const params = {
       GroupName: "user",
@@ -24,10 +21,10 @@ export const handler = async (
     };
 
     const pgDev = await getPostgresClient("dev");
-    const pgProd = await getPostgresClient("prod");
+    // const pgProd = await getPostgresClient("prod");
 
     console.log(pgDev);
-    console.log(pgProd);
+    // console.log(pgProd);
 
     const userData = {
       id: userName,
