@@ -1,0 +1,30 @@
+name: Prod/DB/Migrate
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "database/**"
+      - ".github/workflows/prod-migrate-db.yml"
+
+jobs:
+  migrate-db:
+      name: Perform Prisma migration
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Install dependencies
+          working-directory: database
+          run: |
+            yarn install
+
+        - name: Migrate
+          working-directory: database
+          env:
+            DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          run: |
+            yarn workspace database migrate:prod
