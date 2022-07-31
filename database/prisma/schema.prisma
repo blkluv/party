@@ -25,22 +25,23 @@ model events {
 }
 
 model users {
-  id           String         @id @unique
-  email        String         @unique
-  name         String?
-  events       events[]
-  user_tickets user_tickets[]
+  id          String        @id @unique
+  email       String        @unique
+  name        String?
+  roles       String[]      @default(["user"])
+  events      events[]
+  userTickets userTickets[]
 }
 
 model tickets {
-  id           Int            @id @default(autoincrement())
-  eventId      Int
-  event        events         @relation(fields: [eventId], references: [id])
-  price        Int
-  user_tickets user_tickets[]
+  id          Int           @id @default(autoincrement())
+  eventId     Int
+  event       events        @relation(fields: [eventId], references: [id])
+  price       Int
+  userTickets userTickets[]
 }
 
-model user_tickets {
+model userTickets {
   id       Int     @id @default(autoincrement())
   userId   String
   ticketId Int
