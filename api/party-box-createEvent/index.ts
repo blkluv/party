@@ -53,7 +53,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         startTime,
         endTime,
         location,
-        ticketsSold: 0,
         published: false,
         media: [],
         thumbnail: "",
