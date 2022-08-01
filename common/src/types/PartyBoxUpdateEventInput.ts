@@ -1,13 +1,11 @@
-import PartyBoxEventNotification from "./PartyBoxEventNotification";
+import PartyBoxCreateNotificationInput from "./PartyBoxCreateNotificationInput";
 import PartyBoxEventPrice from "./PartyBoxEventPrice";
+import PartyBoxUpdateNotificationInput from "./PartyBoxUpdateNotificationInput";
 
-interface PartyBoxEvent {
+interface PartyBoxUpdateEventInput {
   id: string;
   name: string;
   description: string;
-
-  // SNS topic where notifications about this event are sent to
-  snsTopicArn?: string;
 
   // ISO date string
   startTime: string;
@@ -27,11 +25,9 @@ interface PartyBoxEvent {
   thumbnail: string;
 
   prices: PartyBoxEventPrice[];
-  ownerId: string;
-  stripeProductId: string;
   hashtags: string[];
   published: boolean;
-  notifications?: PartyBoxEventNotification[];
+  notifications?: (PartyBoxCreateNotificationInput | PartyBoxUpdateNotificationInput)[];
 }
 
-export default PartyBoxEvent;
+export default PartyBoxUpdateEventInput;

@@ -9,9 +9,10 @@ import {
   decodeJwt,
   getPostgresClient,
   getStripeClient,
+  PartyBoxCreateNotificationInput,
   PartyBoxEvent,
-  PartyBoxEventInput,
   PartyBoxEventNotification,
+  PartyBoxUpdateEventInput,
 } from "@party-box/common";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
@@ -28,7 +29,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
-  const { notifications = [], ...body } = JSON.parse(event.body ?? "{}") as PartyBoxEventInput;
+  const { notifications = [], ...body } = JSON.parse(event.body ?? "{}") as PartyBoxUpdateEventInput;
   const { eventId } = event.pathParameters as PathParameters;
   const { Authorization } = event.headers;
   const { stage } = event.requestContext;
@@ -40,11 +41,14 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const stripeClient = await getStripeClient(stage);
     const pg = await getPostgresClient(stage);
 
-    const [newEventData] = await pg<PartyBoxEvent>("events").where("id", "=", eventId).update<PartyBoxEventInput>(body);
+    const [newEventData] = await pg<PartyBoxEvent>("events")
+      .where("id", "=", Number(eventId))
+      .update<PartyBoxUpdateEventInput>(body)
+      .returning("*");
 
-    if (!body.stripeProductId) throw new Error("Missing Stripe product id");
+    if (!newEventData.stripeProductId) throw new Error("Missing Stripe product id");
 
-    await stripeClient.products.update(body.stripeProductId, {
+    await stripeClient.products.update(newEventData.stripeProductId, {
       name: body.name,
       description: body.description,
       images: body.media,
@@ -56,7 +60,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       if (!price?.id) {
         if (price.price > 0.5) {
           const stripePrice = await stripeClient.prices.create({
-            product: body.stripeProductId,
+            product: newEventData.stripeProductId,
             unit_amount: price.price * 100,
             currency: "CAD",
             nickname: price.name,
@@ -107,7 +111,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const newNotifications: PartyBoxEventNotification[] = [];
     for (const n of notifications) {
-      if (n.id) {
+      if ("id" in n) {
         const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
           .where("id", "=", n.id)
           .update(n)
@@ -116,9 +120,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         newNotifications.push(newNotificationData);
       } else {
         const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
-          .insert({
+          .insert<PartyBoxCreateNotificationInput>({
             ...n,
-            eventId,
+            eventId: Number(eventId),
           })
           .returning("*");
         newNotifications.push(newNotificationData);

@@ -1,8 +1,7 @@
 import PartyBoxEventNotification from "./PartyBoxEventNotification";
 import PartyBoxEventPrice from "./PartyBoxEventPrice";
 
-interface PartyBoxEventInput {
-  id?: number;
+interface PartyBoxCreateEventInput {
   name: string;
   description: string;
 
@@ -23,12 +22,10 @@ interface PartyBoxEventInput {
   // URL to small image used for previews
   thumbnail: string;
 
-  prices: Partial<PartyBoxEventPrice>[];
-  ownerId: string;
-  stripeProductId?: string;
+  prices: PartyBoxEventPrice[];
   hashtags: string[];
 
-  notifications?: PartyBoxEventNotification[];
+  notifications: PartyBoxEventNotification[];
 }
 
-export default PartyBoxEventInput;
+export default PartyBoxCreateEventInput;
