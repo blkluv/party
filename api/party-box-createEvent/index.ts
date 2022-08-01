@@ -3,7 +3,7 @@ import { v4 as uuid } from "uuid";
 import { SNS } from "@aws-sdk/client-sns";
 import {
   PartyBoxEvent,
-  PartyBoxEventInput,
+  PartyBoxCreateEventInput,
   PartyBoxEventPrice,
   getStripeClient,
   getPostgresClient,
@@ -30,7 +30,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     prices,
     hashtags,
     notifications = [],
-  } = JSON.parse(event.body ?? "{}") as PartyBoxEventInput;
+  } = JSON.parse(event.body ?? "{}") as PartyBoxCreateEventInput;
   const { websiteUrl } = event.stageVariables as StageVariables;
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
@@ -43,7 +43,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const stripeClient = await getStripeClient(stage);
 
     const [{ id: eventId }] = await pg<PartyBoxEvent>("events")
-      .insert<PartyBoxEventInput>({
+      .insert<PartyBoxCreateEventInput>({
         ownerId: sub,
         name,
         description,
@@ -131,7 +131,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     // Update the event with data created above
     const [eventData] = await pg<PartyBoxEvent>("events")
       .where("id", "=", eventId)
-      .update<Partial<PartyBoxEventInput>>({
+      .update<Partial<PartyBoxCreateEventInput>>({
         stripeProductId: stripeProduct.id,
         prices: newPrices,
         snsTopicArn: snsTopic.TopicArn,
