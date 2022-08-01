@@ -10,7 +10,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const pg = await getPostgresClient(stage);
   try {
     const events = await pg<PartyBoxEvent>("events")
-      .select("startTime", "endTime", "name", "description", "hashtags", "maxTickets", "thumbnail")
+      .select("id","startTime", "endTime", "name", "description", "hashtags", "maxTickets", "thumbnail")
       .where("published", "=", true)
       .andWhere("startTime", ">", new Date().toISOString());
 
