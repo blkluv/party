@@ -1,7 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import { v4 as uuid } from "uuid";
 import { SNS } from "@aws-sdk/client-sns";
-import dayjs from "dayjs";
 import {
   PartyBoxEvent,
   PartyBoxEventInput,
@@ -142,11 +141,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     // Schedule some messages
     await pg("eventNotifications").insert(
       notifications.map((n) => ({
-        messageTime: dayjs(startTime)
-          .subtract(n.days, "day")
-          .subtract(n.hours, "hour")
-          .subtract(n.minutes, "minute")
-          .toISOString(),
+        messageTime: n.messageTime,
         message: n.message,
         eventId,
       }))
