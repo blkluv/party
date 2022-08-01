@@ -73,5 +73,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   } catch (error) {
     console.error(error);
     throw error;
+  } finally {
+    await pg.destroy();
   }
 };
