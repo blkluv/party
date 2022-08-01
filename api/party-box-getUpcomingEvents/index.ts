@@ -1,5 +1,4 @@
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { getPostgresClient, PartyBoxEvent } from "@party-box/common";
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 
 /**
@@ -7,22 +6,20 @@ import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
  * @description Create event within Postgres and Stripe
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
+  const { stage } = event.requestContext;
+  const pg = await getPostgresClient(stage);
   try {
-    const dynamo = DynamoDBDocument.from(new DynamoDB({}));
-    const { stage } = event.requestContext;
+    const events = await pg<PartyBoxEvent>("events")
+      .select("startTime", "endTime", "name", "description", "hashtags", "maxTickets", "thumbnail")
+      .where("published", "=", true)
+      .andWhere("startTime", ">", new Date().toISOString());
 
-    const { Items: events } = await dynamo.scan({
-      TableName: `${stage}-party-box-events`,
-      FilterExpression: "startTime > :st",
-      ExpressionAttributeValues: {
-        ":st": new Date().toISOString(),
-      },
-    });
-
-    return { statusCode: 200, body: JSON.stringify(events?.map((e) => ({ ...e, location: null }))) };
+    return { statusCode: 200, body: JSON.stringify(events) };
   } catch (error) {
     console.error(error);
 
     return { statusCode: 500, body: JSON.stringify(error) };
+  } finally {
+    await pg.destroy();
   }
 };
