@@ -29,7 +29,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
-  const { notifications = [], ...body } = JSON.parse(event.body ?? "{}") as PartyBoxUpdateEventInput;
+  const { notifications = [], prices = [], ...body } = JSON.parse(event.body ?? "{}") as PartyBoxUpdateEventInput;
   const { eventId } = event.pathParameters as PathParameters;
   const { Authorization } = event.headers;
   const { stage } = event.requestContext;
@@ -56,7 +56,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     // Add price to price array and Stirpe if it doesn't have an ID
     const newPrices = [];
-    for (const price of body.prices) {
+    for (const price of prices) {
       if (!price?.id) {
         if (price.price > 0.5) {
           const stripePrice = await stripeClient.prices.create({
