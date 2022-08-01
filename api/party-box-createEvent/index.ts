@@ -22,28 +22,27 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
+  const {
+    name,
+    description,
+    startTime,
+    endTime,
+    location,
+    maxTickets,
+    prices,
+    hashtags,
+    notifications = [],
+  } = JSON.parse(event.body ?? "{}") as PartyBoxEventInput;
+  const { websiteUrl } = event.stageVariables as StageVariables;
+  const { stage } = event.requestContext;
+  const { Authorization } = event.headers;
 
   const sns = new SNS({});
+  const pg = await getPostgresClient(stage);
 
   try {
-    const {
-      name,
-      description,
-      startTime,
-      endTime,
-      location,
-      maxTickets,
-      prices,
-      hashtags,
-      notifications = [],
-    } = JSON.parse(event.body ?? "{}") as PartyBoxEventInput;
-    const { websiteUrl } = event.stageVariables as StageVariables;
-    const { stage } = event.requestContext;
-    const { Authorization } = event.headers;
-
     const { sub } = decodeJwt(Authorization, ["admin"]);
     const stripeClient = await getStripeClient(stage);
-    const pg = await getPostgresClient(stage);
 
     const { id: eventId } = await pg("events")
       .insert<PartyBoxEventInput>({
@@ -158,6 +157,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     return { statusCode: 201, body: JSON.stringify(eventData) };
   } catch (error) {
     console.error(error);
-    throw error;
+    await pg.destroy();
+
+    return { statusCode: 500, body: JSON.stringify(error) };
   }
 };
