@@ -21,7 +21,7 @@ export const handler = async (
 
     try {
       const userData = {
-        id: userName,
+        id: event.request.userAttributes.sub,
         name: event.request.userAttributes.name,
         email: event.request.userAttributes.email,
         roles: ["user"],
