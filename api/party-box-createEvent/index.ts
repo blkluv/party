@@ -9,7 +9,6 @@ import {
   getStripeClient,
   getPostgresClient,
   decodeJwt,
-  decodeNotificationMessage,
 } from "@party-box/common";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
@@ -141,16 +140,14 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       .returning("*");
 
     // Schedule some messages
-    await pg("notifications").insert(
+    await pg("eventNotifications").insert(
       notifications.map((n) => ({
-        id: uuid(),
         messageTime: dayjs(startTime)
           .subtract(n.days, "day")
           .subtract(n.hours, "hour")
           .subtract(n.minutes, "minute")
           .toISOString(),
-        message: decodeNotificationMessage(n.message, eventData),
-        eventSnsTopicArn: snsTopic.TopicArn,
+        message: n.message,
         eventId,
       }))
     );
