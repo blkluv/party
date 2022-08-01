@@ -1,39 +1,18 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
-import { SecretsManager } from "@aws-sdk/client-secrets-manager";
-import stripe from "stripe";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
-import jwt, { JwtPayload } from "jsonwebtoken";
-import dayjs from "dayjs";
+import {
+  APIGatewayEvent,
+  APIGatewayProxyEventPathParameters,
+  APIGatewayProxyEventStageVariables,
+  APIGatewayProxyResult,
+} from "aws-lambda";
 import { v4 as uuid } from "uuid";
-
-interface Body {
-  name: string;
-  description: string;
-  startTime: string;
-  endTime: string;
-  location: string;
-  maxTickets: string;
-  media: string[];
-  thumbnail: string;
-  published: boolean;
-  stripeProductId: string;
-  snsTopicArn: string;
-  prices: {
-    id?: string;
-    name: string;
-    paymentLink: string;
-    price: number;
-  }[];
-  ticketPrice: number;
-  hashtags: string[];
-  notifications: {
-    days: number;
-    hours: number;
-    minutes: number;
-    message: string;
-  }[];
-}
+import {
+  decodeJwt,
+  getPostgresClient,
+  getStripeClient,
+  PartyBoxEvent,
+  PartyBoxEventInput,
+  PartyBoxEventNotification,
+} from "@party-box/common";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -49,101 +28,35 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
-  const secretsManager = new SecretsManager({});
-  const dynamo = DynamoDBDocument.from(new DynamoDB({}));
+  const { notifications = [], ...body } = JSON.parse(event.body ?? "{}") as PartyBoxEventInput;
+  const { eventId } = event.pathParameters as PathParameters;
+  const { Authorization } = event.headers;
+  const { stage } = event.requestContext;
+  const { websiteUrl } = event.stageVariables as StageVariables;
 
   try {
-    const body = JSON.parse(event.body ?? "{}") as Body;
-    const { eventId } = event.pathParameters as PathParameters;
-    const { Authorization } = event.headers;
-    const { stage } = event.requestContext;
-    const { websiteUrl } = event.stageVariables as StageVariables;
+    const { sub: _sub } = decodeJwt(Authorization, ["admin"]);
 
-    if (!Authorization) throw new Error("Authorization header was undefined.");
+    const stripeClient = await getStripeClient(stage);
+    const pg = await getPostgresClient(stage);
 
-    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
+    const [newEventData] = await pg<PartyBoxEvent>("events").where("id", "=", eventId).update<PartyBoxEventInput>(body);
 
-    if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
+    if (!body.stripeProductId) throw new Error("Missing Stripe product id");
 
-    // Get stripe keys
-    const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
-      SecretId: `${stage}/party-box/stripe`,
-    });
-    if (!stripeSecretString) throw new Error("Access keys string was undefined.");
-    const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
-
-    const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
-
-    const { Item: previousEventData } = await dynamo.get({
-      TableName: `${stage}-party-box-events`,
-      Key: {
-        id: eventId,
-      },
-    });
-
-    const newEventData = {
-      ...previousEventData,
-      ...body,
-    };
-
-    console.log(newEventData);
-
-    // Update event in Dynamo
-    const { Attributes: eventData } = await dynamo.update({
-      TableName: `${stage}-party-box-events`,
-      Key: {
-        id: eventId,
-      },
-      UpdateExpression: `
-        SET 
-          #name = :name,
-          #description = :description,
-          #startTime = :startTime,
-          #endTime = :endTime,
-          #location = :location,
-          #maxTickets = :maxTickets,
-          #media = :media,
-          #thumbnail = :thumbnail,
-          #published = :published
-        `,
-      ExpressionAttributeValues: {
-        ":name": newEventData.name,
-        ":description": newEventData.description,
-        ":startTime": newEventData.startTime,
-        ":endTime": newEventData.endTime,
-        ":location": newEventData.location,
-        ":maxTickets": newEventData.maxTickets,
-        ":media": newEventData.media,
-        ":thumbnail": newEventData.thumbnail,
-        ":published": newEventData.published,
-      },
-      ExpressionAttributeNames: {
-        "#name": "name",
-        "#description": "description",
-        "#startTime": "startTime",
-        "#endTime": "endTime",
-        "#location": "location",
-        "#maxTickets": "maxTickets",
-        "#media": "media",
-        "#thumbnail": "thumbnail",
-        "#published": "published",
-      },
-      ReturnValues: "ALL_NEW",
-    });
-
-    await stripeClient.products.update(newEventData.stripeProductId, {
+    await stripeClient.products.update(body.stripeProductId, {
       name: body.name,
       description: body.description,
-      images: newEventData.media,
+      images: body.media,
     });
 
     // Add price to price array and Stirpe if it doesn't have an ID
     const newPrices = [];
-    for (const price of newEventData.prices) {
+    for (const price of body.prices) {
       if (!price?.id) {
         if (price.price > 0.5) {
           const stripePrice = await stripeClient.prices.create({
-            product: newEventData.stripeProductId,
+            product: body.stripeProductId,
             unit_amount: price.price * 100,
             currency: "CAD",
             nickname: price.name,
@@ -187,53 +100,34 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
             price: price.price,
           });
         }
-      }else{
+      } else {
         newPrices.push(price);
       }
     }
 
-    const { Items: oldNotifications = [] } = await dynamo.scan({
-      TableName: "party-box-event-notifications",
-      FilterExpression: "eventId = :eventId",
-      ExpressionAttributeValues: {
-        ":eventId": eventId,
-      },
-    });
+    const newNotifications: PartyBoxEventNotification[] = [];
+    for (const n of notifications) {
+      if (n.id) {
+        const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
+          .where("id", "=", n.id)
+          .update(n)
+          .returning("*");
 
-    // Delete notifications from DynamoDB
-    for (const e of oldNotifications) {
-      await dynamo.delete({
-        TableName: "party-box-event-notifications",
-        Key: {
-          id: e.id,
-        },
-      });
-    }
-
-    for (const n of newEventData.notifications) {
-      // Schedule some messages
-      await dynamo.put({
-        TableName: "party-box-event-notifications",
-        Item: {
-          id: uuid(),
-          eventId,
-          messageTime: dayjs(newEventData.startTime)
-            .subtract(n.days, "day")
-            .subtract(n.hours, "hour")
-            .subtract(n.minutes, "minute")
-            .toISOString(),
-          message: n.message
-            .replace("{location}", newEventData.location)
-            .replace("{startTime}", newEventData.startTime)
-            .replace("{name}", newEventData.name),
-          eventSnsTopicArn: newEventData.snsTopicArn,
-        },
-      });
+        newNotifications.push(newNotificationData);
+      } else {
+        const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
+          .insert({
+            ...n,
+            eventId,
+          })
+          .returning("*");
+        newNotifications.push(newNotificationData);
+      }
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify(eventData),
+      body: JSON.stringify({ ...newEventData, notifications: newNotifications }),
     };
   } catch (error) {
     console.error(error);

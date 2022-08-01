@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import EventForm from "~/components/EventForm";
 import LoadingScreen from "~/components/LoadingScreen";
 import MetaData from "~/components/MetaData";
-import getEvent from "~/utils/getEvent";
 import getEventNotifications from "~/utils/getEventNotifications";
+import getFullEvent from "~/utils/getFullEvent";
 import getToken from "~/utils/getToken";
 import isUserAdmin from "~/utils/isUserAdmin";
 
@@ -28,8 +28,9 @@ const Page = () => {
 
       // We are an admin, so fetch the event data
       try {
-        const event = await getEvent(router.query.eventId as string);
+        const event = await getFullEvent(router.query.eventId as string, getToken(user));
         setEventData(event);
+        
         const notifications = await getEventNotifications(router.query.eventId as string, getToken(user));
         setNotificationData(notifications);
       } catch (error) {

@@ -7,6 +7,7 @@ interface Props {
   name: string;
   label: string;
   type?: string;
+  disabled?: boolean;
 }
 
 const FormGroup = ({ placeholder, name, label, type = "text" }: Props) => {

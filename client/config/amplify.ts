@@ -6,7 +6,7 @@ const config = {
     userPoolId: "us-east-1_AO4wSmoNJ",
     userPoolWebClientId: "4768g659min5sg9v5mg595o19p",
     oauth: {
-      domain: "party-box.auth.us-east-1.amazoncognito.com",
+      domain: "auth.party-box.ca",
       scope: ["email", "openid", "profile"],
       redirectSignIn: WEBSITE_URL,
       redirectSignOut: WEBSITE_URL,

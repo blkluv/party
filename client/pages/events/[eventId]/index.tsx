@@ -103,7 +103,7 @@ const Page = () => {
             </div>
             <div
               className="border border-gray-700 p-2 rounded-md flex justify-center max-w-max items-center cursor-pointer hover:bg-primary dark:hover:bg-primary transition gap-2"
-              onClick={() => router.push(`/events/${eventData.id}/edit`)}
+              onClick={() => eventData.id && router.push(`/events/${eventData.id}/edit`)}
             >
               <PencilIcon />
             </div>

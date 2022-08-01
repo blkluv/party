@@ -331,7 +331,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                       <CloseIcon />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      <FormGroup name={`notifications.${i}.days`} placeholder="Days" type="number" label="Days" />
+                      <FormGroup name={`notifications.${i}.days`} placeholder="Days" type="number" label="Days"/>
                       <FormGroup name={`notifications.${i}.hours`} placeholder="Hours" type="number" label="Hours" />
                       <FormGroup
                         name={`notifications.${i}.minutes`}
