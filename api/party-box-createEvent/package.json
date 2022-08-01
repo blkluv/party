@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-sns": "^3.121.0",
-    "@party-box/common": "^1.0.18",
+    "@party-box/common": "^1.0.20",
     "dayjs": "^1.11.3",
     "knex": "^2.2.0",
     "pg": "^8.7.3",

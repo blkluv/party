@@ -44,7 +44,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { sub } = decodeJwt(Authorization, ["admin"]);
     const stripeClient = await getStripeClient(stage);
 
-    const { id: eventId } = await pg("events")
+    const [{ id: eventId }] = await pg<PartyBoxEvent>("events")
       .insert<PartyBoxEventInput>({
         ownerId: sub,
         name,
@@ -58,7 +58,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         thumbnail: "",
         hashtags,
       })
-      .returning<PartyBoxEvent>("*");
+      .returning("*");
 
     // Create stripe product
     const stripeProduct = await stripeClient.products.create({

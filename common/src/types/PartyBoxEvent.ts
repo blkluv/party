@@ -29,6 +29,7 @@ interface PartyBoxEvent {
   ownerId: string;
   stripeProductId: string;
   hashtags: string[];
+  published: boolean;
 }
 
 export default PartyBoxEvent;
