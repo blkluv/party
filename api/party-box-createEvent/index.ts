@@ -60,6 +60,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       })
       .returning("*");
 
+    console.log(`Created event with id ${eventId}`);
+
     // Create stripe product
     const stripeProduct = await stripeClient.products.create({
       name,
@@ -130,7 +132,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     // Update the event with data created above
     const [eventData] = await pg<PartyBoxEvent>("events")
-      .where("id", eventId)
+      .where("id", "=", eventId)
       .update<Partial<PartyBoxEventInput>>({
         stripeProductId: stripeProduct.id,
         prices: newPrices,
