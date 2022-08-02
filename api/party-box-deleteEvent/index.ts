@@ -1,6 +1,8 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { SNS } from "@aws-sdk/client-sns";
 import { decodeJwt, getPostgresClient, getStripeClient, PartyBoxEvent } from "@party-box/common";
+import { DeleteObjectsCommand, ListObjectsCommand, S3Client } from "@aws-sdk/client-s3";
+import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -18,12 +20,25 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { eventId } = event.pathParameters as PathParameters;
 
   const sns = new SNS({});
+  const secretsManager = new SecretsManager({});
 
   const stripeClient = await getStripeClient(stage);
   const pg = await getPostgresClient(stage);
 
   try {
     const _auth = decodeJwt(Authorization, ["admin"]);
+
+    // Get access keys for S3 login
+    const { SecretString: s3SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/access-keys" });
+    if (!s3SecretString) throw new Error("Access keys string was undefined.");
+    const { accessKeyId, secretAccessKey } = JSON.parse(s3SecretString);
+
+    const s3 = new S3Client({
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+      },
+    });
 
     // Get event from Dynamo
     const [{ prices, stripeProductId, snsTopicArn }] = await pg<PartyBoxEvent>("events")
@@ -63,10 +78,28 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       console.warn(error);
     }
 
-    // Delete all event notifications
-    await pg("eventNotifications").delete().where("eventId", "=", Number(eventId));
+    try {
+      const objects = await s3.send(
+        new ListObjectsCommand({
+          Bucket: "party-box-bucket",
+          Prefix: `${stage}/${eventId}/`,
+        })
+      );
+      if (objects?.Contents) {
+        await s3.send(
+          new DeleteObjectsCommand({
+            Bucket: `${stage}-party-box-media`,
+            Delete: {
+              Objects: objects.Contents.map((c) => ({ Key: c.Key })),
+            },
+          })
+        );
+      }
+    } catch (error) {
+      console.warn(error);
+    }
 
-    // Delete event
+    await pg("eventNotifications").delete().where("eventId", "=", Number(eventId));
     await pg("events").delete().where("id", "=", Number(eventId));
 
     return { statusCode: 200, body: JSON.stringify({ message: "Event deleted." }) };
