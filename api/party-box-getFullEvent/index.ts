@@ -1,7 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { getPostgresClient, PartyBoxEvent, decodeJwt } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -9,28 +7,21 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
 
 /**
  * @method GET
- * @description Get event with given ID from DynamoDB
+ * @description Get event with given ID from Postgres
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
+  console.log(JSON.stringify(event));
+  
+  const { eventId } = event.pathParameters as PathParameters;
+  const { stage } = event.requestContext;
+  const { Authorization } = event.headers;
+
+  const pg = await getPostgresClient(stage);
+
   try {
-    const { eventId } = event.pathParameters as PathParameters;
-    const { Authorization } = event.headers;
+    decodeJwt(Authorization, ["admin"]);
 
-    if (!Authorization) throw new Error("Authorization header was undefined.");
-
-    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
-
-    if (!auth["cognito:groups"].includes("admin")) throw new Error("Insufficient permissions");
-
-    const dynamo = DynamoDBDocument.from(new DynamoDB({}));
-    const { stage } = event.requestContext;
-
-    const { Item: eventData } = await dynamo.get({
-      TableName: `${stage}-party-box-events`,
-      Key: {
-        id: eventId,
-      },
-    });
+    const [eventData] = await pg<PartyBoxEvent>("events").select("*").where("id", "=", Number(eventId));
 
     if (!eventData) throw new Error("Event not found");
 
@@ -42,9 +33,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.error(error);
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        error,
-      }),
+      body: JSON.stringify(error),
     };
+  } finally {
+    await pg.destroy();
   }
 };

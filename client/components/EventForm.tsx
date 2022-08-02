@@ -126,7 +126,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
   return (
     <Formik
       onSubmit={async (values) => {
-        let eventId = "";
+        let eventId = null;
         try {
           setUploadState("Creating event");
 
@@ -140,9 +140,11 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                 endTime: new Date(values.endTime).toISOString(),
                 prices: values.prices.map((p) => ({ ...p, price: Number(p.price) })),
                 notifications: values.notifications.map((n) => ({
-                  days: Number(n.days),
-                  hours: Number(n.hours),
-                  minutes: Number(n.minutes),
+                  messageTime: dayjs(new Date(values.startTime).toISOString())
+                    .subtract(Number(n.days), "days")
+                    .subtract(Number(n.hours), "hours")
+                    .subtract(Number(n.minutes), "minutes")
+                    .toISOString(),
                   message: n.message,
                 })),
               },
@@ -203,17 +205,6 @@ const EventForm: FC<Props> = ({ initialValues }) => {
           await axios.post(
             `/api/events/${eventId}/update`,
             {
-              ...values,
-              maxTickets: Number(values.maxTickets),
-              startTime: new Date(values.startTime).toISOString(),
-              endTime: new Date(values.endTime).toISOString(),
-              prices: values.prices.map((p) => ({ ...p, price: Number(p.price) })),
-              notifications: values.notifications.map((n) => ({
-                days: Number(n.days),
-                hours: Number(n.hours),
-                minutes: Number(n.minutes),
-                message: n.message,
-              })),
               media: posters,
               thumbnail: thumbnailDownloadUrl,
               published: true,
@@ -331,7 +322,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                       <CloseIcon />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      <FormGroup name={`notifications.${i}.days`} placeholder="Days" type="number" label="Days"/>
+                      <FormGroup name={`notifications.${i}.days`} placeholder="Days" type="number" label="Days" />
                       <FormGroup name={`notifications.${i}.hours`} placeholder="Hours" type="number" label="Hours" />
                       <FormGroup
                         name={`notifications.${i}.minutes`}

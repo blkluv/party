@@ -53,7 +53,7 @@ const Page = () => {
   useEffect(() => {
     (async () => {
       if (!router.query.eventId) return;
-      
+
       try {
         const event = await getEvent(router.query.eventId as string);
         setEventData(event);
@@ -127,13 +127,15 @@ const Page = () => {
             >
               <h3 className="font-medium">{price.name}</h3>
               <p>${price.price.toFixed(2)}</p>
-              <div className="ml-auto">
-                <Link href={price.paymentLink} passHref>
-                  <a>
-                    <Button>Get Tickets</Button>
-                  </a>
-                </Link>
-              </div>
+              {price?.paymentLink && (
+                <div className="ml-auto">
+                  <Link href={price.paymentLink} passHref>
+                    <a>
+                      <Button>Get Tickets</Button>
+                    </a>
+                  </Link>
+                </div>
+              )}
             </div>
           ))}
         </div>

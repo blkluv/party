@@ -1,9 +1,12 @@
 /* eslint-disable indent */
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
-import { SecretsManager } from "@aws-sdk/client-secrets-manager";
-import stripe from "stripe";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import {
+  getPostgresClient,
+  getStripeClient,
+  PartyBoxEvent,
+  PartyBoxEventTicket,
+  PartyBoxCreateTicketInput,
+} from "@party-box/common";
 import { SNS } from "@aws-sdk/client-sns";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
@@ -17,29 +20,21 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
 
-  const secretsManager = new SecretsManager({});
-  const dynamo = DynamoDBDocument.from(new DynamoDB({}));
+  const { stage } = event.requestContext;
+  const { websiteUrl } = event.stageVariables as StageVariables;
+  const {
+    data: { object: data },
+  } = JSON.parse(event.body ?? "{}");
+
   const sns = new SNS({});
+  const pg = await getPostgresClient(stage);
+  const stripeClient = await getStripeClient(stage);
 
   try {
-    const { stage } = event.requestContext;
-    const { websiteUrl } = event.stageVariables as StageVariables;
-    const {
-      data: { object: data },
-    } = JSON.parse(event.body ?? "{}");
-
     const chargeId = data.id;
     const customerName = data.billing_details.name;
     const customerEmail = data.billing_details.email;
     const receiptUrl = data.receipt_url;
-
-    // Get stripe keys
-    const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
-      SecretId: `${stage}/party-box/stripe`,
-    });
-    if (!stripeSecretString) throw new Error("Access keys string was undefined.");
-    const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
-    const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
 
     const paymentIntent = await stripeClient.paymentIntents.retrieve(data.payment_intent);
     const session = await stripeClient.checkout.sessions.list({
@@ -49,44 +44,26 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const eventId = session?.data[0]?.metadata?.eventId;
     const customerPhoneNumber = session.data[0].customer_details?.phone;
-    const ticketQuantity = session.data[0].line_items?.data[0].quantity;
+    const ticketQuantity = Number(session.data[0].line_items?.data[0].quantity);
 
     // Create ticket in DynamoDB
-    const ticketData = {
-      id: session.data[0].id,
-      eventId,
-      stripeChargeId: chargeId,
-      receiptUrl,
-      customerName,
-      customerEmail,
-      customerPhoneNumber,
-      timestamp: new Date().toISOString(),
-      ticketQuantity,
-      used: false,
-    };
+    const [ticketData] = await pg<PartyBoxEventTicket>("tickets")
+      .insert<PartyBoxCreateTicketInput>({
+        eventId,
+        stripeSessionId: session?.data?.at(0)?.id ?? "",
+        stripeChargeId: chargeId,
+        receiptUrl,
+        customerName,
+        customerEmail,
+        customerPhoneNumber: customerPhoneNumber ?? "",
+        purchasedAt: new Date().toISOString(),
+        ticketQuantity: Number(ticketQuantity),
+        used: false,
+      })
+      .returning("*");
 
-    await dynamo.put({
-      TableName: `${stage}-party-box-tickets`,
-      Item: ticketData,
-    });
-
-    const { Item: eventData } = await dynamo.get({
-      TableName: `${stage}-party-box-events`,
-      Key: {
-        id: eventId,
-      },
-    });
-
-    // Get all current tickets
-    const { Items: tickets = [] } = await dynamo.scan({
-      TableName: `${stage}-party-box-tickets`,
-      FilterExpression: "eventId = :eventId",
-      ExpressionAttributeValues: {
-        ":eventId": eventId,
-      },
-    });
-
-    const ticketsSold = tickets?.reduce((acc, curr) => acc + curr.ticketQuantity, 0);
+    const [eventData] = await pg<PartyBoxEvent>("events").where({ id: eventId });
+    const [ticketsSold] = await pg<PartyBoxEventTicket>("tickets").where({ id: eventId }).sum("ticketQuantity");
 
     // Once enough stock is sold, disable product on stripe
     if (ticketsSold >= eventData?.maxTickets) {
@@ -94,18 +71,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         active: false,
       });
     }
-
-    // Update DynamoDB with current ticket count
-    await dynamo.update({
-      TableName: `${stage}-party-box-events`,
-      Key: {
-        id: eventId,
-      },
-      UpdateExpression: "set ticketsSold = :ticketsSold",
-      ExpressionAttributeValues: {
-        ":ticketsSold": ticketsSold,
-      },
-    });
 
     if (!eventData) throw new Error("Couldn't find event data");
 
@@ -131,7 +96,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     await sns.publish({
       Message: `
-        Thank you for purchasing ${ticketQuantity} ticket${ticketQuantity > 0 ? "s" : ""} to ${
+        Thank you for purchasing ${ticketQuantity} ticket${ticketQuantity > 1 ? "s" : ""} to ${
         eventData?.name
       }!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.id}\n\nReceipt: ${receiptUrl}
       `,
@@ -145,6 +110,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     return { statusCode: 200, body: JSON.stringify({ message: "Success" }) };
   } catch (error) {
     console.error(error);
-    throw error;
+    return { statusCode: 500, body: JSON.stringify(error) };
+  } finally {
+    await pg.destroy();
   }
 };

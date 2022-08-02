@@ -10,9 +10,11 @@ interface PartyBoxEventTicket {
   receiptUrl: string;
   eventId: string;
   stripeChargeId: string;
+  stripeSessionId: string;
   timestamp: string;
   customerEmail: string;
   id: string;
+  purchasedAt: string;
 }
 
 export default PartyBoxEventTicket;

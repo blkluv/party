@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const deleteEvent = async (id: string, token: string) => {
+const deleteEvent = async (id: number, token: string) => {
   try {
     await axios.delete(`/api/events/${id}`, { headers: { Authorization: `Bearer ${token}` } });
   } catch (error) {
