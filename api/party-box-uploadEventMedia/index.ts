@@ -3,7 +3,7 @@ import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { v4 as uuid } from "uuid";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { decodeJwt } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -19,16 +19,15 @@ interface Body {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
+
   const secretsManager = new SecretsManager({});
+  const { stage } = event.requestContext;
+  const { eventId } = event.pathParameters as PathParameters;
+  const { name } = JSON.parse(event.body ?? "{}") as Body;
+  const { Authorization } = event.headers;
 
   try {
-    const { eventId } = event.pathParameters as PathParameters;
-    const { name } = JSON.parse(event.body ?? "{}") as Body;
-    const { Authorization } = event.headers;
-
-    if (!Authorization) throw new Error("Authorization header was undefined.");
-    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
-    if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
+    const _auth = decodeJwt(Authorization, ["admin"]);
 
     // Get access keys for S3 login
     const { SecretString: s3SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/access-keys" });
@@ -42,7 +41,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       },
     });
 
-    const uploadKey = `events/${eventId}/${uuid()}-${name}`;
+    const uploadKey = `${stage}/events/${eventId}/${uuid()}-${name}`;
 
     const command = new PutObjectCommand({
       Bucket: "party-box-bucket",
