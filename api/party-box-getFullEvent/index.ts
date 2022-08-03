@@ -22,7 +22,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     decodeJwt(Authorization, ["admin"]);
 
     const [eventData] = await pg<PartyBoxEvent>("events").select("*").where("id", "=", Number(eventId));
-    const [notificationData] = await pg<PartyBoxEvent>("eventNotifications")
+    const notificationData = await pg<PartyBoxEvent>("eventNotifications")
       .select("*")
       .where("eventId", "=", Number(eventId));
 
