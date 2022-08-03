@@ -11,7 +11,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(JSON.stringify(event));
-  
+
   const { eventId } = event.pathParameters as PathParameters;
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
@@ -22,12 +22,15 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     decodeJwt(Authorization, ["admin"]);
 
     const [eventData] = await pg<PartyBoxEvent>("events").select("*").where("id", "=", Number(eventId));
+    const [notificationData] = await pg<PartyBoxEvent>("eventNotifications")
+      .select("*")
+      .where("eventId", "=", Number(eventId));
 
     if (!eventData) throw new Error("Event not found");
 
     return {
       statusCode: 200,
-      body: JSON.stringify(eventData),
+      body: JSON.stringify({ ...eventData, notifications: notificationData }),
     };
   } catch (error) {
     console.error(error);
