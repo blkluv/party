@@ -31,7 +31,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     return {
       statusCode: 200,
       body: JSON.stringify({ ...eventData, notifications: notificationData }),
-    };
+    }; 
   } catch (error) {
     console.error(error);
     return {

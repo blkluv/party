@@ -3,30 +3,44 @@ import axios from "axios";
 import { ErrorMessage, FieldArray, Form, Formik } from "formik";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
-import PartyBoxEvent from "~/types/PartyBoxEvent";
-import PartyBoxEventNotification from "~/types/PartyBoxEventNotification";
+import { PartyBoxEvent } from "@party-box/common";
 import deleteEvent from "~/utils/deleteEvent";
 import getToken from "~/utils/getToken";
-import { Button, CustomErrorMessage, FileUploadField, TextArea } from "./form";
+import { Button, CustomErrorMessage, FileUploadField, Input, Select, TextArea } from "./form";
 import FormGroup from "./form/FormGroup";
 import FormPreviewImage from "./FormPreviewImage";
 import { CloseIcon, LoadingIcon } from "./Icons";
-import { EventFormData } from "~/types/EventFormInput";
+import { EventFormData, EventFormDate } from "~/types/EventFormInput";
 import formatEventFormValues from "~/utils/formatEventFormValues";
 import dayjs from "dayjs";
+import localeData from "dayjs/plugin/localeData";
+import eventFormSchema from "~/schema/eventFormSchema";
+
+dayjs.extend(localeData);
 
 interface Props {
-  initialValues?: {
-    event: PartyBoxEvent;
-    notifications: PartyBoxEventNotification[];
-  };
+  initialValues?: PartyBoxEvent;
 }
 
 const defaultEventData: EventFormData = {
   name: "",
   description: "",
-  startTime: dayjs().format("YYYY-MM-DDTHH:mm"),
-  endTime: dayjs().add(4, "hour").format("YYYY-MM-DDTHH:mm"),
+  startTime: {
+    minute: dayjs().minute().toString(),
+    hour: dayjs().hour().toString(),
+    day: dayjs().date().toString(),
+    month: dayjs().month().toString(),
+    year: dayjs().year().toString(),
+    modifier: "PM",
+  },
+  endTime: {
+    minute: dayjs().minute().toString(),
+    hour: (dayjs().hour() + 4).toString(),
+    day: dayjs().date().toString(),
+    month: dayjs().month().toString(),
+    year: dayjs().year().toString(),
+    modifier: "PM",
+  },
   prices: [
     {
       name: "Regular",
@@ -58,16 +72,26 @@ const defaultEventData: EventFormData = {
   ],
 };
 
+const dateConvert = (date: EventFormDate) => {
+  return dayjs()
+    .year(Number(date.year))
+    .month(Number(date.month))
+    .date(Number(date.day))
+    .hour(date.modifier === "PM" ? Number(date.hour) + 12 : Number(date.hour))
+    .minute(Number(date.minute))
+    .second(0);
+};
+
 const EventForm: FC<Props> = ({ initialValues }) => {
   const { user } = useAuthenticator();
   const router = useRouter();
   const mode = initialValues ? "edit" : "create";
 
-  const [media, setMedia] = useState<(File | string)[]>(initialValues?.event.media ?? []);
-  const [previewUrls, setPreviewUrls] = useState<string[]>(initialValues?.event.media ?? []);
+  const [media, setMedia] = useState<(File | string)[]>(initialValues?.media ?? []);
+  const [previewUrls, setPreviewUrls] = useState<string[]>(initialValues?.media ?? []);
   const [uploadState, setUploadState] = useState("");
-  const [thumbnail, setThumbnail] = useState<File | string>(initialValues?.event.thumbnail ?? null);
-  const [thumbnailPreview, setThumbnailPreview] = useState(initialValues?.event.thumbnail ?? "");
+  const [thumbnail, setThumbnail] = useState<File | string>(initialValues?.thumbnail ?? null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(initialValues?.thumbnail ?? "");
 
   // Every time media changes, generate preview URLs for all media in the array
   useEffect(() => {
@@ -125,34 +149,39 @@ const EventForm: FC<Props> = ({ initialValues }) => {
 
   return (
     <Formik
+      validationSchema={eventFormSchema}
       onSubmit={async (values) => {
         let eventId = null;
         try {
           setUploadState("Creating event");
 
+          const eventData = {
+            ...values,
+            published: true,
+            maxTickets: Number(values.maxTickets),
+            startTime: dateConvert(values.startTime),
+            endTime: dateConvert(values.endTime),
+            prices: values.prices.map((p) => ({ ...p, price: Number(p.price) })),
+            notifications: values.notifications.map((n) => ({
+              messageTime: dateConvert(values.startTime)
+                .subtract(Number(n.days), "days")
+                .subtract(Number(n.hours), "hours")
+                .subtract(Number(n.minutes), "minutes")
+                .toISOString(),
+              message: n.message,
+            })),
+          };
           if (mode === "create") {
-            const { data: event } = await axios.post(
-              "/api/events/create",
-              {
-                ...values,
-                maxTickets: Number(values.maxTickets),
-                startTime: new Date(values.startTime).toISOString(),
-                endTime: new Date(values.endTime).toISOString(),
-                prices: values.prices.map((p) => ({ ...p, price: Number(p.price) })),
-                notifications: values.notifications.map((n) => ({
-                  messageTime: dayjs(new Date(values.startTime).toISOString())
-                    .subtract(Number(n.days), "days")
-                    .subtract(Number(n.hours), "hours")
-                    .subtract(Number(n.minutes), "minutes")
-                    .toISOString(),
-                  message: n.message,
-                })),
-              },
-              { headers: { Authorization: `Bearer ${getToken(user)}` } }
-            );
+            const { data: event } = await axios.post("/api/events/create", eventData, {
+              headers: { Authorization: `Bearer ${getToken(user)}` },
+            });
             eventId = event.id;
           } else {
-            eventId = initialValues.event.id;
+            eventId = initialValues.id;
+
+            await axios.post(`/api/events/${eventId}/update`, eventData, {
+              headers: { Authorization: `Bearer ${getToken(user)}` },
+            });
           }
 
           const posters = [];
@@ -187,7 +216,9 @@ const EventForm: FC<Props> = ({ initialValues }) => {
 
           // If thumbnail is a string, we know we've already uploaded it
           // Since it's an S3 link
-          if (typeof thumbnail !== "string") {
+          if (typeof thumbnail === "string") {
+            thumbnailDownloadUrl = thumbnail;
+          } else {
             const {
               data: { uploadUrl: thumbnailUploadUrl, downloadUrl },
             } = await axios.post(
@@ -207,7 +238,6 @@ const EventForm: FC<Props> = ({ initialValues }) => {
             {
               media: posters,
               thumbnail: thumbnailDownloadUrl,
-              published: true,
             },
             { headers: { Authorization: `Bearer ${getToken(user)}` } }
           );
@@ -226,7 +256,9 @@ const EventForm: FC<Props> = ({ initialValues }) => {
     >
       {({ isSubmitting, values, handleChange }) => (
         <Form className="flex flex-col gap-2">
-          <FormGroup label="Event Name" name="name" placeholder="Event name" />
+          <FormGroup label="Event Name" name="name">
+            <Input onChange={handleChange} name="name" placeholder="Event name" value={values.name} />
+          </FormGroup>
           <div>
             <div className="form-label-group">
               <p>Description</p>
@@ -235,17 +267,89 @@ const EventForm: FC<Props> = ({ initialValues }) => {
             <TextArea
               name="description"
               placeholder="Description"
-              rows={15}
+              rows={5}
               onChange={handleChange}
               value={values.description}
             />
           </div>
+          <p>Event Date</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormGroup label="Start Time" name="startTime" placeholder="Event start time" type="datetime-local" />
-            <FormGroup label="End Time" name="endTime" placeholder="Event end time" type="datetime-local" />
+            <div className="grid grid-cols-3 gap-1">
+              <FormGroup name="startTime.day" label="Day">
+                <Select name="startTime.day" placeholder="Day" onChange={handleChange} value={values.startTime.day}>
+                  {[
+                    ...Array(
+                      dayjs().year(Number(values.startTime.year)).month(Number(values.startTime.month)).daysInMonth()
+                    ),
+                  ].map((_, day) => (
+                    <option key={day} value={day.toString()}>
+                      {day + 1}
+                    </option>
+                  ))}
+                </Select>
+              </FormGroup>
+              <FormGroup name="startTime.month" label="Month">
+                <Select name="startTime.month" onChange={handleChange} value={values.startTime.month}>
+                  {dayjs
+                    .localeData()
+                    .monthsShort()
+                    .map((month, i) => (
+                      <option key={month} value={i.toString()}>
+                        {month}
+                      </option>
+                    ))}
+                </Select>
+              </FormGroup>
+              <FormGroup name="startTime.year" label="Year">
+                <Select name="startTime.year" onChange={handleChange} value={values.startTime.year}>
+                  {[...Array(5)].map((_, year) => (
+                    <option key={year} value={(dayjs().year() + year).toString()}>
+                      {dayjs().year() + year}
+                    </option>
+                  ))}
+                </Select>
+              </FormGroup>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              <FormGroup label="Hour" name="startTime.hour">
+                <Input
+                  name="startTime.hour"
+                  placeholder="Hour"
+                  type="number"
+                  onChange={handleChange}
+                  value={values.startTime.hour}
+                  min={1}
+                  max={12}
+                />
+              </FormGroup>
+              <FormGroup label="Minute" name="startTime.minute">
+                <Input name="startTime.minute" onChange={handleChange} value={values.startTime.minute} />
+              </FormGroup>
+              <FormGroup label="Modifier" name="startTime.modifier">
+                <Select name="startTime.modifier" onChange={handleChange} value={values.startTime.modifier}>
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
+                </Select>
+              </FormGroup>
+            </div>
           </div>
-          <FormGroup label="Location" name="location" placeholder="Event location (address, etc.)" />
-          <FormGroup label="Maximum Tickets Sold" name="maxTickets" placeholder="Max tickets" type="number" />
+          <FormGroup label="Location" name="location">
+            <Input
+              onChange={handleChange}
+              name="location"
+              value={values.location}
+              placeholder="Event location (address, etc.)"
+            />
+          </FormGroup>
+          <FormGroup label="Maximum Tickets Sold" name="maxTickets">
+            <Input
+              onChange={handleChange}
+              name="maxTickets"
+              value={values.maxTickets}
+              placeholder="Max tickets"
+              type="number"
+            />
+          </FormGroup>
           <p>Media</p>
           <FileUploadField onChange={addMediaImage} />
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 justify-center my-2">
@@ -293,8 +397,23 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                       <CloseIcon />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormGroup name={`prices.${i}.name`} placeholder="Name" label="Name" />
-                      <FormGroup name={`prices.${i}.price`} placeholder="Price" type="number" label="Price" />
+                      <FormGroup name={`prices.${i}.name`} label="Name">
+                        <Input
+                          onChange={handleChange}
+                          name={`prices.${i}.name`}
+                          value={values.prices[i].name}
+                          placeholder="Name"
+                        />
+                      </FormGroup>
+                      <FormGroup name={`prices.${i}.price`} label="Price">
+                        <Input
+                          onChange={handleChange}
+                          name={`prices.${i}.price`}
+                          value={values.prices[i].price}
+                          placeholder="Price"
+                          type="number"
+                        />
+                      </FormGroup>
                     </div>
                   </div>
                 ))}
@@ -322,14 +441,30 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                       <CloseIcon />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      <FormGroup name={`notifications.${i}.days`} placeholder="Days" type="number" label="Days" />
-                      <FormGroup name={`notifications.${i}.hours`} placeholder="Hours" type="number" label="Hours" />
-                      <FormGroup
-                        name={`notifications.${i}.minutes`}
-                        placeholder="Minutes"
-                        type="number"
-                        label="Minutes"
-                      />
+                      <FormGroup name={`notifications.${i}.days`} label="Days">
+                        <Input
+                          onChange={handleChange}
+                          name={`notifications.${i}.days`}
+                          value={values.notifications[i].days}
+                          type="number"
+                        />
+                      </FormGroup>
+                      <FormGroup name={`notifications.${i}.hours`} label="Hours">
+                        <Input
+                          onChange={handleChange}
+                          name={`notifications.${i}.hours`}
+                          value={values.notifications[i].hours}
+                          type="number"
+                        />
+                      </FormGroup>
+                      <FormGroup name={`notifications.${i}.minutes`} label="Minutes">
+                        <Input
+                          onChange={handleChange}
+                          name={`notifications.${i}.minutes`}
+                          value={values.notifications[i].minutes}
+                          type="number"
+                        />
+                      </FormGroup>
                     </div>
                     <TextArea
                       name={`notifications.${i}.message`}

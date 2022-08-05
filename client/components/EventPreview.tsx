@@ -23,7 +23,7 @@ const EventPreview = ({ event }: Props) => {
         }}
       >
         <div className="relative h-72 md:h-96 w-full md:flex-1 overflow-hidden">
-          {event.thumbnail && <Image src={event.thumbnail} alt="Poster" layout="fill" objectFit="cover" />}
+          {event.thumbnail && <Image src={event.thumbnail} alt="Poster" layout="fill" objectFit="cover" loading="eager" priority/>}
           <div className="p-2 flex flex-col gap-2 absolute left-4 right-4 bottom-4 bg-gray-900 backdrop-blur-sm bg-opacity-75 backdrop-filter rounded-xl">
             <div className="flex flex-col">
               <h4 className="font-medium text-lg md:text-2xl text-center">{event.name}</h4>

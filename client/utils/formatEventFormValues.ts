@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import { EventFormData } from "~/types/EventFormInput";
-import PartyBoxEvent from "~/types/PartyBoxEvent";
-import PartyBoxEventNotification from "~/types/PartyBoxEventNotification";
+import { PartyBoxEvent } from "@party-box/common";
 
 const formatNotificationTime = (startTime: string, messageTime: string) => {
   const days = dayjs(startTime).diff(messageTime, "day");
@@ -10,22 +9,34 @@ const formatNotificationTime = (startTime: string, messageTime: string) => {
   return { days: days.toString(), hours: hours.toString(), minutes: minutes.toString() };
 };
 
-const formatEventFormValues = (initialValues: {
-  event: PartyBoxEvent;
-  notifications: PartyBoxEventNotification[];
-}): EventFormData => {
-  const { name, description, startTime, endTime, location, maxTickets, hashtags, prices } = initialValues.event;
+const formatEventFormValues = (initialValues: PartyBoxEvent): EventFormData => {
+  const { name, description, startTime, endTime, location, maxTickets, hashtags, prices, notifications } =
+    initialValues;
   return {
     name,
     description,
     hashtags,
     location,
     maxTickets: maxTickets.toString(),
-    startTime: dayjs(startTime).subtract(dayjs().utcOffset(), "minutes").format("YYYY-MM-DDTHH:mm"),
-    endTime: dayjs(endTime).subtract(dayjs().utcOffset(), "minutes").format("YYYY-MM-DDTHH:mm"),
-    notifications: initialValues.notifications.map((e) => ({
+    startTime: {
+      day: dayjs(startTime).date().toString(),
+      hour: (dayjs(startTime).hour() % 12).toString(),
+      minute: dayjs(startTime).minute().toString(),
+      month: dayjs(startTime).month().toString(),
+      year: dayjs(startTime).year().toString(),
+      modifier: dayjs(startTime).hour() >= 12 ? "PM" : "AM",
+    },
+    endTime: {
+      day: dayjs(endTime).date().toString(),
+      hour: (dayjs(endTime).hour() % 12).toString(),
+      minute: dayjs(endTime).minute().toString(),
+      month: dayjs(endTime).month().toString(),
+      year: dayjs(endTime).year().toString(),
+      modifier: dayjs(endTime).hour() >= 12 ? "PM" : "AM",
+    },
+    notifications: notifications.map((e) => ({
       ...e,
-      ...formatNotificationTime(initialValues.event.startTime, e.messageTime),
+      ...formatNotificationTime(initialValues.startTime, e.messageTime),
     })),
     prices: prices.map((e) => ({
       ...e,

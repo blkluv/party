@@ -34,7 +34,7 @@ const App = ({ Component, pageProps }) => {
       <div className="flex flex-col bg-gray-100 dark:bg-gray-900 text-black dark:text-white min-h-screen md:pt-16 pb-24 md:pb-2 relative px-2 pt-2">
         <TopNavigation setDrawerOpen={setDrawerOpen} />
         <Component {...pageProps} />
-        {drawerOpen && <NavigationDrawer setOpen={setDrawerOpen} />}
+        {drawerOpen && <NavigationDrawer setOpen={setDrawerOpen} open={drawerOpen} />}
         <BottomNavigation setDrawerOpen={setDrawerOpen} />
       </div>
     </Authenticator.Provider>

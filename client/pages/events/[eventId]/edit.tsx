@@ -1,18 +1,17 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
+import { PartyBoxEvent } from "@party-box/common";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import EventForm from "~/components/EventForm";
 import LoadingScreen from "~/components/LoadingScreen";
 import MetaData from "~/components/MetaData";
-import getEventNotifications from "~/utils/getEventNotifications";
 import getFullEvent from "~/utils/getFullEvent";
 import getToken from "~/utils/getToken";
 import isUserAdmin from "~/utils/isUserAdmin";
 
 const Page = () => {
   const { user } = useAuthenticator();
-  const [eventData, setEventData] = useState(null);
-  const [notificationData, setNotificationData] = useState([]);
+  const [eventData, setEventData] = useState<PartyBoxEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -30,9 +29,6 @@ const Page = () => {
       try {
         const event = await getFullEvent(router.query.eventId as string, getToken(user));
         setEventData(event);
-        
-        const notifications = await getEventNotifications(router.query.eventId as string, getToken(user));
-        setNotificationData(notifications);
       } catch (error) {
         console.error(error);
       } finally {
@@ -44,9 +40,9 @@ const Page = () => {
   if (loading) return <LoadingScreen />;
 
   return (
-    <div className="flex flex-col mx-auto max-w-6xl w-full md:flex-row">
+    <div className="mx-auto max-w-3xl w-full p-2">
       <MetaData title="Edit Event" />
-      <EventForm initialValues={{ event: eventData, notifications: notificationData }} />
+      <EventForm initialValues={eventData} />
     </div>
   );
 };

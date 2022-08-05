@@ -83,7 +83,7 @@ const Page = () => {
           </div>
         )}
         {eventData?.media[currentMediaIndex] && (
-          <img src={eventData.media[currentMediaIndex]} alt="Poster" loading="eager" />
+          <img src={eventData.media[currentMediaIndex]} alt="Poster" loading="eager" className="w-full max-h-screen" />
         )}
         {showRightMediaButton && (
           <div
@@ -94,7 +94,7 @@ const Page = () => {
           </div>
         )}
       </div>
-      <div className="p-3 flex flex-col gap-6 md:flex-1">
+      <div className="p-3 md:p-6 flex flex-col gap-6 md:flex-1">
         {admin && (
           <div className="flex gap-4 justify-center">
             <div className="border border-gray-700 p-2 rounded-md flex justify-center max-w-max items-center cursor-pointer hover:bg-primary dark:hover:bg-primary transition gap-2">

@@ -7,7 +7,7 @@ import { ReactNode } from "react";
  * @returns
  */
 const CustomErrorMessage = ({ children, ...props }: ErrorMessageProps & { children: ReactNode }) => (
-  <p className="text-red-500 text-sm" {...props}>
+  <p className="text-red-500 dark:text-red-400 text-sm" {...props}>
     {children}
   </p>
 );
