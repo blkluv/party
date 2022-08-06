@@ -34,10 +34,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     //   .andWhere("startTime", ">", new Date().toISOString());
 
     const events = await client.query(`
-        SELECT id, startTime, endTime, name, description, hashtags, maxTickets, thumbnail
-        FROM events
-        WHERE published = true
-        AND startTime > NOW()
+      SELECT id, "startTime", "endTime", name, description, hashtags, "maxTickets", thumbnail
+      FROM events
+      WHERE published = true
+      AND "startTime" > NOW();
     `);
 
     return { statusCode: 200, body: JSON.stringify(events) };
