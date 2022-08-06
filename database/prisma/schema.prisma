@@ -1,0 +1,74 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model events {
+  id                 Int                  @id @default(autoincrement())
+  name               String               @default("Unnamed Event")
+  description        String?
+  published          Boolean              @default(false)
+  ownerId            String
+  prices             Json[]
+  media              String[]
+  thumbnail          String?
+  hashtags           String[]
+  maxTickets         Int                  @default(0)
+  location           String               @default("TBD")
+  owner              users                @relation(fields: [ownerId], references: [id])
+  tickets            tickets[]
+  stripeProductId    String?
+  snsTopicArn        String?
+  startTime          DateTime
+  endTime            DateTime
+  eventNotifications eventNotifications[]
+}
+
+model eventNotifications {
+  id          Int      @id @default(autoincrement())
+  messageTime DateTime
+  message     String
+  eventId     Int
+  event       events   @relation(fields: [eventId], references: [id])
+  sent        Boolean  @default(false)
+}
+
+model users {
+  id          String        @id @unique
+  email       String        @unique
+  name        String?
+  roles       String[]      @default(["user"])
+  events      events[]
+  userTickets userTickets[]
+  tickets     tickets[]
+}
+
+model tickets {
+  id                  Int           @id @default(autoincrement())
+  eventId             Int
+  event               events        @relation(fields: [eventId], references: [id])
+  stripeSessionId     String
+  stripeChargeId      String
+  receiptUrl          String
+  customerName        String
+  customerPhoneNumber String
+  customerEmail       String
+  userId              String?
+  user                users?        @relation(fields: [userId], references: [id])
+  ticketQuantity      Int
+  used                Boolean
+  purchasedAt         DateTime      @default(now())
+  userTickets         userTickets[]
+}
+
+model userTickets {
+  id       Int     @id @default(autoincrement())
+  userId   String
+  ticketId Int
+  user     users   @relation(fields: [userId], references: [id])
+  ticket   tickets @relation(fields: [ticketId], references: [id])
+}

@@ -1,6 +1,6 @@
 import PartyBoxEvent from "./PartyBoxEvent";
 
-interface EventTicket {
+interface PartyBoxEventTicket {
   status: "succeeded" | "failed" | "pending";
   customerPhoneNumber: string;
   customerName: string;
@@ -10,9 +10,11 @@ interface EventTicket {
   receiptUrl: string;
   eventId: string;
   stripeChargeId: string;
+  stripeSessionId: string;
   timestamp: string;
   customerEmail: string;
   id: string;
+  purchasedAt: string;
 }
 
-export default EventTicket;
+export default PartyBoxEventTicket;

@@ -1,7 +1,13 @@
-export interface PartyBoxEvent {
-  id: string;
+import PartyBoxEventNotification from "./PartyBoxEventNotification";
+import PartyBoxEventPrice from "./PartyBoxEventPrice";
+
+interface PartyBoxEvent {
+  id: number;
   name: string;
   description: string;
+
+  // SNS topic where notifications about this event are sent to
+  snsTopicArn?: string;
 
   // ISO date string
   startTime: string;
@@ -20,16 +26,12 @@ export interface PartyBoxEvent {
   // URL to small image used for previews
   thumbnail: string;
 
-  prices: Price[];
+  prices: PartyBoxEventPrice[];
   ownerId: string;
   stripeProductId: string;
-}
-
-export interface Price {
-  id: string;
-  name: string;
-  paymentLink: string;
-  price: number;
+  hashtags: string[];
+  published: boolean;
+  notifications?: PartyBoxEventNotification[];
 }
 
 export default PartyBoxEvent;

@@ -1,10 +1,8 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { SecretsManager } from "@aws-sdk/client-secrets-manager";
-import stripe from "stripe";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { SNS } from "@aws-sdk/client-sns";
+import { decodeJwt, getPostgresClient, getStripeClient, PartyBoxEvent } from "@party-box/common";
+import { DeleteObjectsCommand, ListObjectsCommand, S3Client } from "@aws-sdk/client-s3";
+import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -15,49 +13,48 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  * @description Delete event within Dynamo, Stripe, and SNS
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
-  console.log(event);
+  console.log(JSON.stringify(event));
 
-  const dynamo = DynamoDBDocument.from(new DynamoDB({}));
-  const secretsManager = new SecretsManager({});
+  const { stage } = event.requestContext;
+  const { Authorization } = event.headers;
+  const { eventId } = event.pathParameters as PathParameters;
+
   const sns = new SNS({});
+  const secretsManager = new SecretsManager({});
+
+  const stripeClient = await getStripeClient(stage);
+  const pg = await getPostgresClient(stage);
 
   try {
-    const { stage } = event.requestContext;
-    const { Authorization } = event.headers;
-    const { eventId } = event.pathParameters as PathParameters;
+    const _auth = decodeJwt(Authorization, ["admin"]);
 
-    if (!Authorization) throw new Error("Authorization header was undefined.");
+    // Get access keys for S3 login
+    const { SecretString: s3SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/access-keys" });
+    if (!s3SecretString) throw new Error("Access keys string was undefined.");
+    const { accessKeyId, secretAccessKey } = JSON.parse(s3SecretString);
 
-    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
-
-    if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
-
-    // Get stripe keys
-    const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
-      SecretId: `${stage}/party-box/stripe`,
-    });
-    if (!stripeSecretString) throw new Error("Access keys string was undefined.");
-    const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
-
-    // Get event from Dynamo
-    const { Item: eventItem } = await dynamo.get({
-      TableName: `${stage}-party-box-events`,
-      Key: {
-        id: eventId,
+    const s3 = new S3Client({
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
       },
     });
-    if (!eventItem) throw new Error("Event was not found.");
 
-    const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
+    // Get event from Dynamo
+    const [{ prices, stripeProductId, snsTopicArn }] = await pg<PartyBoxEvent>("events")
+      .select("prices", "stripeProductId", "snsTopicArn")
+      .where("id", "=", Number(eventId));
 
     // Delete all stripe prices associated with this event
     // We can't actually delete them, but we can make them inactive
-    for (const price of eventItem.prices) {
+    for (const price of prices) {
       try {
-        await stripeClient.prices.update(price.id, { active: false });
-        await stripeClient.paymentLinks.update(price.paymentLinkId, {
-          active: false,
-        });
+        if (price.paymentLinkId) {
+          await stripeClient.prices.update(price.id, { active: false });
+          await stripeClient.paymentLinks.update(price.paymentLinkId, {
+            active: false,
+          });
+        }
       } catch (error) {
         continue;
       }
@@ -67,7 +64,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       // Delete stripe product
       // We won't be able to delete it because we didn't actually delete the prices above
       // So we're also going to make this inactive
-      await stripeClient.products.update(eventItem.stripeProductId, { active: false });
+      await stripeClient.products.update(stripeProductId, { active: false });
     } catch (error) {
       console.warn(error);
     }
@@ -75,44 +72,41 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     try {
       // Delete SNS topic
       await sns.deleteTopic({
-        TopicArn: eventItem.snsTopicArn,
+        TopicArn: snsTopicArn,
       });
     } catch (error) {
       console.warn(error);
     }
 
-    await dynamo.delete({
-      TableName: `${stage}-party-box-events`,
-      Key: {
-        id: eventId,
-      },
-    });
-
-    // Get all event notifications
-    const { Items: eventNotifications } = await dynamo.scan({
-      TableName: `party-box-event-notifications`,
-      FilterExpression: "eventId = :eventId",
-      ExpressionAttributeValues: {
-        ":eventId": eventId,
-      },
-    });
-
-    console.log(eventNotifications);
-
-    if (eventNotifications && eventNotifications?.length > 0) {
-      for (const eventNotification of eventNotifications) {
-        await dynamo.delete({
-          TableName: `party-box-event-notifications`,
-          Key: {
-            id: eventNotification.id,
-          },
-        });
+    try {
+      const objects = await s3.send(
+        new ListObjectsCommand({
+          Bucket: "party-box-bucket",
+          Prefix: `${stage}/${eventId}/`,
+        })
+      );
+      if (objects?.Contents) {
+        await s3.send(
+          new DeleteObjectsCommand({
+            Bucket: `${stage}-party-box-media`,
+            Delete: {
+              Objects: objects.Contents.map((c) => ({ Key: c.Key })),
+            },
+          })
+        );
       }
+    } catch (error) {
+      console.warn(error);
     }
+
+    await pg("eventNotifications").where("eventId", "=", Number(eventId)).del();
+    await pg("events").delete().where("id", "=", Number(eventId));
 
     return { statusCode: 200, body: JSON.stringify({ message: "Event deleted." }) };
   } catch (error) {
     console.error(error);
     throw error;
+  } finally {
+    await pg.destroy();
   }
 };

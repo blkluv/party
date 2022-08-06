@@ -9,14 +9,15 @@ import { OutlinedPlusIcon, SignInIcon, SignOutIcon } from "./Icons";
 
 interface Props {
   setOpen: (value: boolean) => void;
+  open: boolean;
 }
 
-const NavigationDrawer = ({ setOpen }: Props) => {
+const NavigationDrawer = ({ setOpen, open }: Props) => {
   const { user, signOut } = useAuthenticator();
   const admin = isUserAdmin(user);
 
   return (
-    <Drawer onClose={() => setOpen(false)}>
+    <Drawer onClose={() => setOpen(false)} open={open}>
       <div className="flex flex-col h-full">
         <div className="w-full h-20 relative">
           <Image src="/images/Party_Box.svg" layout="fill" objectFit="cover" alt="Orange text reading Party Box" />

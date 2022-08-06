@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import PartyBoxEvent from "~/types/PartyBoxEvent";
+import { PartyBoxEvent } from "@party-box/common";
 import EventPreview from "./EventPreview";
 import { LoadingIcon } from "./Icons";
 

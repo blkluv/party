@@ -1,5 +1,6 @@
 import { Callback, Context, PostConfirmationTriggerEvent } from "aws-lambda";
 import { CognitoIdentityProvider } from "@aws-sdk/client-cognito-identity-provider";
+import { getPostgresClient } from "@party-box/common";
 
 /**
  * @method POST
@@ -10,20 +11,41 @@ export const handler = async (
   _context: Context,
   callback: Callback
 ): Promise<void> => {
-  const { userPoolId, userName } = event;
-
   try {
-    const params = {
-      GroupName: "user",
-      UserPoolId: userPoolId,
-      Username: userName,
-    };
+    const { userPoolId, userName } = event;
 
     const cognito = new CognitoIdentityProvider({ region: "us-east-1" });
 
-    await cognito.adminAddUserToGroup(params);
+    const pgDev = await getPostgresClient("dev");
+    const pgProd = await getPostgresClient("prod");
 
-    return callback(null, event);
+    try {
+      const userData = {
+        id: event.request.userAttributes.sub,
+        name: event.request.userAttributes.name,
+        email: event.request.userAttributes.email,
+        roles: ["user"],
+      };
+
+      await pgDev("users").insert(userData);
+      console.log("User created in dev database.");
+
+      await pgProd("users").insert(userData);
+      console.log("User created in prod database.");
+
+      await cognito.adminAddUserToGroup({
+        GroupName: "user",
+        UserPoolId: userPoolId,
+        Username: userName,
+      });
+
+      console.log("Group added in Cognito");
+
+      return callback(null, event);
+    } finally {
+      await pgDev.destroy();
+      await pgProd.destroy();
+    }
   } catch (error) {
     console.error(error);
     return callback(error as Error, event);

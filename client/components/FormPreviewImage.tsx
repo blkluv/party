@@ -28,7 +28,7 @@ const FormPreviewImage = ({ removeImage, image, name, position, onMoveLeft, onMo
       <Image src={image} layout="fill" objectFit="cover" alt={name} />
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 transform bg-gray-900 backdrop-filter backdrop-blur-sm backdrop-opacity-25 px-1.5 py-1 rounded-md overflow-hidden w-max divide-x divide-gray-600 flex items-center max-w-[75%]">
         {position !== undefined && <p className="text-xs pr-2">{position}</p>}
-        <p className="text-xs text-center pl-2 text-ellipsis">{name}</p>
+        <p className="text-xs text-center pl-2 text-ellipsis">{name.length > 25 ? `${name.slice(0, 25)}...` : name}</p>
       </div>
     </div>
   );

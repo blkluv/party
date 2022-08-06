@@ -4,11 +4,11 @@
   "private": true,
   "description": "",
   "scripts": {
-    "client":"yarn workspace client dev"
+    "client": "pnpm --filter client dev"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ConorRoberts/groups-app.git"
+    "url": "git+https://github.com/ConorRoberts/party-box.git"
   },
   "keywords": [],
   "author": "",
@@ -25,12 +25,8 @@
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ConorRoberts/groups-app/issues"
+    "url": "https://github.com/ConorRoberts/party-box/issues"
   },
-  "homepage": "https://github.com/ConorRoberts/groups-app#readme",
-  "workspaces": [
-    "api/*",
-    "client"
-  ]
+  "homepage": "https://github.com/ConorRoberts/party-box#readme"
 }
 

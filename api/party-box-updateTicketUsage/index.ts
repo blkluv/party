@@ -1,14 +1,12 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { getPostgresClient, decodeJwt, PartyBoxEventTicket } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   ticketId: string;
 }
 
 interface Body {
-  value: string;
+  value: boolean;
 }
 
 /**
@@ -18,36 +16,23 @@ interface Body {
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
 
-  const dynamo = DynamoDBDocument.from(new DynamoDB({}));
+  const { stage } = event.requestContext;
+  const { value } = JSON.parse(event.body ?? "{}") as Body;
+  const { ticketId } = event.pathParameters as PathParameters;
+  const { Authorization } = event.headers;
+
+  const pg = await getPostgresClient(stage);
 
   try {
-    const { stage } = event.requestContext;
-    const { value } = JSON.parse(event.body ?? "{}") as Body;
-    const { ticketId } = event.pathParameters as PathParameters;
-    const { Authorization } = event.headers;
+    decodeJwt(Authorization, ["admin"]);
 
-    if (!Authorization) throw new Error("Authorization header was undefined.");
-
-    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
-
-    if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
-
-    // Subscribe customerPhoneNumber to the event's SNS topic
-    await dynamo.update({
-      TableName: `${stage}-party-box-tickets`,
-      Key: {
-        id: ticketId,
-      },
-      AttributeUpdates: {
-        used: {
-          Value: value,
-        },
-      },
-    });
+    await pg<PartyBoxEventTicket>("tickets").where("id", ticketId).update({ used: value });
 
     return { statusCode: 200, body: JSON.stringify({ message: "Success" }) };
   } catch (error) {
     console.error(error);
-    throw error;
+    return { statusCode: 500, body: JSON.stringify({ error }) };
+  } finally {
+    await pg.destroy();
   }
 };

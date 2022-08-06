@@ -1,22 +1,22 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { SecretsManager } from "@aws-sdk/client-secrets-manager";
-import stripe from "stripe";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import {
+  APIGatewayEvent,
+  APIGatewayProxyEventPathParameters,
+  APIGatewayProxyEventStageVariables,
+  APIGatewayProxyResult,
+} from "aws-lambda";
+import { v4 as uuid } from "uuid";
+import {
+  decodeJwt,
+  getPostgresClient,
+  getStripeClient,
+  PartyBoxCreateNotificationInput,
+  PartyBoxEvent,
+  PartyBoxEventNotification,
+  PartyBoxUpdateEventInput,
+} from "@party-box/common";
 
-interface Body {
-  name: string;
-  description: string;
-  startTime: string;
-  endTime: string;
-  location: string;
-  maxTickets: string;
-  ticketPrice: number;
-  posterUrl: string;
-  thumbnailUrl: string;
-  media: string[];
-  thumbnail: string;
+interface StageVariables extends APIGatewayProxyEventStageVariables {
+  websiteUrl: string;
 }
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -29,97 +29,117 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
-  const secretsManager = new SecretsManager({});
-  const dynamo = DynamoDBDocument.from(new DynamoDB({}));
+  const { notifications = [], prices = [], ...body } = JSON.parse(event.body ?? "{}") as PartyBoxUpdateEventInput;
+  const { eventId } = event.pathParameters as PathParameters;
+  const { Authorization } = event.headers;
+  const { stage } = event.requestContext;
+  const { websiteUrl } = event.stageVariables as StageVariables;
 
   try {
-    const body = JSON.parse(event.body ?? "{}") as Body;
-    const { eventId } = event.pathParameters as PathParameters;
-    const { Authorization } = event.headers;
-    const { stage } = event.requestContext;
+    const { sub: _sub } = decodeJwt(Authorization, ["admin"]);
 
-    if (!Authorization) throw new Error("Authorization header was undefined.");
+    const stripeClient = await getStripeClient(stage);
+    const pg = await getPostgresClient(stage);
 
-    const auth = jwt.decode(Authorization.replace("Bearer ", "")) as JwtPayload;
+    const [newEventData] = await pg<PartyBoxEvent>("events")
+      .where("id", "=", Number(eventId))
+      .update<PartyBoxUpdateEventInput>(body)
+      .returning("*");
 
-    if (!auth["cognito:groups"].includes("admin")) throw new Error("User is not an admin.");
+    if (!newEventData.stripeProductId) throw new Error("Missing Stripe product id");
 
-    // Get stripe keys
-    const { SecretString: stripeSecretString } = await secretsManager.getSecretValue({
-      SecretId: `${stage}/party-box/stripe`,
-    });
-    if (!stripeSecretString) throw new Error("Access keys string was undefined.");
-    const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
-
-    const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
-
-    const { Item: previousEventData } = await dynamo.get({
-      TableName: `${stage}-party-box-events`,
-      Key: {
-        id: eventId,
-      },
-    });
-
-    const newEventData = {
-      ...previousEventData,
-      ...body,
-    };
-
-    console.log(newEventData);
-
-    const { Attributes: eventData } = await dynamo.update({
-      TableName: `${stage}-party-box-events`,
-      Key: {
-        id: eventId,
-      },
-      UpdateExpression: `
-        SET 
-          #name = :name,
-          #description = :description,
-          #startTime = :startTime,
-          #endTime = :endTime,
-          #location = :location,
-          #maxTickets = :maxTickets,
-          #ticketPrice = :ticketPrice,
-          #media = :media,
-          #thumbnail = :thumbnail
-        `,
-      ExpressionAttributeValues: {
-        ":name": newEventData.name,
-        ":description": newEventData.description,
-        ":startTime": newEventData.startTime,
-        ":endTime": newEventData.endTime,
-        ":location": newEventData.location,
-        ":maxTickets": newEventData.maxTickets,
-        ":ticketPrice": newEventData.ticketPrice,
-        ":media": newEventData.media,
-        ":thumbnail": newEventData.thumbnail,
-      },
-      ExpressionAttributeNames: {
-        "#name": "name",
-        "#description": "description",
-        "#startTime": "startTime",
-        "#endTime": "endTime",
-        "#location": "location",
-        "#maxTickets": "maxTickets",
-        "#ticketPrice": "ticketPrice",
-        "#media": "media",
-        "#thumbnail": "thumbnail",
-      },
-      ReturnValues: "ALL_NEW",
-    });
-
-    if (!eventData) throw new Error("Event was not found.");
-
-    await stripeClient.products.update(eventData.stripeProductId, {
+    await stripeClient.products.update(newEventData.stripeProductId, {
       name: body.name,
       description: body.description,
-      images: newEventData.media,
+      images: body.media,
     });
 
-    return { statusCode: 200, body: JSON.stringify(eventData) };
+    // Add price to price array and Stirpe if it doesn't have an ID
+    const newPrices = [];
+    for (const price of prices) {
+      if (!price?.id) {
+        if (price.price > 0.5) {
+          const stripePrice = await stripeClient.prices.create({
+            product: newEventData.stripeProductId,
+            unit_amount: price.price * 100,
+            currency: "CAD",
+            nickname: price.name,
+          });
+          const paymentLink = await stripeClient.paymentLinks.create({
+            line_items: [
+              {
+                price: stripePrice.id,
+                adjustable_quantity: {
+                  enabled: true,
+                  minimum: 1,
+                },
+                quantity: 1,
+              },
+            ],
+            metadata: {
+              eventId,
+            },
+            phone_number_collection: {
+              enabled: true,
+            },
+            after_completion: {
+              type: "redirect",
+              redirect: {
+                url: `${websiteUrl}/tickets/purchase-success?eventId=${eventId}`,
+              },
+            },
+          });
+
+          newPrices.push({
+            id: stripePrice.id,
+            name: price.name,
+            paymentLink: paymentLink.url,
+            paymentLinkId: paymentLink.id,
+            price: price.price,
+          });
+        } else {
+          newPrices.push({
+            id: uuid(),
+            name: price.name,
+            price: price.price,
+          });
+        }
+      } else {
+        newPrices.push(price);
+      }
+    }
+
+    const newNotifications: PartyBoxEventNotification[] = [];
+    for (const n of notifications) {
+      if ("id" in n) {
+        const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
+          .where("id", "=", n.id)
+          .update(n)
+          .returning("*");
+
+        newNotifications.push(newNotificationData);
+      } else {
+        const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
+          .insert<PartyBoxCreateNotificationInput>({
+            ...n,
+            eventId: Number(eventId),
+          })
+          .returning("*");
+        newNotifications.push(newNotificationData);
+      }
+    }
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ ...newEventData, notifications: newNotifications }),
+    };
   } catch (error) {
     console.error(error);
-    throw error;
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error,
+      }),
+    };
   }
 };

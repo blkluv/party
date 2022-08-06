@@ -1,0 +1,30 @@
+name: Dev/DB/Migrate
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "database/**"
+      - ".github/workflows/dev-migrate-db.yml"
+
+jobs:
+  migrate-db:
+      name: Perform Prisma migration
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Install dependencies
+          working-directory: database
+          run: |
+            yarn install
+
+        - name: Migrate
+          working-directory: database
+          env:
+            DATABASE_URL: ${{ secrets.DEV_POSTGRES_URL }}
+          run: |
+            yarn workspace database migrate:dev -n "${{ github.event.head_commit.message }}"

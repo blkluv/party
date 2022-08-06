@@ -1,6 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+import { getPostgresClient, PartyBoxEvent } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -11,22 +10,27 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  * @description Get event with given ID from DynamoDB
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
+  const { eventId } = event.pathParameters as PathParameters;
+  const { stage } = event.requestContext;
+  const pg = await getPostgresClient(stage);
   try {
-    const { eventId } = event.pathParameters as PathParameters;
+    const [eventData] = await pg<PartyBoxEvent>("events")
+      .select("id", "startTime", "endTime", "name", "description", "hashtags", "thumbnail", "media", "prices")
+      .where("id", "=", Number(eventId));
 
-    const dynamo = DynamoDBDocument.from(new DynamoDB({}));
-    const { stage } = event.requestContext;
+    if (!eventData) throw new Error("Event not found");
 
-    const { Item: eventData } = await dynamo.get({
-      TableName: `${stage}-party-box-events`,
-      Key: {
-        id: eventId,
-      },
-    });
-
-    return { statusCode: 200, body: JSON.stringify({ ...eventData, location: null }) };
+    return {
+      statusCode: 200,
+      body: JSON.stringify(eventData),
+    };
   } catch (error) {
     console.error(error);
-    throw error;
+    return {
+      statusCode: 500,
+      body: JSON.stringify(error),
+    };
+  } finally {
+    await pg.destroy();
   }
 };
