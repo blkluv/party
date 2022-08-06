@@ -99,7 +99,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       console.warn(error);
     }
 
-    await pg("eventNotifications").delete().where("eventId", "=", Number(eventId));
+    await pg("eventNotifications").where("eventId", "=", Number(eventId)).del();
     await pg("events").delete().where("id", "=", Number(eventId));
 
     return { statusCode: 200, body: JSON.stringify({ message: "Event deleted." }) };
