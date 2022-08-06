@@ -17,14 +17,14 @@ jobs:
         - name: Checkout
           uses: actions/checkout@v2
 
-        - name: Install dependencies
-          working-directory: database
-          run: |
-            yarn install
+        - uses: pnpm/action-setup@v2.2.2
+          with:
+            version: 7.8.0
+            run_install: true
 
         - name: Migrate
           working-directory: database
           env:
             DATABASE_URL: ${{ secrets.PROD_POSTGRES_URL }}
           run: |
-            yarn workspace database migrate:prod
+            pnpm -F database migrate:prod
