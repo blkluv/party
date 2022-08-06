@@ -2,7 +2,7 @@ import PartyBoxEventNotification from "./PartyBoxEventNotification";
 import PartyBoxEventPrice from "./PartyBoxEventPrice";
 
 interface PartyBoxEvent {
-  id: string;
+  id: number;
   name: string;
   description: string;
 

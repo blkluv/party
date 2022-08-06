@@ -7,7 +7,7 @@ import { Button } from "~/components/form";
 import LoadingScreen from "~/components/LoadingScreen";
 import MetaData from "~/components/MetaData";
 import { API_URL } from "~/config/config";
-import EventTicket from "~/types/EventTicket";
+import { PartyBoxEventTicket } from "@party-box/common";
 import getToken from "~/utils/getToken";
 import isUserAdmin from "~/utils/isUserAdmin";
 
@@ -26,7 +26,7 @@ const statusTranslation = {
 const Page = ({ ticket: initialTicket }) => {
   const [path, setPath] = useState("");
   const { user } = useAuthenticator();
-  const [ticket, setTicket] = useState<EventTicket>(initialTicket);
+  const [ticket, setTicket] = useState<PartyBoxEventTicket>(initialTicket);
 
   const updateTicketUse = useCallback(
     async (value: boolean) => {

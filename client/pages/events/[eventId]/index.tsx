@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "~/components/form";
 import { LeftCaretIcon, LoadingIcon, PencilIcon, RightCaretIcon, TrashIcon } from "~/components/Icons";
 import MetaData from "~/components/MetaData";
-import PartyBoxEvent from "~/types/PartyBoxEvent";
+import { PartyBoxEvent } from "@party-box/common";
 import deleteEvent from "~/utils/deleteEvent";
 import getToken from "~/utils/getToken";
 import isUserAdmin from "~/utils/isUserAdmin";
