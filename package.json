@@ -8,13 +8,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ConorRoberts/groups-app.git"
+    "url": "git+https://github.com/ConorRoberts/party-box.git"
   },
   "keywords": [],
   "author": "",
   "devDependencies": {
-    "@parcel/packager-ts": "2.6.2",
-    "@parcel/transformer-typescript-types": "2.6.2",
     "@typescript-eslint/eslint-plugin": "^5.10.1",
     "@typescript-eslint/parser": "^5.10.1",
     "eslint": "8.5.0",
@@ -27,9 +25,9 @@
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ConorRoberts/groups-app/issues"
+    "url": "https://github.com/ConorRoberts/party-box/issues"
   },
-  "homepage": "https://github.com/ConorRoberts/groups-app#readme",
+  "homepage": "https://github.com/ConorRoberts/party-box#readme",
   "workspaces": [
     "api/*",
     "client",
