@@ -12,6 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@party-box/common": "^1.0.24"
+    "@aws-sdk/client-secrets-manager": "^3.142.0",
+    "@party-box/common": "^1.0.24",
+    "pg": "^8.7.3"
   }
 }
