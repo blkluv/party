@@ -4,7 +4,7 @@
   "private": true,
   "description": "",
   "scripts": {
-    "client": "yarn workspace client dev"
+    "client": "pnpm --filter client dev"
   },
   "repository": {
     "type": "git",
@@ -27,10 +27,6 @@
   "bugs": {
     "url": "https://github.com/ConorRoberts/party-box/issues"
   },
-  "homepage": "https://github.com/ConorRoberts/party-box#readme",
-  "workspaces": [
-    "api/*",
-    "client",
-    "database"
-  ]
+  "homepage": "https://github.com/ConorRoberts/party-box#readme"
 }
+
