@@ -27,4 +27,4 @@ jobs:
           env:
             DATABASE_URL: ${{ secrets.DEV_POSTGRES_URL }}
           run: |
-            yarn workspace database migrate:dev -n "${{ github.event.head_commit.message }}"
+            pnpm -F database migrate:dev -n "${{ github.event.head_commit.message }}"

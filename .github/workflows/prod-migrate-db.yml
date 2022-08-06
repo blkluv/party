@@ -27,4 +27,4 @@ jobs:
           env:
             DATABASE_URL: ${{ secrets.PROD_POSTGRES_URL }}
           run: |
-            yarn workspace database migrate:prod
+            pnpm -F database migrate:prod
