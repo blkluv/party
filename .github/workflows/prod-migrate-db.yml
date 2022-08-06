@@ -17,10 +17,9 @@ jobs:
         - name: Checkout
           uses: actions/checkout@v2
 
-        - name: Install dependencies
-          working-directory: database
-          run: |
-            yarn install
+        - uses: pnpm/action-setup@v2.2.2
+          with:
+            run_install: true
 
         - name: Migrate
           working-directory: database
