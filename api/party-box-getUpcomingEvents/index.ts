@@ -1,5 +1,5 @@
 import { getPostgresClient, PartyBoxEvent } from "@party-box/common";
-import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lamba";
+import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 
 /**
  * @method POST
