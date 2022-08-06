@@ -33,7 +33,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     //   .where("published", "=", true)
     //   .andWhere("startTime", ">", new Date().toISOString());
 
-    const events = await client.query(`
+    const { rows: events } = await client.query(`
       SELECT id, "startTime", "endTime", name, description, hashtags, "maxTickets", thumbnail
       FROM events
       WHERE published = true
