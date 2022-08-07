@@ -39,7 +39,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.error(error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error }),
+      body: JSON.stringify(error),
     };
   } finally {
     await pg.destroy();
