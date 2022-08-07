@@ -42,7 +42,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       expand: ["data.line_items"],
     });
 
-    const eventId = session?.data[0]?.metadata?.eventId;
+    const eventId = session?.data[0]?.metadata?.eventId ?? "";
     const customerPhoneNumber = session.data[0].customer_details?.phone;
     const ticketQuantity = Number(session.data[0].line_items?.data[0].quantity);
 
