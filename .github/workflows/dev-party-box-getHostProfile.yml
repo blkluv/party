@@ -1,0 +1,18 @@
+name: Dev/API/party-box-getHostProfile
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "api/party-box-getHostProfile/**"
+      - ".github/workflows/dev-party-box-getHostProfile.yml"
+      - ".github/workflows/cd-lambda-dev.yml"
+
+jobs:
+  deploy:
+    name: Deploy Lambda
+    uses: ./.github/workflows/cd-lambda-dev.yml
+    with:
+      function-name: party-box-getHostProfile
+    secrets: inherit

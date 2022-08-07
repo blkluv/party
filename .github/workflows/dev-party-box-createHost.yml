@@ -1,0 +1,18 @@
+name: Dev/API/party-box-createHost
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "api/party-box-createHost/**"
+      - ".github/workflows/dev-party-box-createHost.yml"
+      - ".github/workflows/cd-lambda-dev.yml"
+
+jobs:
+  deploy:
+    name: Deploy Lambda
+    uses: ./.github/workflows/cd-lambda-dev.yml
+    with:
+      function-name: party-box-createHost
+    secrets: inherit

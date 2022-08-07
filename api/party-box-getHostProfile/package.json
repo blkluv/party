@@ -1,5 +1,5 @@
 {
-  "name": "get-profile-data",
+  "name": "get-host-profile",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
