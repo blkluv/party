@@ -92,6 +92,15 @@ export const getServerSideProps = async (context: NextPageContext) => {
   const data = await fetch(`${API_URL}/tickets/${ticketId}`, { method: "GET" });
   const ticket = await data.json();
 
+  if (!ticket) {
+    // Couldn't find ticket. Get out of here.
+    return {
+      redirect: {
+        destination: "/",
+      },
+    };
+  }
+
   return {
     props: {
       ticket,

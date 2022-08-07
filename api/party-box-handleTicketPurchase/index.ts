@@ -98,7 +98,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       Message: `
         Thank you for purchasing ${ticketQuantity} ticket${ticketQuantity > 1 ? "s" : ""} to ${
         eventData?.name
-      }!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.id}\n\nReceipt: ${receiptUrl}
+      }!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.stripeSessionId}\n\nReceipt: ${receiptUrl}
       `,
       TopicArn: tempTopic.TopicArn,
     });

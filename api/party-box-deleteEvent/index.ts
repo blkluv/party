@@ -88,7 +88,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       if (objects?.Contents) {
         await s3.send(
           new DeleteObjectsCommand({
-            Bucket: `${stage}-party-box-media`,
+            Bucket: "party-box-bucket",
             Delete: {
               Objects: objects.Contents.map((c) => ({ Key: c.Key })),
             },
@@ -105,7 +105,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     return { statusCode: 200, body: JSON.stringify({ message: "Event deleted." }) };
   } catch (error) {
     console.error(error);
-    throw error;
+    return {
+      statusCode: 500,
+      body: JSON.stringify(error),
+    };
   } finally {
     await pg.destroy();
   }

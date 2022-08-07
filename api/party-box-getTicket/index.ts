@@ -11,7 +11,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
-  const { ticketId } = event.pathParameters as PathParameters;
+  const { ticketId:stripeSessionId } = event.pathParameters as PathParameters;
 
   const { stage } = event.requestContext;
 
@@ -19,12 +19,12 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const stripe = await getStripeClient(stage);
 
   try {
-    const [ticketData] = await pg<PartyBoxEventTicket>("tickets").where("id", Number(ticketId));
+    const [ticketData] = await pg<PartyBoxEventTicket>("tickets").where("stripeSessionId", stripeSessionId);
     const [eventData] = await pg<PartyBoxEvent>("events")
       .select("name", "description", "id", "startTime", "endTime", "hashtags")
       .where("id", ticketData.eventId);
 
-    const session = await stripe.checkout.sessions.retrieve(ticketId);
+    const session = await stripe.checkout.sessions.retrieve(stripeSessionId);
     const paymentIntent = await stripe.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
 
     return {
