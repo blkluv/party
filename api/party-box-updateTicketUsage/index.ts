@@ -18,7 +18,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
   const { stage } = event.requestContext;
   const { value } = JSON.parse(event.body ?? "{}") as Body;
-  const { ticketId } = event.pathParameters as PathParameters;
+  const { ticketId: stripeSessionId } = event.pathParameters as PathParameters;
   const { Authorization } = event.headers;
 
   const pg = await getPostgresClient(stage);
@@ -26,7 +26,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   try {
     decodeJwt(Authorization, ["admin"]);
 
-    await pg<PartyBoxEventTicket>("tickets").where("id", ticketId).update({ used: value });
+    await pg<PartyBoxEventTicket>("tickets").where("stripeSessionId", stripeSessionId).update({ used: value });
 
     return { statusCode: 200, body: JSON.stringify({ message: "Success" }) };
   } catch (error) {
