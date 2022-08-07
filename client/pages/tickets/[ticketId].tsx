@@ -32,7 +32,7 @@ const Page = ({ ticket: initialTicket }) => {
     async (value: boolean) => {
       try {
         await axios.post(
-          `/api/tickets/${ticket.id}/update-use`,
+          `/api/tickets/${ticket.stripeSessionId}/update-use`,
           { value: true },
           { headers: { Authorization: `Bearer ${getToken(user)}` } }
         );
@@ -41,7 +41,7 @@ const Page = ({ ticket: initialTicket }) => {
         console.error(error);
       }
     },
-    [ticket.id, user]
+    [ticket.stripeSessionId, user]
   );
 
   useEffect(() => {
@@ -90,9 +90,8 @@ export const getServerSideProps = async (context: NextPageContext) => {
   const { ticketId } = context.query;
 
   const data = await fetch(`${API_URL}/tickets/${ticketId}`, { method: "GET" });
-  const ticket = await data.json();
 
-  if (!ticket) {
+  if (data.status !== 200) {
     // Couldn't find ticket. Get out of here.
     return {
       redirect: {
@@ -101,6 +100,8 @@ export const getServerSideProps = async (context: NextPageContext) => {
     };
   }
 
+  const ticket = await data.json();
+  
   return {
     props: {
       ticket,

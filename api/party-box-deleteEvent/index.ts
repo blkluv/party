@@ -99,6 +99,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       console.warn(error);
     }
 
+    await pg("tickets").where("eventId", "=", Number(eventId)).del();
     await pg("eventNotifications").where("eventId", "=", Number(eventId)).del();
     await pg("events").where("id", "=", Number(eventId)).del();
 

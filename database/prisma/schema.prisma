@@ -12,20 +12,21 @@ model events {
   name               String               @default("Unnamed Event")
   description        String?
   published          Boolean              @default(false)
-  ownerId            String
   prices             Json[]
   media              String[]
   thumbnail          String?
   hashtags           String[]
   maxTickets         Int                  @default(0)
   location           String               @default("TBD")
-  owner              users                @relation(fields: [ownerId], references: [id])
   tickets            tickets[]
   stripeProductId    String?
   snsTopicArn        String?
   startTime          DateTime
   endTime            DateTime
   eventNotifications eventNotifications[]
+
+  hostId Int
+  host   hosts @relation(fields: [hostId], references: [id])
 }
 
 model eventNotifications {
@@ -33,7 +34,7 @@ model eventNotifications {
   messageTime DateTime
   message     String
   eventId     Int
-  event       events   @relation(fields: [eventId], references: [id])
+  event       events   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   sent        Boolean  @default(false)
 }
 
@@ -42,15 +43,35 @@ model users {
   email       String        @unique
   name        String?
   roles       String[]      @default(["user"])
-  events      events[]
-  userTickets userTickets[]
+  hostRoles   hostRoles[]
   tickets     tickets[]
+  userTickets userTickets[]
+}
+
+model hosts {
+  id          Int         @id @default(autoincrement())
+  name        String      @default("Unnamed Host")
+  description String?
+  events      events[]
+  hostRoles   hostRoles[]
+}
+
+model hostRoles {
+  hostId Int
+  host   hosts @relation(fields: [hostId], references: [id])
+
+  userId String
+  user   users  @relation(fields: [userId], references: [id])
+
+  role String
+
+  @@id([hostId, userId])
 }
 
 model tickets {
   id                  Int           @id @default(autoincrement())
   eventId             Int
-  event               events        @relation(fields: [eventId], references: [id])
+  event               events        @relation(fields: [eventId], references: [id], onDelete: Cascade)
   stripeSessionId     String
   stripeChargeId      String
   receiptUrl          String
