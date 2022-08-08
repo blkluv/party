@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, decodeJwt, PartyBoxHost } from "@party-box/common";
+import { getPostgresClient, decodeJwt, PartyBoxHost, PartyBoxHostRole } from "@party-box/common";
 
 /**
  * Create a host entity within Postgres
@@ -26,6 +26,12 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         createdBy: userId,
       })
       .returning("*");
+
+    await pg<PartyBoxHostRole>("hostRoles").insert({
+      hostId: newHostData.id,
+      userId,
+      role: "admin",
+    });
 
     return {
       statusCode: 200,
