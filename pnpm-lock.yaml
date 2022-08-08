@@ -54,7 +54,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': 1.0.31
+      '@party-box/common': 1.0.32
     devDependencies:
       '@types/aws-lambda': 8.10.101
       '@types/node': 17.0.45
@@ -105,14 +105,14 @@ importers:
       '@types/node': 17.0.45
       typescript: 4.7.4
 
-  api/party-box-getProfileData:
+  api/party-box-getHostProfile:
     specifiers:
-      '@party-box/common': ^1.0.27
+      '@party-box/common': ^1.0.32
       '@types/aws-lambda': ^8.10.99
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': 1.0.30
+      '@party-box/common': 1.0.32
     devDependencies:
       '@types/aws-lambda': 8.10.101
       '@types/node': 17.0.45
@@ -168,7 +168,7 @@ importers:
       typescript: ^4.7.3
     dependencies:
       '@aws-sdk/client-cognito-identity-provider': 3.143.0
-      '@party-box/common': 1.0.31
+      '@party-box/common': 1.0.32
     devDependencies:
       '@types/aws-lambda': 8.10.101
       '@types/node': 17.0.45
@@ -297,7 +297,7 @@ importers:
     dependencies:
       '@aws-amplify/auth': 4.6.1_react-native@0.69.3
       '@aws-amplify/ui-react': 3.3.0_ndh2ri2fevwfgdrtga4fcg3bgu
-      '@party-box/common': 1.0.31
+      '@party-box/common': 1.0.32
       aws-amplify: 4.3.30_react-native@0.69.3
       axios: 0.24.0
       dayjs: 1.11.4
@@ -5246,27 +5246,8 @@ packages:
       - tedious
     dev: false
 
-  /@party-box/common/1.0.30:
-    resolution: {integrity: sha512-erwuu/mlRKsEz02LEKfpzgT9FmzansmZKdrFThIc0l7Lv1kO5Tyu5kBeSvdDUi7fT6Zs2//GSfv8NxzyjmwoTQ==}
-    dependencies:
-      '@aws-sdk/client-secrets-manager': 3.142.0
-      jsonwebtoken: 8.5.1
-      knex: 2.2.0_pg@8.7.3
-      pg: 8.7.3
-      stripe: 9.16.0
-    transitivePeerDependencies:
-      - aws-crt
-      - better-sqlite3
-      - mysql
-      - mysql2
-      - pg-native
-      - sqlite3
-      - supports-color
-      - tedious
-    dev: false
-
-  /@party-box/common/1.0.31:
-    resolution: {integrity: sha512-btO0z3bySfKlSIM+5uRqYOipywOEqXolSs5pPS0MRm2QzenUEed5X+CyslZCzunem64etMx23k9gDmoPXyLbBA==}
+  /@party-box/common/1.0.32:
+    resolution: {integrity: sha512-VYUAJNbCpim+dcpq/XImGzHdn49jAbN3/C08ifPC3UoVwpko4tXLmcHrHXCWXRbbSidQ18ndI3iaC4F6biL/7Q==}
     dependencies:
       '@aws-sdk/client-secrets-manager': 3.142.0
       jsonwebtoken: 8.5.1

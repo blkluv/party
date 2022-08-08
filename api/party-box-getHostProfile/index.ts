@@ -1,8 +1,8 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, PartyBoxEvent, decodeJwt } from "@party-box/common";
+import { getPostgresClient, PartyBoxEvent, decodeJwt, PartyBoxHost } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
-  eventId: string;
+  hostId: string;
 }
 
 /**
@@ -12,7 +12,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(JSON.stringify(event));
 
-  const { eventId } = event.pathParameters as PathParameters;
+  const { hostId } = event.pathParameters as PathParameters;
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
 
@@ -21,17 +21,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   try {
     decodeJwt(Authorization, ["admin"]);
 
-    const [eventData] = await pg<PartyBoxEvent>("events").select("*").where("id", "=", Number(eventId));
-    const notificationData = await pg<PartyBoxEvent>("eventNotifications")
-      .select("*")
-      .where("eventId", "=", Number(eventId));
-
-    if (!eventData) throw new Error("Event not found");
+    const [hostData] = await pg<PartyBoxHost>("hosts").select("*").where("id", "=", Number(hostId));
+    const events = await pg<PartyBoxEvent>("events").select("*").where("hostId", "=", Number(hostId));
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ ...eventData, notifications: notificationData }),
-    }; 
+      body: JSON.stringify({ ...hostData, events }),
+    };
   } catch (error) {
     console.error(error);
     return {
