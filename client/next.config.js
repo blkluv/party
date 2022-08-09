@@ -13,7 +13,7 @@ const nextConfig = withPWA({
   rewrites: async () => [
     {
       source: "/api/:path*",
-      destination: `https://walooe9owi.execute-api.us-east-1.amazonaws.com/${prod ? "prod" : "dev"}/:path*`,
+      destination: `https://api.party-box.ca/${prod ? "prod" : "dev"}/:path*`,
     },
   ],
 });

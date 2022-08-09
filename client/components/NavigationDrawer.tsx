@@ -24,10 +24,10 @@ const NavigationDrawer = ({ setOpen, open }: Props) => {
         </div>
         {admin && (
           <>
-            <Link href="/profile" passHref>
+            <Link href="/user/hosts" passHref>
               <div className="nav-drawer-button">
                 <PersonIcon size={20} />
-                <p>Host Profile</p>
+                <p>My Hosts</p>
               </div>
             </Link>
 
