@@ -13,8 +13,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const pg = await getPostgresClient(stage);
 
   try {
-    if (!event.body) throw new Error("Missing event body");
-
     const { sub: userId } = decodeJwt(Authorization, ["admin", "user"]);
 
     if (!userId) throw new Error("Missing userId");
