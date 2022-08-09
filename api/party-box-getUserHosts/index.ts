@@ -18,7 +18,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     if (!userId) throw new Error("Missing userId");
 
     const [hosts] = await pg<PartyBoxHostRole>("hostRoles")
-      .select("*")
+      .select("hosts.id", "hostRoles.role", "hosts.description", "hosts.imageUrl", "hosts.name")
       .where("userId", "=", userId)
       .innerJoin<PartyBoxHost>("hosts", "hostRoles.hostId", "hosts.id");
 
