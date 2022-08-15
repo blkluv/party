@@ -3,7 +3,7 @@ import { useAuthenticator } from "@aws-amplify/ui-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Button } from "~/components/form";
+import { Button } from "@conorroberts/beluga";
 import { LeftCaretIcon, LoadingIcon, PencilIcon, RightCaretIcon, TrashIcon } from "~/components/Icons";
 import MetaData from "~/components/MetaData";
 import { PartyBoxEvent } from "@party-box/common";
@@ -128,10 +128,10 @@ const Page = () => {
               <h3 className="font-medium">{price.name}</h3>
               <p>${price.price.toFixed(2)}</p>
               {price?.paymentLink && (
-                <div className="ml-auto">
+                <div className="border-l border-gray-700 ml-auto pl-2">
                   <Link href={price.paymentLink} passHref>
                     <a>
-                      <Button>Get Tickets</Button>
+                      <Button variant="filled" color="gray">Get Tickets</Button>
                     </a>
                   </Link>
                 </div>

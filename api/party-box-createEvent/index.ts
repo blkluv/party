@@ -47,12 +47,14 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const stripeClient = await getStripeClient(stage);
 
     // Check if the user is an admin of the given host
-    await pg<PartyBoxHostRole>("hostRoles")
+    const hostToVerify = await pg<PartyBoxHostRole>("hostRoles")
       .select("*")
       .where("hostId", "=", hostId)
       .andWhere("userId", "=", sub)
       .andWhere("role", "=", "admin")
       .first();
+
+    if (!hostToVerify) throw new Error("User is not an admin of the host");
 
     const [{ id: eventId }] = await pg<PartyBoxEvent>("events")
       .insert({
@@ -147,10 +149,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const [eventData] = await pg<PartyBoxEvent>("events")
       .where("id", "=", eventId)
       .update<Partial<PartyBoxCreateEventInput>>({
-        stripeProductId: stripeProduct.id,
-        prices: newPrices,
-        snsTopicArn: snsTopic.TopicArn,
-      })
+      stripeProductId: stripeProduct.id,
+      prices: newPrices,
+      snsTopicArn: snsTopic.TopicArn,
+    })
       .returning("*");
 
     // Schedule some messages

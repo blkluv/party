@@ -1,7 +1,7 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import axios from "axios";
 import { NextPageContext } from "next";
-import { useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { Button } from "~/components/form";
 import LoadingScreen from "~/components/LoadingScreen";
@@ -10,6 +10,7 @@ import { API_URL } from "~/config/config";
 import { PartyBoxEventTicket } from "@party-box/common";
 import getToken from "~/utils/getToken";
 import isUserAdmin from "~/utils/isUserAdmin";
+import { CloseIcon, LoadingIcon } from "~/components/Icons";
 
 const statusColor = {
   succeeded: "bg-emerald-600",
@@ -23,14 +24,20 @@ const statusTranslation = {
   failed: "Not Paid",
 };
 
-const Page = ({ ticket: initialTicket }) => {
+interface PageProps {
+  ticket: PartyBoxEventTicket;
+}
+
+const Page: FC<PageProps> = ({ ticket: initialTicket }) => {
   const [path, setPath] = useState("");
   const { user } = useAuthenticator();
   const [ticket, setTicket] = useState<PartyBoxEventTicket>(initialTicket);
+  const [loading, setLoading] = useState({ ticketUseUpdate: false });
 
   const updateTicketUse = useCallback(
     async (value: boolean) => {
       try {
+        setLoading((prev) => ({ ...prev, ticketUseUpdate: true }));
         await axios.post(
           `/api/tickets/${ticket.stripeSessionId}/update-use`,
           { value: true },
@@ -39,6 +46,8 @@ const Page = ({ ticket: initialTicket }) => {
         setTicket((prev) => ({ ...prev, used: value }));
       } catch (error) {
         console.error(error);
+      } finally {
+        setLoading((prev) => ({ ...prev, ticketUseUpdate: false }));
       }
     },
     [ticket.stripeSessionId, user]
@@ -67,8 +76,17 @@ const Page = ({ ticket: initialTicket }) => {
           <p>{statusTranslation[ticket.status]}</p>
         </div>
         {ticket.used && isUserAdmin(user) && (
-          <div className={`rounded-full py-0.5 text-center px-4 bg-rose-600 max-w-sm`}>
+          <div className={`rounded-full py-0.5 text-center px-4 bg-rose-600 max-w-sm flex gap-2 items-center`}>
             <p>Ticket Used</p>
+            {loading.ticketUseUpdate ? (
+              <LoadingIcon size={18} className="animate-spin" />
+            ) : (
+              <CloseIcon
+                onClick={() => updateTicketUse(false)}
+                size={18}
+                className="cursor-pointer hover:text-gray-100 transition"
+              />
+            )}
           </div>
         )}
       </div>
@@ -101,7 +119,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
   }
 
   const ticket = await data.json();
-  
+
   return {
     props: {
       ticket,

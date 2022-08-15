@@ -8,7 +8,7 @@ const prod = process.env.NODE_ENV === "production";
 const nextConfig = withPWA({
   reactStrictMode: true,
   images: {
-    domains: ["party-box-bucket.s3.us-east-1.amazonaws.com"],
+    domains: ["party-box-bucket.s3.us-east-1.amazonaws.com", "www.gravatar.com"],
   },
   rewrites: async () => [
     {

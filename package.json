@@ -4,7 +4,7 @@
   "private": true,
   "description": "",
   "scripts": {
-    "client": "pnpm --filter client dev"
+    "client": "yarn workspace client dev"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,11 @@
     "prettier": "^2.5.1",
     "typescript": "^4.6.4"
   },
+  "workspaces": [
+    "client",
+    "database",
+    "api/*"
+  ],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/ConorRoberts/party-box/issues"

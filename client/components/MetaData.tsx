@@ -14,6 +14,8 @@ export interface MetaDataProps {
  * @returns
  */
 const MetaData = ({ title, description, ...props }: MetaDataProps) => {
+  const formattedTitle = `${title} | ${APP_NAME}`;
+
   return (
     <Head>
       <meta charSet="utf-8" />
@@ -26,8 +28,8 @@ const MetaData = ({ title, description, ...props }: MetaDataProps) => {
       <link href="/icons/icon-16x16.png" rel="icon" type="image/png" sizes="16x16" />
       <link href="/icons/icon-32x32.png" rel="icon" type="image/png" sizes="32x32" />
       <link rel="apple-touch-icon" href="/icons/icon-180x180.png"></link>
-      <title>{`${title} - ${APP_NAME}`}</title>
-      <meta property="og:title" content={`${title} - ${APP_NAME}`} />
+      <title>{formattedTitle}</title>
+      <meta property="og:title" content={formattedTitle} />
       <meta property="og:description" content={description} />
       {props?.children && props.children}
     </Head>

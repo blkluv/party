@@ -4,6 +4,7 @@ export interface EventFormData {
   startTime: EventFormDate;
   endTime: EventFormDate;
   location: string;
+  hostId: string;
   maxTickets: string;
   hashtags: string[];
   notifications: {
@@ -19,6 +20,7 @@ export interface EventFormData {
     paymentLinkId?: string;
     price: string;
   }[];
+  published: boolean;
 }
 
 export interface EventFormDate {

@@ -23,6 +23,8 @@ interface PartyBoxEvent {
   // URLs to images/gifs
   media: string[];
 
+  hostId: string;
+
   // URL to small image used for previews
   thumbnail: string;
 
