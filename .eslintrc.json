@@ -12,7 +12,8 @@
   },
   "plugins": ["@typescript-eslint", "prefer-arrow", "tailwindcss"],
   "rules": {
-    "indent": ["warn", 2, { "SwitchCase": 1 }],
+    "indent": "off",
+    "@typescript-eslint/indent": ["warn", 2, { "SwitchCase": 1 }],
     "linebreak-style": ["warn", "windows"],
     "quotes": ["warn", "double", { "allowTemplateLiterals": true }],
     "semi": ["warn", "always"],

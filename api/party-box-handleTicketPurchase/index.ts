@@ -42,7 +42,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       expand: ["data.line_items"],
     });
 
-    const eventId = session?.data[0]?.metadata?.eventId;
+    const eventId = session?.data[0]?.metadata?.eventId ?? "";
     const customerPhoneNumber = session.data[0].customer_details?.phone;
     const ticketQuantity = Number(session.data[0].line_items?.data[0].quantity);
 
@@ -62,8 +62,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       })
       .returning("*");
 
-    const [eventData] = await pg<PartyBoxEvent>("events").where({ id: eventId });
-    const [ticketsSold] = await pg<PartyBoxEventTicket>("tickets").where({ id: eventId }).sum("ticketQuantity");
+    const [eventData] = await pg<PartyBoxEvent>("events").where("id", "=", Number(eventId));
+    const [ticketsSold] = await pg<PartyBoxEventTicket>("tickets").where("id", "=", Number(eventId)).sum("ticketQuantity");
 
     // Once enough stock is sold, disable product on stripe
     if (ticketsSold >= eventData?.maxTickets) {
@@ -98,7 +98,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       Message: `
         Thank you for purchasing ${ticketQuantity} ticket${ticketQuantity > 1 ? "s" : ""} to ${
         eventData?.name
-      }!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.id}\n\nReceipt: ${receiptUrl}
+      }!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.stripeSessionId}\n\nReceipt: ${receiptUrl}
       `,
       TopicArn: tempTopic.TopicArn,
     });

@@ -8,6 +8,7 @@ import {
   getStripeClient,
   getPostgresClient,
   decodeJwt,
+  PartyBoxHostRole,
 } from "@party-box/common";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
@@ -16,7 +17,7 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
 
 /**
  * @method POST
- * @description Create event within DynamoDB and Stripe
+ * @description Create event within Postgres and Stripe
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
@@ -30,6 +31,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     prices,
     hashtags,
     notifications = [],
+    hostId,
   } = JSON.parse(event.body ?? "{}") as PartyBoxCreateEventInput;
   const { websiteUrl } = event.stageVariables as StageVariables;
   const { stage } = event.requestContext;
@@ -40,11 +42,23 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
   try {
     const { sub } = decodeJwt(Authorization, ["admin"]);
+    if (!sub) throw new Error("Missing sub");
+
     const stripeClient = await getStripeClient(stage);
 
+    // Check if the user is an admin of the given host
+    const hostToVerify = await pg<PartyBoxHostRole>("hostRoles")
+      .select("*")
+      .where("hostId", "=", hostId)
+      .andWhere("userId", "=", sub)
+      .andWhere("role", "=", "admin")
+      .first();
+
+    if (!hostToVerify) throw new Error("User is not an admin of the host");
+
     const [{ id: eventId }] = await pg<PartyBoxEvent>("events")
-      .insert<PartyBoxCreateEventInput>({
-        ownerId: sub,
+      .insert({
+        hostId,
         name,
         description,
         maxTickets: Number(maxTickets),
@@ -124,18 +138,21 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     }
 
     // Create topic in SNS for SMS messages
+    // We push to this topic whenever we want to send out notifications to all ticket holders.
     const snsTopic = await sns.createTopic({
       Name: `${stage}-party-box-event-notifications-${eventId}`,
     });
 
     // Update the event with data created above
+    // We store prices as JSON because we don't actually care about indexing them. 
+    // Having another table is overkill.
     const [eventData] = await pg<PartyBoxEvent>("events")
       .where("id", "=", eventId)
       .update<Partial<PartyBoxCreateEventInput>>({
-        stripeProductId: stripeProduct.id,
-        prices: newPrices,
-        snsTopicArn: snsTopic.TopicArn,
-      })
+      stripeProductId: stripeProduct.id,
+      prices: newPrices,
+      snsTopicArn: snsTopic.TopicArn,
+    })
       .returning("*");
 
     // Schedule some messages

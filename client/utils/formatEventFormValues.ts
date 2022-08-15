@@ -10,13 +10,15 @@ const formatNotificationTime = (startTime: string, messageTime: string) => {
 };
 
 const formatEventFormValues = (initialValues: PartyBoxEvent): EventFormData => {
-  const { name, description, startTime, endTime, location, maxTickets, hashtags, prices, notifications } =
+  const { name, description, startTime, endTime, location, maxTickets, hashtags, prices, notifications, hostId, published } =
     initialValues;
   return {
     name,
     description,
     hashtags,
     location,
+    hostId,
+    published,
     maxTickets: maxTickets.toString(),
     startTime: {
       day: dayjs(startTime).date().toString(),

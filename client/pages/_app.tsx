@@ -1,3 +1,4 @@
+import "@conorroberts/beluga/dist/styles.css";
 import "../styles/globals.css";
 import "@aws-amplify/ui-react/styles.css";
 import { Amplify, Auth } from "aws-amplify";

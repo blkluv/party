@@ -7,68 +7,98 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model events {
-  id                 Int                  @id @default(autoincrement())
-  name               String               @default("Unnamed Event")
+model Event {
+  id                 Int                 @id @default(autoincrement())
+  name               String              @default("Unnamed Event")
   description        String?
-  published          Boolean              @default(false)
-  ownerId            String
+  published          Boolean             @default(false)
   prices             Json[]
   media              String[]
   thumbnail          String?
   hashtags           String[]
-  maxTickets         Int                  @default(0)
-  location           String               @default("TBD")
-  owner              users                @relation(fields: [ownerId], references: [id])
-  tickets            tickets[]
+  maxTickets         Int                 @default(0)
+  location           String              @default("TBD")
+  tickets            Ticket[]
   stripeProductId    String?
   snsTopicArn        String?
   startTime          DateTime
   endTime            DateTime
-  eventNotifications eventNotifications[]
+  eventNotifications EventNotification[]
+
+  hostId Int
+  host   Host @relation(fields: [hostId], references: [id])
+
+  @@map("events")
 }
 
-model eventNotifications {
+model EventNotification {
   id          Int      @id @default(autoincrement())
   messageTime DateTime
   message     String
   eventId     Int
-  event       events   @relation(fields: [eventId], references: [id])
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   sent        Boolean  @default(false)
+
+  @@map("eventNotifications")
 }
 
-model users {
-  id          String        @id @unique
-  email       String        @unique
-  name        String?
-  roles       String[]      @default(["user"])
-  events      events[]
-  userTickets userTickets[]
-  tickets     tickets[]
+model User {
+  id        String     @id @unique
+  email     String     @unique
+  name      String?
+  roles     String[]   @default(["user"])
+  hostRoles HostRole[]
+  tickets   Ticket[]
+  hosts     Host[]
+
+  @@map("users")
 }
 
-model tickets {
-  id                  Int           @id @default(autoincrement())
-  eventId             Int
-  event               events        @relation(fields: [eventId], references: [id])
-  stripeSessionId     String
-  stripeChargeId      String
-  receiptUrl          String
+model Host {
+  id          Int        @id @default(autoincrement())
+  name        String     @default("Unnamed Host")
+  description String?
+  events      Event[]
+  hostRoles   HostRole[]
+  createdBy   String
+  creator     User       @relation(fields: [createdBy], references: [id])
+  imageUrl       String?    @default("https://www.gravatar.com/avatar/00000000000000000000000000000000")
+
+  @@map("hosts")
+}
+
+model HostRole {
+  hostId Int
+  host   Host @relation(fields: [hostId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  role String
+
+  @@id([hostId, userId])
+  @@map("hostRoles")
+}
+
+model Ticket {
+  id      Int   @id @default(autoincrement())
+  eventId Int
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  stripeSessionId String
+  stripeChargeId  String
+  receiptUrl      String
+
   customerName        String
   customerPhoneNumber String
   customerEmail       String
-  userId              String?
-  user                users?        @relation(fields: [userId], references: [id])
-  ticketQuantity      Int
-  used                Boolean
-  purchasedAt         DateTime      @default(now())
-  userTickets         userTickets[]
-}
 
-model userTickets {
-  id       Int     @id @default(autoincrement())
-  userId   String
-  ticketId Int
-  user     users   @relation(fields: [userId], references: [id])
-  ticket   tickets @relation(fields: [ticketId], references: [id])
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  ticketQuantity Int
+  used           Boolean
+  purchasedAt    DateTime @default(now())
+
+  @@map("tickets")
 }

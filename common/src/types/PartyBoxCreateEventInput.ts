@@ -26,6 +26,9 @@ interface PartyBoxCreateEventInput {
   hashtags: string[];
 
   notifications: PartyBoxEventNotification[];
+
+  hostId: string;
+  published: boolean;
 }
 
 export default PartyBoxCreateEventInput;

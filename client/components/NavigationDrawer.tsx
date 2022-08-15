@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import isUserAdmin from "~/utils/isUserAdmin";
 import { Drawer } from "./form";
-import { OutlinedPlusIcon, SignInIcon, SignOutIcon } from "./Icons";
+import { OutlinedPlusIcon, PersonIcon, SignInIcon, SignOutIcon } from "./Icons";
 
 interface Props {
   setOpen: (value: boolean) => void;
@@ -23,12 +23,21 @@ const NavigationDrawer = ({ setOpen, open }: Props) => {
           <Image src="/images/Party_Box.svg" layout="fill" objectFit="cover" alt="Orange text reading Party Box" />
         </div>
         {admin && (
-          <Link href="/events/create" passHref>
-            <div className="nav-drawer-button">
-              <OutlinedPlusIcon size={20} />
-              <p>Create Event</p>
-            </div>
-          </Link>
+          <>
+            <Link href="/user/hosts" passHref>
+              <div className="nav-drawer-button">
+                <PersonIcon size={20} />
+                <p>My Hosts</p>
+              </div>
+            </Link>
+
+            <Link href="/events/create" passHref>
+              <div className="nav-drawer-button">
+                <OutlinedPlusIcon size={20} />
+                <p>Create Event</p>
+              </div>
+            </Link>
+          </>
         )}
         {!user && (
           <div
@@ -40,10 +49,12 @@ const NavigationDrawer = ({ setOpen, open }: Props) => {
           </div>
         )}
         {user && (
-          <div className="nav-drawer-button" onClick={() => signOut()}>
-            <SignOutIcon size={20} />
-            <p>Sign Out</p>
-          </div>
+          <>
+            <div className="nav-drawer-button" onClick={() => signOut()}>
+              <SignOutIcon size={20} />
+              <p>Sign Out</p>
+            </div>
+          </>
         )}
       </div>
     </Drawer>
