@@ -1,9 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Button } from "@conorroberts/beluga";
 import { LeftCaretIcon, LoadingIcon, PencilIcon, RightCaretIcon, TrashIcon } from "~/components/Icons";
 import MetaData from "~/components/MetaData";
 import { PartyBoxEvent } from "@party-box/common";
@@ -14,6 +12,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import getEvent from "~/utils/getEvent";
 import LoadingScreen from "~/components/LoadingScreen";
+import EventPrice from "~/components/EventPrice";
 
 const Page = () => {
   const { user } = useAuthenticator();
@@ -121,22 +120,7 @@ const Page = () => {
         <h2 className="text-center text-lg font-semibold">Tickets</h2>
         <div className="flex justify-center">
           {eventData.prices.map((price) => (
-            <div
-              key={price.id}
-              className="flex gap-4 mx-auto max-w-lg w-full rounded-md bg-gray-800 p-3 shadow-md items-center"
-            >
-              <h3 className="font-medium">{price.name}</h3>
-              <p>${price.price.toFixed(2)}</p>
-              {price?.paymentLink && (
-                <div className="border-l border-gray-700 ml-auto pl-2">
-                  <Link href={price.paymentLink} passHref>
-                    <a>
-                      <Button variant="filled" color="gray">Get Tickets</Button>
-                    </a>
-                  </Link>
-                </div>
-              )}
-            </div>
+            <EventPrice key={price.id} {...price} />
           ))}
         </div>
       </div>

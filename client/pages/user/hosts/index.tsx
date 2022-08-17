@@ -107,7 +107,7 @@ const Page = () => {
 
       {viewMode === "create" && isUserAdmin(user) && (
         <>
-          <Form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <FormGroup name="name" label="Name">
               <Input name="name" onChange={handleChange} value={values.name} placeholder="Name" />
             </FormGroup>
@@ -132,7 +132,7 @@ const Page = () => {
                 Create Host
               </Button>
             </div>
-          </Form>
+          </form>
         </>
       )}
     </div>
