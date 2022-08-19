@@ -4557,6 +4557,18 @@
     pg "^8.7.3"
     stripe "^9.16.0"
 
+"@party-box/common@^1.0.47":
+  version "1.0.47"
+  resolved "https://registry.yarnpkg.com/@party-box/common/-/common-1.0.47.tgz#c2be41a54ed4f26f7cddfe3154be4f3bffb7cf80"
+  integrity sha512-vEg8aDHkyQw0/tp72sw9TiN1XIXdV6MudVENd7ELxpWnUGWCu6ZAAFSiTHOcDllIEWoS/0mFDGKYY2C3QO8eNA==
+  dependencies:
+    "@aws-sdk/client-s3" "^3.150.0"
+    "@aws-sdk/client-secrets-manager" "^3.137.0"
+    jsonwebtoken "^8.5.1"
+    knex "^2.2.0"
+    pg "^8.7.3"
+    stripe "^9.16.0"
+
 "@prisma/client@^4.1.1":
   version "4.2.1"
   resolved "https://registry.yarnpkg.com/@prisma/client/-/client-4.2.1.tgz#b384587f6066070381ea4c90228a14697a0c271b"
