@@ -41,9 +41,21 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const stripeClient = await getStripeClient(stage);
     const pg = await getPostgresClient(stage);
 
+    const updateEventPayload = {
+      name: body.name,
+      description: body.description,
+      startTime: body.startTime,
+      endTime: body.endTime,
+      location: body.location,
+      thumbnail: body.thumbnail,
+      media: body.media,
+      maxTickets: Number(body.maxTickets),
+      published: Boolean(body.published),
+    };
+
     const [newEventData] = await pg<PartyBoxEvent>("events")
       .where("id", "=", Number(eventId))
-      .update<PartyBoxUpdateEventInput>(body)
+      .update<PartyBoxUpdateEventInput>(updateEventPayload)
       .returning("*");
 
     if (!newEventData.stripeProductId) throw new Error("Missing Stripe product id");
@@ -121,9 +133,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       } else {
         const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
           .insert<PartyBoxCreateNotificationInput>({
-            ...n,
-            eventId: Number(eventId),
-          })
+          ...n,
+          eventId: Number(eventId),
+        })
           .returning("*");
         newNotifications.push(newNotificationData);
       }
