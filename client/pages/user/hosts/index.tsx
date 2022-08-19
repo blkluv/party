@@ -8,11 +8,13 @@ import { Button, Input } from "@conorroberts/beluga";
 import { LoadingIcon } from "~/components/Icons";
 import MetaData from "~/components/MetaData";
 import getToken from "~/utils/getToken";
-import { Form, useFormik } from "formik";
+import { useFormik } from "formik";
 import FormGroup from "~/components/form/FormGroup";
 import { FileUploadField } from "~/components/form";
 import FormPreviewImage from "~/components/FormPreviewImage";
 import isUserAdmin from "~/utils/isUserAdmin";
+import * as Yup from "yup";
+import createHost from "~/utils/createHost";
 
 // This is the data we get back from our API.
 type ProfileHostsDisplay = Pick<PartyBoxHost & PartyBoxHostRole, "name" | "description" | "imageUrl" | "id" | "role">;
@@ -24,16 +26,21 @@ const Page = () => {
   const [loading, setLoading] = useState({ hosts: false });
   const [viewMode, setViewMode] = useState<"view" | "create">("view");
 
-  const { handleChange, handleSubmit, values, setFieldValue } = useFormik({
+  const { handleChange, handleSubmit, values, setFieldValue, errors } = useFormik({
     initialValues: {
       name: "",
       description: "",
       imageUrl: "",
       imageData: null,
     },
-    onSubmit: () => {
-      return;
+    onSubmit: async ({ name, description, imageUrl }) => {
+      await createHost({ name, imageUrl, description }, getToken(user));
     },
+    validationSchema: Yup.object({
+      name: Yup.string().required("Name is required"),
+      description: Yup.string().required("Description is required"),
+      imageUrl: Yup.string().required("Image URL is required"),
+    }),
   });
 
   useEffect(() => {
@@ -108,11 +115,11 @@ const Page = () => {
       {viewMode === "create" && isUserAdmin(user) && (
         <>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <FormGroup name="name" label="Name">
+            <FormGroup label="Name" error={errors.name}>
               <Input name="name" onChange={handleChange} value={values.name} placeholder="Name" />
             </FormGroup>
-            <FormGroup name="description" label="Description">
-              <Input name="description" onChange={handleChange} value={values.description} placeholder="Description" />
+            <FormGroup label="Description" error={errors.description}>
+              <Input onChange={handleChange} value={values.description} placeholder="Description" name="description" />
             </FormGroup>
             {!values.imageData && <FileUploadField onChange={(data) => setFieldValue("imageData", data)} />}
             {values.imageUrl.length > 0 && (
