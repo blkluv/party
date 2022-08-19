@@ -16,7 +16,7 @@
     "@aws-sdk/client-s3": "^3.121.0",
     "@aws-sdk/client-secrets-manager": "^3.121.0",
     "@aws-sdk/s3-request-presigner": "^3.121.0",
-    "@party-box/common": "^1.0.45",
+    "@party-box/common": "^1.0.46",
     "uuid": "^8.3.2"
   }
 }

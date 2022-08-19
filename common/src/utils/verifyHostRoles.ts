@@ -4,7 +4,9 @@ import { PartyBoxHostRole, Role } from "../types";
 const verifyHostRoles = async (client: Knex, userId: string, hostId: number, roles: Role[]) => {
   const hostRole = await client<PartyBoxHostRole>("hostRoles")
     .select("role")
-    .where([["hostId", "=", hostId], ["userId", "=", userId]]).first();
+    .where("hostId", "=", hostId)
+    .andWhere("userId", "=", userId)
+    .first();
 
   if (!hostRole) return false;
 
