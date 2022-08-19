@@ -17,14 +17,14 @@ jobs:
         - name: Checkout
           uses: actions/checkout@v2
 
-        - uses: pnpm/action-setup@v2.2.2
+        - uses: actions/setup-node@v3.4.1
           with:
-            version: 7.8.0
-            run_install: true
+            node-version: 16
 
         - name: Migrate
           working-directory: database
           env:
             DATABASE_URL: ${{ secrets.DEV_POSTGRES_URL }}
           run: |
-            pnpm -F database migrate:dev -n "${{ github.event.head_commit.message }}"
+            yarn install
+            yarn workspace database migrate:dev -n "${{ github.event.head_commit.message }}"
