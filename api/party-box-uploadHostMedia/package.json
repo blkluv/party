@@ -1,17 +1,22 @@
 {
-  "name": "update-host",
+  "name": "upload-host-media",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.99",
     "@types/node": "^17.0.41",
+    "@types/uuid": "^8.3.4",
     "typescript": "^4.7.3"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@party-box/common": "^1.0.46"
+    "@aws-sdk/client-s3": "^3.121.0",
+    "@aws-sdk/client-secrets-manager": "^3.121.0",
+    "@aws-sdk/s3-request-presigner": "^3.121.0",
+    "@party-box/common": "^1.0.46",
+    "uuid": "^8.3.2"
   }
 }

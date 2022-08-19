@@ -1,5 +1,6 @@
 import PartyBoxEventNotification from "./PartyBoxEventNotification";
 import PartyBoxEventPrice from "./PartyBoxEventPrice";
+import PartyBoxHost from "./PartyBoxHost";
 
 interface PartyBoxEvent {
   id: number;
@@ -23,13 +24,13 @@ interface PartyBoxEvent {
   // URLs to images/gifs
   media: string[];
 
-  hostId: string;
+  hostId: number;
+  host?: PartyBoxHost;
 
   // URL to small image used for previews
   thumbnail: string;
 
   prices: PartyBoxEventPrice[];
-  ownerId: string;
   stripeProductId: string;
   hashtags: string[];
   published: boolean;

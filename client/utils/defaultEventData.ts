@@ -5,6 +5,7 @@ const defaultEventData: EventFormData = {
   name: "",
   description: "",
   published: false,
+  hostId: "",
   startTime: {
     minute: dayjs().minute().toString(),
     hour: (dayjs().hour() % 12).toString(),

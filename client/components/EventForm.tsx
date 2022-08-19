@@ -69,7 +69,6 @@ const EventForm: FC<Props> = ({ initialValues }) => {
         const { data } = await axios.get<PartyBoxHost[]>("/api/user/hosts", {
           headers: { Authorization: `Bearer ${getToken(user)}` },
         });
-        console.log(data);
         setAvailableHosts(data);
       } catch (error) {
         console.error(error);
@@ -123,7 +122,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
       }}
       initialValues={initialValues ? formatEventFormValues(initialValues) : defaultEventData}
     >
-      {({ isSubmitting, values, handleChange, setFieldValue, status }) => (
+      {({ isSubmitting, values, handleChange, setFieldValue, status, errors }) => (
         <Form className="flex flex-col gap-2">
           <div className="flex gap-4 items-center">
             <p>Publish event</p>
@@ -133,7 +132,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
               name="published"
             />
           </div>
-          <FormGroup label="Event Name" name="name">
+          <FormGroup label="Event Name" error={errors.name}>
             <Input onChange={handleChange} name="name" placeholder="Event name" value={values.name} />
           </FormGroup>
           <div>
@@ -141,8 +140,21 @@ const EventForm: FC<Props> = ({ initialValues }) => {
             <Dropdown>
               <DropdownTrigger>
                 <Button variant="filled" color="gray">
-                  {availableHosts.find(({ id }) => id.toString() === values.hostId)?.name ?? "Select a host"}{" "}
-                  <CloseIcon />
+                  {availableHosts.find(({ id }) => id.toString() === values.hostId) ? (
+                    <div className="flex gap-2 items-center py-1">
+                      <Image
+                        src={availableHosts.find(({ id }) => id.toString() === values.hostId).imageUrl}
+                        width={30}
+                        height={30}
+                        objectFit="cover"
+                        alt={`${availableHosts.find(({ id }) => id.toString() === values.hostId).name} profile image`}
+                        className="rounded-md"
+                      />
+                      <p>{availableHosts.find(({ id }) => id.toString() === values.hostId).name}</p>
+                    </div>
+                  ) : (
+                    "Select a host"
+                  )}
                 </Button>
               </DropdownTrigger>
               <DropdownContent>
@@ -157,7 +169,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                         alt={`${host.name} profile image`}
                         className="rounded-md"
                       />
-                      {host.name}
+                      <p>{host.name}</p>
                     </div>
                   </DropdownItem>
                 ))}
@@ -180,7 +192,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
           <p>Event Date</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid grid-cols-3 gap-1">
-              <FormGroup name="startTime.day" label="Day">
+              <FormGroup label="Day">
                 <Select name="startTime.day" placeholder="Day" onChange={handleChange} value={values.startTime.day}>
                   {[
                     ...Array(
@@ -193,7 +205,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                   ))}
                 </Select>
               </FormGroup>
-              <FormGroup name="startTime.month" label="Month">
+              <FormGroup label="Month">
                 <Select name="startTime.month" onChange={handleChange} value={values.startTime.month}>
                   {dayjs
                     .localeData()
@@ -205,7 +217,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                     ))}
                 </Select>
               </FormGroup>
-              <FormGroup name="startTime.year" label="Year">
+              <FormGroup label="Year">
                 <Select name="startTime.year" onChange={handleChange} value={values.startTime.year}>
                   {[...Array(5)].map((_, year) => (
                     <option key={year} value={(dayjs().year() + year).toString()}>
@@ -216,7 +228,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
               </FormGroup>
             </div>
             <div className="grid grid-cols-3 gap-1">
-              <FormGroup label="Hour" name="startTime.hour">
+              <FormGroup label="Hour" >
                 <Input
                   name="startTime.hour"
                   placeholder="Hour"
@@ -227,10 +239,10 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                   max={12}
                 />
               </FormGroup>
-              <FormGroup label="Minute" name="startTime.minute">
+              <FormGroup label="Minute" >
                 <Input name="startTime.minute" onChange={handleChange} value={values.startTime.minute} />
               </FormGroup>
-              <FormGroup label="Modifier" name="startTime.modifier">
+              <FormGroup label="Modifier">
                 <Select name="startTime.modifier" onChange={handleChange} value={values.startTime.modifier}>
                   <option value="AM">AM</option>
                   <option value="PM">PM</option>
@@ -238,7 +250,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
               </FormGroup>
             </div>
           </div>
-          <FormGroup label="Location" name="location">
+          <FormGroup label="Location" error={errors.location}>
             <Input
               onChange={handleChange}
               name="location"
@@ -246,7 +258,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
               placeholder="Event location (address, etc.)"
             />
           </FormGroup>
-          <FormGroup label="Maximum Tickets Sold" name="maxTickets">
+          <FormGroup label="Maximum Tickets Sold" error={errors.maxTickets}>
             <Input
               onChange={handleChange}
               name="maxTickets"
@@ -302,7 +314,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                       <CloseIcon />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <FormGroup name={`prices.${i}.name`} label="Name">
+                      <FormGroup label="Name">
                         <Input
                           onChange={handleChange}
                           name={`prices.${i}.name`}
@@ -310,7 +322,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                           placeholder="Name"
                         />
                       </FormGroup>
-                      <FormGroup name={`prices.${i}.price`} label="Price">
+                      <FormGroup label="Price">
                         <Input
                           onChange={handleChange}
                           name={`prices.${i}.price`}
@@ -346,7 +358,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                       <CloseIcon />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      <FormGroup name={`notifications.${i}.days`} label="Days">
+                      <FormGroup label="Days">
                         <Input
                           onChange={handleChange}
                           name={`notifications.${i}.days`}
@@ -354,7 +366,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                           type="number"
                         />
                       </FormGroup>
-                      <FormGroup name={`notifications.${i}.hours`} label="Hours">
+                      <FormGroup label="Hours">
                         <Input
                           onChange={handleChange}
                           name={`notifications.${i}.hours`}
@@ -362,7 +374,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                           type="number"
                         />
                       </FormGroup>
-                      <FormGroup name={`notifications.${i}.minutes`} label="Minutes">
+                      <FormGroup label="Minutes">
                         <Input
                           onChange={handleChange}
                           name={`notifications.${i}.minutes`}

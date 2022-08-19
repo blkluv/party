@@ -1,5 +1,5 @@
 {
-  "name": "update-host",
+  "name": "delete-host",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.150.0",
     "@party-box/common": "^1.0.46"
   }
 }

@@ -27,7 +27,7 @@ const Page: FC<Props> = ({ host }) => {
         <div className="flex flex-col divide-y divide-gray-800">
           {host.events.map((e) => (
             <Link key={`event ${e.id}`} passHref href={`/events/${e.id}`}>
-              <a className="flex gap-2 py-2 hover:bg-gray-800 cursor-pointer transition">
+              <a className="flex gap-2 p-2 hover:bg-gray-800 cursor-pointer transition">
                 <Image
                   height={75}
                   width={75}

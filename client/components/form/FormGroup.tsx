@@ -1,20 +1,18 @@
-import { ErrorMessage } from "formik";
-import CustomErrorMessage from "./CustomErrorMessage";
-import { ReactNode } from "react";
+import { FC, ReactNode } from "react";
 
 interface Props {
-  name: string;
   label: string;
   disabled?: boolean;
   children: ReactNode;
+  error?: string;
 }
 
-const FormGroup = ({ label, name, children }: Props) => {
+const FormGroup: FC<Props> = ({ label, children, error }) => {
   return (
     <div>
       <div className="form-label-group">
-        <p>{label}</p>
-        <ErrorMessage name={name} component={CustomErrorMessage} />
+        <label>{label}</label>
+        {error && <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>}
       </div>
       {children}
     </div>
