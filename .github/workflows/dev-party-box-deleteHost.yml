@@ -1,0 +1,18 @@
+name: Dev/API/party-box-deleteHost
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "api/party-box-deleteHost/**"
+      - ".github/workflows/dev-party-box-deleteHost.yml"
+      - ".github/workflows/cd-lambda-dev.yml"
+
+jobs:
+  deploy:
+    name: Deploy Lambda
+    uses: ./.github/workflows/cd-lambda-dev.yml
+    with:
+      function-name: party-box-deleteHost
+    secrets: inherit
