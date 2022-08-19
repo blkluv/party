@@ -1,7 +1,5 @@
 **/node_modules
-**/yarn.lock
 .vscode
-yarn.lock
 *.session.sql
 .idea
 .parcel-cache

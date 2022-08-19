@@ -1,5 +1,5 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { Button, Modal, Toast } from "@conorroberts/beluga";
+import { Button, Modal, Toast, Portal } from "@conorroberts/beluga";
 import Image from "next/image";
 import Link from "next/link";
 import { FC, useState } from "react";
@@ -40,15 +40,17 @@ const UserHostsViewCard: FC<Props> = ({ host: { id, imageUrl, name, description 
 
   return (
     <>
-      <Toast
-        open={error.delete}
-        onOpenChange={(value) => setError((prev) => ({ ...prev, delete: value }))}
-        variant="error"
-        title="Error"
-        duration={2000}
-      >
-        <p>Error deleting host</p>
-      </Toast>
+      <Portal>
+        <Toast
+          open={error.delete}
+          onOpenChange={(value) => setError((prev) => ({ ...prev, delete: value }))}
+          variant="error"
+          title="Delete Error"
+          duration={2000}
+        >
+          <p>Somethign went wrong deleting &quot;{name}&quot;</p>
+        </Toast>
+      </Portal>
 
       <Modal
         title="Delete Host"
@@ -68,7 +70,7 @@ const UserHostsViewCard: FC<Props> = ({ host: { id, imageUrl, name, description 
       </Modal>
       <div className="flex gap-2 py-1">
         <Link passHref href={`/hosts/${id}`}>
-          <div className="p-2 flex gap-4 hover:bg-gray-800 rounded-md transition cursor-pointer">
+          <div className="p-2 flex gap-4 hover:bg-gray-800 rounded-md transition cursor-pointer flex-1">
             <div className="relative rounded-full object-cover overflow-hidden w-16 h-16">
               <Image
                 src={imageUrl}
@@ -84,7 +86,7 @@ const UserHostsViewCard: FC<Props> = ({ host: { id, imageUrl, name, description 
             </div>
           </div>
         </Link>
-        <div className="flex flex-col ml-auto border-l border-gray-800 p-2">
+        <div className="flex flex-col ml-auto border-l justify-center border-gray-800 p-2">
           <TrashIcon onClick={() => setShowDeleteDialog(true)} size={20} className="primary-hover" />
         </div>
       </div>
