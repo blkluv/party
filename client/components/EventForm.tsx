@@ -192,7 +192,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
           <p>Event Date</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid grid-cols-3 gap-1">
-              <FormGroup error={errors.startTime.day} label="Day">
+              <FormGroup label="Day">
                 <Select name="startTime.day" placeholder="Day" onChange={handleChange} value={values.startTime.day}>
                   {[
                     ...Array(
@@ -205,7 +205,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                   ))}
                 </Select>
               </FormGroup>
-              <FormGroup error={errors.startTime.month} label="Month">
+              <FormGroup label="Month">
                 <Select name="startTime.month" onChange={handleChange} value={values.startTime.month}>
                   {dayjs
                     .localeData()
@@ -217,7 +217,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                     ))}
                 </Select>
               </FormGroup>
-              <FormGroup error={errors.startTime.year} label="Year">
+              <FormGroup label="Year">
                 <Select name="startTime.year" onChange={handleChange} value={values.startTime.year}>
                   {[...Array(5)].map((_, year) => (
                     <option key={year} value={(dayjs().year() + year).toString()}>
@@ -228,7 +228,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
               </FormGroup>
             </div>
             <div className="grid grid-cols-3 gap-1">
-              <FormGroup label="Hour" error={errors.startTime.hour}>
+              <FormGroup label="Hour" >
                 <Input
                   name="startTime.hour"
                   placeholder="Hour"
@@ -239,10 +239,10 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                   max={12}
                 />
               </FormGroup>
-              <FormGroup label="Minute" error={errors.startTime.minute}>
+              <FormGroup label="Minute" >
                 <Input name="startTime.minute" onChange={handleChange} value={values.startTime.minute} />
               </FormGroup>
-              <FormGroup label="Modifier" error={errors.startTime.modifier}>
+              <FormGroup label="Modifier">
                 <Select name="startTime.modifier" onChange={handleChange} value={values.startTime.modifier}>
                   <option value="AM">AM</option>
                   <option value="PM">PM</option>

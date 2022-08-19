@@ -3,7 +3,7 @@ import { PartyBoxHost, PartyBoxHostRole } from "@party-box/common";
 import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Input } from "@conorroberts/beluga";
 import { LoadingIcon } from "~/components/Icons";
 import MetaData from "~/components/MetaData";
@@ -23,7 +23,7 @@ const Page = () => {
   const { user } = useAuthenticator();
 
   const [hosts, setHosts] = useState<ProfileHostsDisplay[]>([]);
-  const [loading, setLoading] = useState({ hosts: false });
+  const [loading, setLoading] = useState({ hosts: false, createHost: false });
   const [viewMode, setViewMode] = useState<"view" | "create">("view");
 
   const { handleChange, handleSubmit, values, setFieldValue, errors } = useFormik({
@@ -34,7 +34,18 @@ const Page = () => {
       imageData: null,
     },
     onSubmit: async ({ name, description, imageUrl }) => {
-      await createHost({ name, imageUrl, description }, getToken(user));
+      try {
+        setLoading((prev) => ({ ...prev, createHost: true }));
+
+        await createHost({ name, imageUrl, description }, values.imageData, getToken(user));
+        await getHosts();
+
+        setViewMode("view");
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading((prev) => ({ ...prev, createHost: false }));
+      }
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Name is required"),
@@ -43,24 +54,27 @@ const Page = () => {
     }),
   });
 
-  useEffect(() => {
-    (async () => {
+  const getHosts = useCallback(async () => {
+    try {
       setLoading((prev) => ({ ...prev, hosts: true }));
-      try {
-        if (!user) return;
 
-        const { data } = await axios.get<ProfileHostsDisplay[]>("/api/user/hosts", {
-          headers: { Authorization: `Bearer ${getToken(user)}` },
-        });
+      if (!user) return;
 
-        setHosts(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading((prev) => ({ ...prev, hosts: false }));
-      }
-    })();
+      const { data } = await axios.get<ProfileHostsDisplay[]>("/api/user/hosts", {
+        headers: { Authorization: `Bearer ${getToken(user)}` },
+      });
+
+      setHosts(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading((prev) => ({ ...prev, hosts: false }));
+    }
   }, [user]);
+
+  useEffect(() => {
+    getHosts();
+  }, [getHosts]);
 
   // Every time the host image changes, update the preview URL
   useEffect(() => {
