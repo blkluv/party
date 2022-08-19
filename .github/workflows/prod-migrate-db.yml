@@ -24,7 +24,7 @@ jobs:
         - name: Migrate
           working-directory: database
           env:
-            DATABASE_URL: ${{ secrets.DEV_POSTGRES_URL }}
+            DATABASE_URL: ${{ secrets.PROD_POSTGRES_URL }}
           run: |
             yarn install
             yarn workspace database migrate:prod
