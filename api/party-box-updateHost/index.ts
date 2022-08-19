@@ -30,7 +30,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     if (!validRole) throw new Error("User is not permitted to update this host.");
 
     const [newHostData] = await pg<PartyBoxHost>("hosts")
-      .where("hostId", "=", hostId)
+      .where("id", "=", Number(hostId))
       .update({
         name,
         description,
