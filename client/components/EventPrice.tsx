@@ -38,12 +38,12 @@ const EventPrice: FC<PartyBoxEventPrice> = ({ price, paymentLink, free, name }) 
             phoneNumber: Yup.string().required("Phone number is required").length(10, "Phone number must be 10 digits"),
           })}
         >
-          {({ handleChange, values, handleSubmit, setFieldValue }) => (
+          {({ handleChange, values, handleSubmit, setFieldValue, errors }) => (
             <Form onSubmit={handleSubmit} className="flex gap-4 flex-col">
-              <FormGroup name="name" label="Name">
+              <FormGroup error={errors.name} label="Name">
                 <Input name="name" onChange={handleChange} value={values.name} />
               </FormGroup>
-              <FormGroup name="phoneNumber" label="Phone Number">
+              <FormGroup error={errors.phoneNumber} label="Phone Number">
                 <Input name="phoneNumber" onChange={handleChange} type="tel" value={values.phoneNumber} />
               </FormGroup>
               <div>
