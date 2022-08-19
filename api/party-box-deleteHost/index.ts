@@ -1,5 +1,12 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, decodeJwt, PartyBoxHost, verifyHostRoles, getS3Client } from "@party-box/common";
+import {
+  getPostgresClient,
+  decodeJwt,
+  PartyBoxHost,
+  verifyHostRoles,
+  getS3Client,
+  PartyBoxHostRole,
+} from "@party-box/common";
 import { DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -27,6 +34,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const validRole = await verifyHostRoles(pg, userId, Number(hostId), ["admin"]);
     if (!validRole) throw new Error("User is not permitted to update this host.");
 
+    await pg<PartyBoxHostRole>("hostRoles").where("hostId", "=", Number(hostId)).del();
     await pg<PartyBoxHost>("hosts").where("id", "=", Number(hostId)).del();
 
     const objects = await s3.send(
