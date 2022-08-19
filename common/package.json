@@ -1,6 +1,6 @@
 {
   "name": "@party-box/common",
-  "version": "1.0.43",
+  "version": "1.0.45",
   "description": "Shared code between components of the Party Box codebase.",
   "types": "./dist/types.d.ts",
   "source": "./src/index.ts",
@@ -27,6 +27,7 @@
     "dist"
   ],
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.150.0",
     "@aws-sdk/client-secrets-manager": "^3.137.0",
     "jsonwebtoken": "^8.5.1",
     "knex": "^2.2.0",

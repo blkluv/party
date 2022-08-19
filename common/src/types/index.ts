@@ -1,5 +1,9 @@
 export type { default as PartyBoxUser } from "./PartyBoxUser";
+
 export type { default as PartyBoxHost } from "./PartyBoxHost";
+export type { default as PartyBoxCreateHostInput } from "./PartyBoxCreateHostInput";
+export type { default as PartyBoxUpdateHostInput } from "./PartyBoxUpdateHostInput";
+
 export type { default as PartyBoxHostRole } from "./PartyBoxHostRole";
 export type { default as Role } from "./Role";
 
