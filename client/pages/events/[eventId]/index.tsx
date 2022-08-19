@@ -72,7 +72,7 @@ const Page = () => {
   return (
     <div className="flex flex-col mx-auto max-w-6xl w-full md:flex-row">
       <MetaData title={`${eventData.name}`} />
-      <div className="relative overflow-hidden rounded-md mx-auto md:flex-1">
+      <div className="relative overflow-hidden rounded-md mx-auto md:flex-1 md:w-auto w-full">
         {showLeftMediaButton && (
           <div
             className="absolute top-1/2 left-6 -translate-x-1/2 rounded-full p-1 bg-opacity-50 backdrop-filter backdrop-blur-sm bg-gray-900 hover:bg-gray-800 cursor-pointer transition flex items-center justify-center"
