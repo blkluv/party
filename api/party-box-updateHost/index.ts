@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, decodeJwt, PartyBoxHost, PartyBoxHostRole } from "@party-box/common";
+import { getPostgresClient, decodeJwt, PartyBoxHost, verifyHostRoles } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   hostId: string;
@@ -23,21 +23,17 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { name, description, imageUrl } = JSON.parse(event.body);
 
     const { sub: userId } = decodeJwt(Authorization, ["admin", "user"]);
+    if (!userId) throw new Error("User ID missing.");
 
     // Check whether the user is an admin/manager of the host.
-    const hostRole = await pg<PartyBoxHostRole>("hostRoles")
-      .select("role")
-      .where([["hostId", "=", hostId], ["userId", "=", userId]]).first();
-
-    if (!hostRole) throw Error("Couldn't find host role record.");
-
-    if (hostRole.role !== "admin" && hostRole.role !== "manager") throw new Error("User is not permitted to update this host.");
+    const validRole = await verifyHostRoles(pg, userId, Number(hostId), ["admin", "manager"]);
+    if (!validRole) throw new Error("User is not permitted to update this host.");
 
     const [newHostData] = await pg<PartyBoxHost>("hosts")
       .insert({
         name,
         description,
-        imageUrl
+        imageUrl,
       })
       .returning("*");
 
