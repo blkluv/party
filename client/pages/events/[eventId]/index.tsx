@@ -43,7 +43,7 @@ const Page: FC<Props> = ({ eventData }) => {
 
   return (
     <div className="flex flex-col mx-auto max-w-6xl w-full md:flex-row">
-      <MetaData title={`${eventData.name}`} />
+      <MetaData title={`${eventData.name}`} description={eventData.description} image={eventData.thumbnail}/>
       <div className="relative overflow-hidden rounded-md mx-auto md:flex-1 md:w-auto w-full">
         {showLeftMediaButton && (
           <div
