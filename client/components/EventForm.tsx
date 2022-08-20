@@ -208,36 +208,44 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                   onValueChange={(value) => setFieldValue("startTime.day", value)}
                   value={values.startTime.day}
                 >
-                  <SelectOption value="" disabled>Day</SelectOption>
+                  <SelectOption value="" disabled>
+                    Day
+                  </SelectOption>
                   {[
                     ...Array(
                       dayjs().year(Number(values.startTime.year)).month(Number(values.startTime.month)).daysInMonth()
                     ),
                   ].map((_, day) => (
-                    <SelectOption key={day} value={day.toString()}>
-                      {day + 1}
-                    </SelectOption>
+                    <SelectOption key={day} value={day.toString()} textValue={(day + 1).toString()} />
                   ))}
                 </Select>
               </FormGroup>
               <FormGroup label="Month">
-                <Select name="startTime.month" onValueChange={(value) => setFieldValue("startTime.month", value)} value={values.startTime.month}>
+                <Select
+                  name="startTime.month"
+                  onValueChange={(value) => setFieldValue("startTime.month", value)}
+                  value={values.startTime.month}
+                >
                   {dayjs
                     .localeData()
                     .monthsShort()
                     .map((month, i) => (
-                      <option key={month} value={i.toString()}>
-                        {month}
-                      </option>
+                      <SelectOption key={month} value={i.toString()} textValue={month} />
                     ))}
                 </Select>
               </FormGroup>
               <FormGroup label="Year">
-                <Select name="startTime.year" onValueChange={(value) => setFieldValue("startTime.year", value)} value={values.startTime.year}>
+                <Select
+                  name="startTime.year"
+                  onValueChange={(value) => setFieldValue("startTime.year", value)}
+                  value={values.startTime.year}
+                >
                   {[...Array(5)].map((_, year) => (
-                    <option key={year} value={(dayjs().year() + year).toString()}>
-                      {dayjs().year() + year}
-                    </option>
+                    <SelectOption
+                      key={year}
+                      value={(dayjs().year() + year).toString()}
+                      textValue={(dayjs().year() + year).toString()}
+                    />
                   ))}
                 </Select>
               </FormGroup>
@@ -258,9 +266,13 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                 <Input name="startTime.minute" onChange={handleChange} value={values.startTime.minute} />
               </FormGroup>
               <FormGroup label="Modifier">
-                <Select name="startTime.modifier" onValueChange={(value) => setFieldValue("startTime.modifier", value)} value={values.startTime.modifier}>
-                  <option value="AM">AM</option>
-                  <option value="PM">PM</option>
+                <Select
+                  name="startTime.modifier"
+                  onValueChange={(value) => setFieldValue("startTime.modifier", value)}
+                  value={values.startTime.modifier}
+                >
+                  <SelectOption value="AM" textValue="AM" />
+                  <SelectOption value="PM" textValue="PM" />
                 </Select>
               </FormGroup>
             </div>
