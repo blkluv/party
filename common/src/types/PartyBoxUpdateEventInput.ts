@@ -3,7 +3,6 @@ import PartyBoxEventPrice from "./PartyBoxEventPrice";
 import PartyBoxUpdateNotificationInput from "./PartyBoxUpdateNotificationInput";
 
 interface PartyBoxUpdateEventInput {
-  id: string;
   name: string;
   description: string;
 
