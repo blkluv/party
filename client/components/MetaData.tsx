@@ -27,6 +27,8 @@ const MetaData: FC<Props> = ({ title, description, image, ...props }) => {
       <link href="/icons/icon-16x16.png" rel="icon" type="image/png" sizes="16x16" />
       <link href="/icons/icon-32x32.png" rel="icon" type="image/png" sizes="32x32" />
       <link rel="apple-touch-icon" href="/icons/icon-180x180.png" />
+      <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+      <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
       <title>{formattedTitle}</title>
       <meta property="og:title" content={formattedTitle} />
       <meta property="og:description" content={description} />
