@@ -1,12 +1,10 @@
-import Image from "next/image";
 import React from "react";
+import { LoadingIcon } from "./Icons";
 
 const LoadingScreen = () => {
   return (
     <div className="flex-1 flex justify-center items-center w-full">
-      <div className="relative w-24 h-24 animate-bounce">
-        <Image src="/images/Logo.svg" alt="Logo" layout="fill" objectFit="cover" />
-      </div>
+      <LoadingIcon className="text-white animate-spin" size={35} />
     </div>
   );
 };
