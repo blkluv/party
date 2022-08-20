@@ -32,6 +32,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     hashtags,
     notifications = [],
     hostId,
+    published,
   } = JSON.parse(event.body ?? "{}") as PartyBoxCreateEventInput;
   const { websiteUrl } = event.stageVariables as StageVariables;
   const { stage } = event.requestContext;
@@ -58,14 +59,14 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const [{ id: eventId }] = await pg<PartyBoxEvent>("events")
       .insert({
-        hostId,
+        hostId: Number(hostId),
         name,
         description,
         maxTickets: Number(maxTickets),
         startTime,
         endTime,
         location,
-        published: false,
+        published,
         media: [],
         thumbnail: "",
         hashtags,
@@ -144,7 +145,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     });
 
     // Update the event with data created above
-    // We store prices as JSON because we don't actually care about indexing them. 
+    // We store prices as JSON because we don't actually care about indexing them.
     // Having another table is overkill.
     const [eventData] = await pg<PartyBoxEvent>("events")
       .where("id", "=", eventId)

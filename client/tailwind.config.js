@@ -14,6 +14,11 @@ module.exports = {
           DEFAULT: "#ff914d",
           dark: "#cc743d",
         },
+        palette: {
+          blue: "#6F81BE",
+          purple: "#BA83E8",
+          red: "#E88883",
+        }
       },
     },
   },

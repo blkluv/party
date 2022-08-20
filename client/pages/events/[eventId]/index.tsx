@@ -1,45 +1,38 @@
 /* eslint-disable @next/next/no-img-element */
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { LeftCaretIcon, LoadingIcon, PencilIcon, RightCaretIcon, TrashIcon } from "~/components/Icons";
+import { FC, useEffect, useState } from "react";
+import { LeftCaretIcon, RightCaretIcon } from "~/components/Icons";
 import MetaData from "~/components/MetaData";
 import { PartyBoxEvent } from "@party-box/common";
-import deleteEvent from "~/utils/deleteEvent";
-import getToken from "~/utils/getToken";
 import isUserAdmin from "~/utils/isUserAdmin";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import getEvent from "~/utils/getEvent";
-import LoadingScreen from "~/components/LoadingScreen";
 import EventPrice from "~/components/EventPrice";
+import { NextPageContext } from "next";
+import { API_URL } from "~/config/config";
+import EventAdminToolbar from "~/components/EventAdminToolbar";
+dayjs.extend(relativeTime);
 
-const Page = () => {
+interface Props {
+  eventData: PartyBoxEvent;
+}
+
+const Page: FC<Props> = ({ eventData }) => {
   const { user } = useAuthenticator();
-  const router = useRouter();
 
-  const [loading, setLoading] = useState({ delete: false, event: true });
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [countdown, setCountDown] = useState("");
-  const [eventData, setEventData] = useState<PartyBoxEvent | null>(null);
 
   const admin = isUserAdmin(user);
   const showLeftMediaButton = currentMediaIndex > 0;
   const showRightMediaButton = currentMediaIndex < eventData?.media?.length - 1;
 
-  const handleDelete = async () => {
-    setLoading((prev) => ({ ...prev, delete: true }));
-    await deleteEvent(eventData.id, getToken(user));
-    setLoading((prev) => ({ ...prev, delete: false }));
-
-    await router.push("/");
-  };
-
   useEffect(() => {
     if (!eventData) return;
 
+    setCountDown(dayjs(new Date(eventData.startTime).toISOString()).fromNow());
+
     const interval = setInterval(() => {
-      dayjs.extend(relativeTime);
       setCountDown(dayjs(new Date(eventData.startTime).toISOString()).fromNow());
     }, 1000);
 
@@ -47,27 +40,6 @@ const Page = () => {
       clearInterval(interval);
     };
   }, [eventData]);
-
-  // Fetch data on page load
-  useEffect(() => {
-    (async () => {
-      if (!router.query.eventId) return;
-
-      try {
-        const event = await getEvent(router.query.eventId as string);
-        setEventData(event);
-
-        if (!event) throw new Error("Event not found");
-      } catch (error) {
-        console.error(error);
-        await router.push("/");
-      } finally {
-        setLoading((prev) => ({ ...prev, event: false }));
-      }
-    })();
-  }, [router]);
-
-  if (loading.event || !eventData) return <LoadingScreen />;
 
   return (
     <div className="flex flex-col mx-auto max-w-6xl w-full md:flex-row">
@@ -94,24 +66,11 @@ const Page = () => {
         )}
       </div>
       <div className="p-3 md:p-6 flex flex-col gap-6 md:flex-1">
-        {admin && (
-          <div className="flex gap-4 justify-center">
-            <div className="border border-gray-700 p-2 rounded-md flex justify-center max-w-max items-center cursor-pointer hover:bg-primary dark:hover:bg-primary transition gap-2">
-              <TrashIcon onClick={handleDelete} />
-              {loading.delete && <LoadingIcon className="animate-spin" size={20} />}
-            </div>
-            <div
-              className="border border-gray-700 p-2 rounded-md flex justify-center max-w-max items-center cursor-pointer hover:bg-primary dark:hover:bg-primary transition gap-2"
-              onClick={() => eventData.id && router.push(`/events/${eventData.id}/edit`)}
-            >
-              <PencilIcon />
-            </div>
-          </div>
-        )}
+        {admin && <EventAdminToolbar eventId={eventData.id} />}
         <div>
           <h2 className="font-bold text-3xl md:text-4xl text-center">{eventData.name}</h2>
           <p className="text-sm text-center mt-1 md:text-base">
-            {new Date(eventData.startTime).toDateString()} at {new Date(eventData.startTime).toLocaleTimeString()} -{" "}
+            {new Date(eventData.startTime).toDateString()} at {new Date(eventData.startTime).toLocaleTimeString()} -
             {countdown}
           </p>
         </div>
@@ -126,6 +85,27 @@ const Page = () => {
       </div>
     </div>
   );
+};
+
+export const getServerSideProps = async (context: NextPageContext) => {
+  const eventId = context.query.eventId;
+  const data = await fetch(`${API_URL}/events/${eventId}`);
+
+  if (!data.ok) {
+    return {
+      redirect: {
+        destination: "/",
+      },
+    };
+  }
+
+  const event = await data.json();
+
+  return {
+    props: {
+      eventData: event,
+    },
+  };
 };
 
 export default Page;

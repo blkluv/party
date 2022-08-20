@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { PartyBoxEvent, PartyBoxHost } from "@party-box/common";
 import getToken from "~/utils/getToken";
-import { CustomErrorMessage, FileUploadField, Select, TextArea } from "./form";
+import { CustomErrorMessage, FileUploadField, TextArea } from "./form";
 import FormGroup from "./form/FormGroup";
 import FormPreviewImage from "./FormPreviewImage";
 import { CloseIcon, LoadingIcon } from "./Icons";
@@ -12,7 +12,17 @@ import defaultEventData from "~/utils/defaultEventData";
 import formatEventFormValues from "~/utils/formatEventFormValues";
 import dayjs from "dayjs";
 import eventFormSchema from "~/schema/eventFormSchema";
-import { Switch, Button, Input, Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from "@conorroberts/beluga";
+import {
+  Switch,
+  Button,
+  Input,
+  Dropdown,
+  DropdownTrigger,
+  DropdownContent,
+  DropdownItem,
+  Select,
+  SelectOption,
+} from "@conorroberts/beluga";
 import createEvent from "~/utils/createEvent";
 import axios from "axios";
 import Image from "next/image";
@@ -193,20 +203,25 @@ const EventForm: FC<Props> = ({ initialValues }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid grid-cols-3 gap-1">
               <FormGroup label="Day">
-                <Select name="startTime.day" placeholder="Day" onChange={handleChange} value={values.startTime.day}>
+                <Select
+                  name="startTime.day"
+                  onValueChange={(value) => setFieldValue("startTime.day", value)}
+                  value={values.startTime.day}
+                >
+                  <SelectOption value="" disabled>Day</SelectOption>
                   {[
                     ...Array(
                       dayjs().year(Number(values.startTime.year)).month(Number(values.startTime.month)).daysInMonth()
                     ),
                   ].map((_, day) => (
-                    <option key={day} value={day.toString()}>
+                    <SelectOption key={day} value={day.toString()}>
                       {day + 1}
-                    </option>
+                    </SelectOption>
                   ))}
                 </Select>
               </FormGroup>
               <FormGroup label="Month">
-                <Select name="startTime.month" onChange={handleChange} value={values.startTime.month}>
+                <Select name="startTime.month" onValueChange={(value) => setFieldValue("startTime.month", value)} value={values.startTime.month}>
                   {dayjs
                     .localeData()
                     .monthsShort()
@@ -218,7 +233,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                 </Select>
               </FormGroup>
               <FormGroup label="Year">
-                <Select name="startTime.year" onChange={handleChange} value={values.startTime.year}>
+                <Select name="startTime.year" onValueChange={(value) => setFieldValue("startTime.year", value)} value={values.startTime.year}>
                   {[...Array(5)].map((_, year) => (
                     <option key={year} value={(dayjs().year() + year).toString()}>
                       {dayjs().year() + year}
@@ -228,7 +243,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
               </FormGroup>
             </div>
             <div className="grid grid-cols-3 gap-1">
-              <FormGroup label="Hour" >
+              <FormGroup label="Hour">
                 <Input
                   name="startTime.hour"
                   placeholder="Hour"
@@ -239,11 +254,11 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                   max={12}
                 />
               </FormGroup>
-              <FormGroup label="Minute" >
+              <FormGroup label="Minute">
                 <Input name="startTime.minute" onChange={handleChange} value={values.startTime.minute} />
               </FormGroup>
               <FormGroup label="Modifier">
-                <Select name="startTime.modifier" onChange={handleChange} value={values.startTime.modifier}>
+                <Select name="startTime.modifier" onValueChange={(value) => setFieldValue("startTime.modifier", value)} value={values.startTime.modifier}>
                   <option value="AM">AM</option>
                   <option value="PM">PM</option>
                 </Select>

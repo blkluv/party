@@ -4,7 +4,7 @@ import { Auth } from "aws-amplify";
 import Image from "next/image";
 import Link from "next/link";
 import isUserAdmin from "~/utils/isUserAdmin";
-import { Drawer } from "./form";
+import { Drawer } from "@conorroberts/beluga";
 import { OutlinedPlusIcon, PersonIcon, SignInIcon, SignOutIcon } from "./Icons";
 
 interface Props {
@@ -17,10 +17,11 @@ const NavigationDrawer = ({ setOpen, open }: Props) => {
   const admin = isUserAdmin(user);
 
   return (
-    <Drawer onClose={() => setOpen(false)} open={open}>
+    <Drawer onOpenChange={() => setOpen(false)} open={open} >
       <div className="flex flex-col h-full">
-        <div className="w-full h-20 relative">
-          <Image src="/images/Party_Box.svg" layout="fill" objectFit="cover" alt="Orange text reading Party Box" />
+        <div className="flex items-center gap-4 justify-center mb-4">
+          <Image src="/images/Logo.svg" width={25} height={25} alt="Logo" />
+          <h1 className="text-white text-xl font-bold">Party Box</h1>
         </div>
         {admin && (
           <>
