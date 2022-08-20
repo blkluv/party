@@ -4056,10 +4056,10 @@
     "@babel/helper-validator-identifier" "^7.18.6"
     to-fast-properties "^2.0.0"
 
-"@conorroberts/beluga@^1.0.24":
-  version "1.0.24"
-  resolved "https://registry.yarnpkg.com/@conorroberts/beluga/-/beluga-1.0.24.tgz#447cd0942347ad891de134e4a0803f40fcbb04fc"
-  integrity sha512-LU3XmeWAItcdJ0iU+iXWUy6JYzhstj//hHPP8rmYInfK6WyK7jgbWeVTZrYcnSKpcq+eUhUPVqv131856JNeDw==
+"@conorroberts/beluga@^1.0.26":
+  version "1.0.26"
+  resolved "https://registry.yarnpkg.com/@conorroberts/beluga/-/beluga-1.0.26.tgz#da1829ff9ec4ea1228977530766ab4565e81b609"
+  integrity sha512-nYeulR8lORPoQSfo5DHYBICW8gu0xoxhKdib3jcSkiShlDyIATjt+t5gcLDeXWfZ0Hj4YznbbSEZwwL8LM+35A==
   dependencies:
     "@ladle/react" "^2.1.0"
     "@radix-ui/react-checkbox" "^1.0.0"
@@ -4545,7 +4545,7 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@party-box/common@^1.0.24", "@party-box/common@^1.0.27", "@party-box/common@^1.0.28", "@party-box/common@^1.0.32", "@party-box/common@^1.0.34", "@party-box/common@^1.0.41", "@party-box/common@^1.0.43", "@party-box/common@^1.0.44", "@party-box/common@^1.0.46", "@party-box/common@latest":
+"@party-box/common@^1.0.24", "@party-box/common@^1.0.27", "@party-box/common@^1.0.28", "@party-box/common@^1.0.32", "@party-box/common@^1.0.34", "@party-box/common@^1.0.43", "@party-box/common@^1.0.44", "@party-box/common@^1.0.46", "@party-box/common@latest":
   version "1.0.46"
   resolved "https://registry.yarnpkg.com/@party-box/common/-/common-1.0.46.tgz#a8c55c4004f07532f39dbed20a2c7e6df86b98bf"
   integrity sha512-SZzI80++F27iSwx6ZfcM98rhm1RrtO1cJkZkrWDTpjInBTMJ3tmWmQ1le9wyWDyskoWzZGSIE+drunhlJ1PTuQ==

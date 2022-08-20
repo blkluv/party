@@ -27,7 +27,7 @@ interface PartyBoxCreateEventInput {
 
   notifications: PartyBoxEventNotification[];
 
-  hostId: string;
+  hostId: number;
   published: boolean;
 }
 

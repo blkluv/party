@@ -5,6 +5,7 @@ const deleteEvent = async (id: number, token: string) => {
     await axios.delete(`/api/events/${id}`, { headers: { Authorization: `Bearer ${token}` } });
   } catch (error) {
     console.log(error);
+    throw error;
   }
 };
 

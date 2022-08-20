@@ -1,4 +1,3 @@
-import Image from "next/image";
 import MetaData from "~/components/MetaData";
 import Testimonial from "~/components/Testimonial";
 import UpcomingEvents from "~/components/UpcomingEvents";
@@ -7,15 +6,8 @@ const Page = () => {
   return (
     <div className="mx-auto max-w-5xl w-full flex flex-col gap-8 sm:gap-16">
       <MetaData title="Home" />
-      <div className="w-full h-72 relative mx-auto">
-        <Image
-          src="/images/Party_Box.svg"
-          layout="fill"
-          objectFit="cover"
-          alt="Orange text reading Party Box"
-          priority
-          loading="eager"
-        />
+      <div className="mx-auto flex gap-8 items-center">
+        <h1 className="font-bold text-5xl sm:text-7xl logo-gradient py-2">Party Box</h1>
       </div>
       <UpcomingEvents />
 

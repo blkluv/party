@@ -3,7 +3,7 @@ import axios from "axios";
 import { NextPageContext } from "next";
 import { FC, useCallback, useEffect, useState } from "react";
 import QRCode from "react-qr-code";
-import { Button } from "~/components/form";
+import { Button } from "@conorroberts/beluga";
 import LoadingScreen from "~/components/LoadingScreen";
 import MetaData from "~/components/MetaData";
 import { API_URL } from "~/config/config";
@@ -98,7 +98,7 @@ const Page: FC<PageProps> = ({ ticket: initialTicket }) => {
       </div>
 
       <a href={ticket.receiptUrl} target="_blank" rel="noreferrer">
-        <Button variant="outline">View Receipt</Button>
+        <Button variant="outlined" color="gray">View Receipt</Button>
       </a>
     </div>
   );
