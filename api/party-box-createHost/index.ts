@@ -2,7 +2,7 @@ import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 import { getPostgresClient, decodeJwt, PartyBoxHost, PartyBoxHostRole } from "@party-box/common";
 
 /**
- * Create a host entity within Postgres
+ * Create a host entity within Postgres and add the creator as an admin
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(JSON.stringify(event));
@@ -17,7 +17,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const { name, description } = JSON.parse(event.body);
 
-    const { sub: userId } = decodeJwt(Authorization, ["admin", "user"]);
+    const { sub: userId } = decodeJwt(Authorization, ["host"]);
 
     const [newHostData] = await pg<PartyBoxHost>("hosts")
       .insert({
