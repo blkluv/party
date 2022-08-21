@@ -27,7 +27,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     if (!validRole) throw new Error("User does not have permission to get roles for this host");
 
     const hostUsers = await pg<PartyBoxHostRole>("hostRoles")
-      .select("*")
+      .select("hostRoles.role", "users.id", "users.email", "users.name")
       .where("hostId", "=", Number(hostId))
       .innerJoin<PartyBoxUser>("users", "hostRoles.userId", "users.id");
 
