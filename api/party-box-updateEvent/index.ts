@@ -13,6 +13,7 @@ import {
   PartyBoxEvent,
   PartyBoxEventNotification,
   PartyBoxUpdateEventInput,
+  verifyHostRoles,
 } from "@party-box/common";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
@@ -36,10 +37,16 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { websiteUrl } = event.stageVariables as StageVariables;
 
   try {
-    const { sub: _sub } = decodeJwt(Authorization, ["admin"]);
+    const { sub: userId } = decodeJwt(Authorization, ["host"]);
+
+    if (!userId) throw Error("Missing userId");
 
     const stripeClient = await getStripeClient(stage);
     const pg = await getPostgresClient(stage);
+
+    const validRoles = await verifyHostRoles(pg, userId, Number(body.hostId), ["admin", "manager"]);
+
+    if (!validRoles) throw Error("User is not authorized to update event");
 
     const [newEventData] = await pg<PartyBoxEvent>("events")
       .where("id", "=", Number(eventId))
@@ -110,23 +117,21 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     }
 
     const newNotifications: PartyBoxEventNotification[] = [];
-    for (const n of notifications) {
-      if ("id" in n) {
-        const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
-          .where("id", "=", n.id)
-          .update(n)
-          .returning("*");
 
-        newNotifications.push(newNotificationData);
-      } else {
-        const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
-          .insert<PartyBoxCreateNotificationInput>({
-          ...n,
-          eventId: Number(eventId),
-        })
-          .returning("*");
-        newNotifications.push(newNotificationData);
-      }
+    // Clear all existing notifications
+    await pg<PartyBoxEventNotification>("eventNotifications").where("eventId", "=", Number(eventId)).del();
+
+    for (const n of notifications) {
+      const tmp = {
+        ...n,
+        eventId: Number(eventId),
+      };
+
+      const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
+        .insert<PartyBoxCreateNotificationInput>(tmp)
+        .returning("*");
+
+      newNotifications.push(newNotificationData);
     }
 
     return {
