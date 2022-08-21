@@ -1,7 +1,6 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { PartyBoxEvent } from "@party-box/common";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import EventForm from "~/components/EventForm";
 import LoadingScreen from "~/components/LoadingScreen";
 import MetaData from "~/components/MetaData";
@@ -11,12 +10,11 @@ import isUserAdmin from "~/utils/isUserAdmin";
 
 const Page = () => {
   const { user } = useAuthenticator();
-  const [eventData, setEventData] = useState<PartyBoxEvent | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    (async () => {
+  const { data: eventData, isLoading: loading } = useQuery(
+    "getFullEventData",
+    async () => {
       // If we're still waiting on user data or event id, don't do anything
       if (!user || !router.query.eventId) return;
 
@@ -26,16 +24,13 @@ const Page = () => {
       }
 
       // We are an admin, so fetch the event data
-      try {
-        const event = await getFullEvent(router.query.eventId as string, getToken(user));
-        setEventData(event);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [user, router]);
+      const event = await getFullEvent(router.query.eventId as string, getToken(user));
+      return event;
+    },
+    {
+      enabled: Boolean(user && router.query.eventId),
+    }
+  );
 
   if (loading) return <LoadingScreen />;
 

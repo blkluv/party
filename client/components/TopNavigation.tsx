@@ -13,9 +13,8 @@ const TopNavigation = ({ setDrawerOpen }: Props) => {
         <Menu size={20} />
       </div>
       <Link passHref href="/">
-        <a className="cursor-pointer flex gap-4 items-center">
-          <Image src="/images/Logo.svg" width={22} height={22} alt="Logo" priority loading="eager" />
-          <p className="font-bold text-lg">Party Box</p>
+        <a className="cursor-pointer flex items-center relative w-16 h-6">
+          <Image src="/images/Logo.png" layout="fill" objectFit="contain" alt="Logo" priority loading="eager" />
         </a>
       </Link>
     </div>

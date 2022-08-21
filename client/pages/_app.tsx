@@ -10,8 +10,10 @@ import TopNavigation from "~/components/TopNavigation";
 import BottomNavigation from "~/components/BottomNavigation";
 import { Authenticator } from "@aws-amplify/ui-react";
 import LoadingScreen from "~/components/LoadingScreen";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 Amplify.configure(amplifyConfig);
+const queryClient = new QueryClient();
 
 const App = ({ Component, pageProps }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -40,14 +42,16 @@ const App = ({ Component, pageProps }) => {
   }, [router.pathname]);
 
   return (
-    <Authenticator.Provider>
-      <div className="flex flex-col bg-gray-100 dark:bg-gray-900 text-black dark:text-white min-h-screen md:pt-16 pb-24 md:pb-2 relative px-2 pt-2">
-        <TopNavigation setDrawerOpen={setDrawerOpen} />
-        {loading ? <LoadingScreen /> : <Component {...pageProps} />}
-        {drawerOpen && <NavigationDrawer setOpen={setDrawerOpen} open={drawerOpen} />}
-        <BottomNavigation setDrawerOpen={setDrawerOpen} />
-      </div>
-    </Authenticator.Provider>
+    <QueryClientProvider client={queryClient}>
+      <Authenticator.Provider>
+        <div className="flex flex-col bg-gray-100 dark:bg-gray-900 text-black dark:text-white min-h-screen md:pt-16 pb-24 md:pb-2 relative px-2 pt-2">
+          <TopNavigation setDrawerOpen={setDrawerOpen} />
+          {loading ? <LoadingScreen /> : <Component {...pageProps} />}
+          {drawerOpen && <NavigationDrawer setOpen={setDrawerOpen} open={drawerOpen} />}
+          <BottomNavigation setDrawerOpen={setDrawerOpen} />
+        </div>
+      </Authenticator.Provider>
+    </QueryClientProvider>
   );
 };
 

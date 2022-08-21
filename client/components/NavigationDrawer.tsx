@@ -6,6 +6,7 @@ import Link from "next/link";
 import isUserAdmin from "~/utils/isUserAdmin";
 import { Drawer } from "@conorroberts/beluga";
 import { OutlinedPlusIcon, PersonIcon, SignInIcon, SignOutIcon } from "./Icons";
+import isUserHost from "~/utils/isUserHost";
 
 interface Props {
   setOpen: (value: boolean) => void;
@@ -15,15 +16,20 @@ interface Props {
 const NavigationDrawer = ({ setOpen, open }: Props) => {
   const { user, signOut } = useAuthenticator();
   const admin = isUserAdmin(user);
+  const host = isUserHost(user);
+
+  const signIn = async () => {
+    await Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google });
+    await Auth.currentSession();
+  };
 
   return (
-    <Drawer onOpenChange={() => setOpen(false)} open={open} >
+    <Drawer onOpenChange={() => setOpen(false)} open={open}>
       <div className="flex flex-col h-full">
-        <div className="flex items-center gap-4 justify-center mb-4">
-          <Image src="/images/Logo.svg" width={25} height={25} alt="Logo" />
-          <h1 className="text-white text-xl font-bold">Party Box</h1>
+        <div className="relative w-24 h-12 mx-auto">
+          <Image src="/images/Logo.png" layout="fill" objectFit="contain" alt="Logo" priority loading="eager" />
         </div>
-        {admin && (
+        {(admin || host) && (
           <>
             <Link href="/user/hosts" passHref>
               <div className="nav-drawer-button">
@@ -41,10 +47,7 @@ const NavigationDrawer = ({ setOpen, open }: Props) => {
           </>
         )}
         {!user && (
-          <div
-            className="nav-drawer-button"
-            onClick={() => Auth.federatedSignIn({ provider: CognitoHostedUIIdentityProvider.Google })}
-          >
+          <div className="nav-drawer-button" onClick={signIn}>
             <SignInIcon size={20} />
             <p>Sign In</p>
           </div>

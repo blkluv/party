@@ -1,3 +1,4 @@
+import Image from "next/image";
 import MetaData from "~/components/MetaData";
 import Testimonial from "~/components/Testimonial";
 import UpcomingEvents from "~/components/UpcomingEvents";
@@ -7,8 +8,12 @@ const Page = () => {
     <div className="mx-auto max-w-5xl w-full flex flex-col gap-8 sm:gap-16">
       <MetaData title="Home" />
       <div className="mx-auto flex gap-8 items-center">
-        <h1 className="font-bold text-5xl sm:text-7xl logo-gradient py-2">Party Box</h1>
+        {/* <h1 className="font-bold text-5xl sm:text-7xl logo-gradient py-2">Party Box</h1> */}
+        <div className="relative w-[300px] h-[150px] sm:w-[500px] sm:h-[200px]">
+          <Image src="/images/Logo.png" alt="Logo" layout="fill" objectFit="contain" priority loading="eager" />
+        </div>
       </div>
+
       <UpcomingEvents />
 
       <div>

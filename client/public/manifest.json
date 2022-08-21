@@ -2,7 +2,7 @@
   "name": "Party Box",
   "short_name": "Party Box",
   "theme_color": "#BA83E8",
-  "background_color": "#BA83E8",
+  "background_color": "#171717",
   "display": "fullscreen",
   "orientation": "portrait",
   "scope": "/",

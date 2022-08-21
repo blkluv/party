@@ -128,7 +128,6 @@ const EventForm: FC<Props> = ({ initialValues }) => {
         } catch (error) {
           console.error(error);
         }
-        console.log("Submitted");
       }}
       initialValues={initialValues ? formatEventFormValues(initialValues) : defaultEventData}
     >
@@ -216,7 +215,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                       dayjs().year(Number(values.startTime.year)).month(Number(values.startTime.month)).daysInMonth()
                     ),
                   ].map((_, day) => (
-                    <SelectOption key={day} value={day.toString()} textValue={(day + 1).toString()} />
+                    <SelectOption key={day} value={(day + 1).toString()} textValue={(day + 1).toString()} />
                   ))}
                 </Select>
               </FormGroup>
@@ -345,7 +344,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                         <Input
                           onChange={handleChange}
                           name={`prices.${i}.name`}
-                          value={values.prices[i].name}
+                          value={e.name}
                           placeholder="Name"
                         />
                       </FormGroup>
@@ -353,7 +352,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                         <Input
                           onChange={handleChange}
                           name={`prices.${i}.price`}
-                          value={values.prices[i].price}
+                          value={e.price}
                           placeholder="Price"
                           type="number"
                         />
@@ -389,7 +388,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                         <Input
                           onChange={handleChange}
                           name={`notifications.${i}.days`}
-                          value={values.notifications[i].days}
+                          value={e.days}
                           type="number"
                         />
                       </FormGroup>
@@ -397,7 +396,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                         <Input
                           onChange={handleChange}
                           name={`notifications.${i}.hours`}
-                          value={values.notifications[i].hours}
+                          value={e.hours}
                           type="number"
                         />
                       </FormGroup>
@@ -405,7 +404,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                         <Input
                           onChange={handleChange}
                           name={`notifications.${i}.minutes`}
-                          value={values.notifications[i].minutes}
+                          value={e.minutes}
                           type="number"
                         />
                       </FormGroup>
@@ -415,7 +414,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                       placeholder="Message"
                       className="h-24"
                       onChange={handleChange}
-                      value={values.notifications[i].message}
+                      value={e.message}
                     />
                   </div>
                 ))}
