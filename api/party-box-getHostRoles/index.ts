@@ -28,7 +28,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const hostUsers = await pg<PartyBoxHostRole>("hostRoles")
       .select("*")
-      .where("id", "=", Number(hostId))
+      .where("hostId", "=", Number(hostId))
       .innerJoin<PartyBoxUser>("users", "hostRoles.userId", "users.id");
 
     return {
