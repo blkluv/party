@@ -9,8 +9,8 @@ const Page = () => {
       <MetaData title="Home" />
       <div className="mx-auto flex gap-8 items-center">
         {/* <h1 className="font-bold text-5xl sm:text-7xl logo-gradient py-2">Party Box</h1> */}
-        <div className="relative w-[300px] h-[150px] sm:w-[500px] sm:h-[200px]">
-          <Image src="/images/text-logo.svg" alt="Logo" layout="fill" objectFit="contain" priority loading="eager" />
+        <div className="relative w-[250px] h-[75px] sm:w-[750px] sm:h-[225px]">
+          <Image src="/images/text-logo.svg" alt="Logo" layout="fill" objectFit="contain" priority loading="eager" className="shadow-white shadow-xl" />
         </div>
       </div>
 
