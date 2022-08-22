@@ -7,11 +7,13 @@ import { PartyBoxEvent } from "@party-box/common";
 import isUserAdmin from "~/utils/isUserAdmin";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import EventPrice from "~/components/EventPrice";
 import { NextPageContext } from "next";
 import { API_URL } from "~/config/config";
 import EventAdminToolbar from "~/components/EventAdminToolbar";
 dayjs.extend(relativeTime);
+dayjs.extend(localizedFormat);
 
 interface Props {
   eventData: PartyBoxEvent;
@@ -43,7 +45,7 @@ const Page: FC<Props> = ({ eventData }) => {
 
   return (
     <div className="flex flex-col mx-auto max-w-6xl w-full md:flex-row">
-      <MetaData title={`${eventData.name}`} description={eventData.description} image={eventData.thumbnail}/>
+      <MetaData title={`${eventData.name}`} description={eventData.description} image={eventData.thumbnail} />
       <div className="relative overflow-hidden rounded-md mx-auto md:flex-1 md:w-auto w-full">
         {showLeftMediaButton && (
           <div
@@ -70,8 +72,8 @@ const Page: FC<Props> = ({ eventData }) => {
         <div>
           <h2 className="font-bold text-3xl md:text-4xl text-center">{eventData.name}</h2>
           <p className="text-sm text-center mt-1 md:text-base">
-            {new Date(eventData.startTime).toDateString()} at {new Date(eventData.startTime).toLocaleTimeString()} -
-            {countdown}
+            {`${dayjs(eventData.startTime).toDate().toLocaleDateString()} -
+            ${countdown}`}
           </p>
         </div>
         <p className="text-sm md:text-base">{eventData.description}</p>

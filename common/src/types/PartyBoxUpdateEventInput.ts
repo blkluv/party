@@ -22,6 +22,7 @@ interface PartyBoxUpdateEventInput {
 
   // URL to small image used for previews
   thumbnail: string;
+  hostId: number;
 
   prices: PartyBoxEventPrice[];
   hashtags: string[];

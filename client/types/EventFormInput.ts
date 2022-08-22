@@ -8,6 +8,7 @@ export interface EventFormData {
   maxTickets: string;
   hashtags: string[];
   notifications: {
+    id?: string;
     days: string;
     hours: string;
     minutes: string;

@@ -13,7 +13,8 @@ const dateConvert = (date: EventFormDate) => {
     .date(Number(date.day))
     .hour(date.modifier === "PM" ? Number(date.hour) + 12 : Number(date.hour))
     .minute(Number(date.minute))
-    .second(0);
+    .second(0)
+    .millisecond(0);
 };
 
 interface CreateEventParameters {
@@ -41,14 +42,14 @@ const createEvent = async ({
 }: CreateEventParameters): Promise<PartyBoxEvent> => {
   let eventId = null;
 
-  setUploadState("Creating event");
+  setUploadState(mode === "create" ? "Creating event" : "Updating event");
 
   const eventData = {
     ...values,
     hostId: Number(values.hostId),
     maxTickets: Number(values.maxTickets),
-    startTime: dateConvert(values.startTime),
-    endTime: dateConvert(values.endTime),
+    startTime: dateConvert(values.startTime).toISOString(),
+    endTime: dateConvert(values.endTime).toISOString(),
     prices: values.prices.map((p) => ({ ...p, price: Number(p.price) })),
     notifications: values.notifications.map((n) => ({
       messageTime: dateConvert(values.startTime)
@@ -59,6 +60,7 @@ const createEvent = async ({
       message: n.message,
     })),
   };
+
   if (mode === "create") {
     const { data: event } = await axios.post("/api/events/create", eventData, {
       headers: { Authorization: `Bearer ${token}` },
