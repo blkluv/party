@@ -26,8 +26,8 @@ const NavigationDrawer = ({ setOpen, open }: Props) => {
   return (
     <Drawer onOpenChange={() => setOpen(false)} open={open}>
       <div className="flex flex-col h-full">
-        <div className="relative w-24 h-12 mx-auto">
-          <Image src="/images/Logo.png" layout="fill" objectFit="contain" alt="Logo" priority loading="eager" />
+        <div className="relative w-[120px] h-[60px] mx-auto">
+          <Image src="/images/text-logo.svg" layout="fill" objectFit="contain" alt="Logo" priority loading="eager" />
         </div>
         {(admin || host) && (
           <>

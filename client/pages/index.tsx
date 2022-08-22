@@ -10,7 +10,7 @@ const Page = () => {
       <div className="mx-auto flex gap-8 items-center">
         {/* <h1 className="font-bold text-5xl sm:text-7xl logo-gradient py-2">Party Box</h1> */}
         <div className="relative w-[300px] h-[150px] sm:w-[500px] sm:h-[200px]">
-          <Image src="/images/Logo.png" alt="Logo" layout="fill" objectFit="contain" priority loading="eager" />
+          <Image src="/images/text-logo.svg" alt="Logo" layout="fill" objectFit="contain" priority loading="eager" />
         </div>
       </div>
 
