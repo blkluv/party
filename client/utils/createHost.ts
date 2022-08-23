@@ -1,9 +1,10 @@
 import { PartyBoxHost, PartyBoxCreateHostInput } from "@party-box/common";
 import axios from "axios";
+import uploadMedia from "./uploadMedia";
 
 const createHost = async (newHostData: PartyBoxCreateHostInput, image: File) => {
   try {
-    const { data: createdHost } = await axios.post<PartyBoxHost>("/api/hosts/create");
+    const { data: createdHost } = await axios.post<PartyBoxHost>("/api/hosts/create", newHostData);
 
     const {
       data: { uploadUrl, downloadUrl },
@@ -11,7 +12,7 @@ const createHost = async (newHostData: PartyBoxCreateHostInput, image: File) => 
       name: image.name,
     });
 
-    await axios.put(uploadUrl, image);
+    await uploadMedia(uploadUrl, image);
 
     const { data: updatedHost } = await axios.post<PartyBoxHost>(`/api/hosts/${createdHost.id}`, {
       imageUrl: downloadUrl,

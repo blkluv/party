@@ -3,6 +3,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { EventFormData, EventFormDate } from "~/types/EventFormInput";
 import localeData from "dayjs/plugin/localeData";
+import uploadMedia from "./uploadMedia";
 
 dayjs.extend(localeData);
 
@@ -84,7 +85,7 @@ const createEvent = async ({
     const {
       data: { uploadUrl: posterUploadUrl, downloadUrl: posterDownloadUrl },
     } = await axios.post(`/api/events/${eventId}/media/upload`, { name: file.name });
-    await axios.put(posterUploadUrl, file);
+    await uploadMedia(posterUploadUrl, file);
 
     // Keep track of the poster download URLs so we can update the event with them later
     posters.push(posterDownloadUrl);
@@ -102,7 +103,7 @@ const createEvent = async ({
     const {
       data: { uploadUrl: thumbnailUploadUrl, downloadUrl },
     } = await axios.post(`/api/events/${eventId}/media/upload`, { name: thumbnail.name });
-    await axios.put(thumbnailUploadUrl, thumbnail);
+    await uploadMedia(thumbnailUploadUrl, thumbnail);
 
     thumbnailDownloadUrl = downloadUrl;
   }
