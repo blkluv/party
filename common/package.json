@@ -1,6 +1,6 @@
 {
   "name": "@party-box/common",
-  "version": "1.0.50",
+  "version": "1.0.51",
   "description": "Shared code between components of the Party Box codebase.",
   "types": "./dist/types.d.ts",
   "source": "./src/index.ts",
