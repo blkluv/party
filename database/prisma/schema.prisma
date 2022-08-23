@@ -108,7 +108,7 @@ model Service {
   name        String
   description String?
   imageUrl    String?
-  price       Int
+  price       Float
 
   @@map("services")
 }
