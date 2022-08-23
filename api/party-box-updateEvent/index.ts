@@ -44,7 +44,11 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const stripeClient = await getStripeClient(stage);
     const pg = await getPostgresClient(stage);
 
-    const validRoles = await verifyHostRoles(pg, userId, Number(body.hostId), ["admin", "manager"]);
+    const existingEventData = await pg<PartyBoxEvent>("events").select("*").where("id", "=", Number(eventId)).first();
+
+    if (!existingEventData) throw Error("Existing event not found");
+
+    const validRoles = await verifyHostRoles(pg, userId, Number(existingEventData.hostId), ["admin", "manager"]);
 
     if (!validRoles) throw Error("User is not authorized to update event");
 
