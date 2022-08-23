@@ -1,0 +1,6 @@
+packages:
+  - "client"
+  - "database"
+  - "common"
+  - "api/*"
+  - "scripts"

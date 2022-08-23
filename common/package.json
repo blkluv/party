@@ -1,6 +1,6 @@
 {
   "name": "@party-box/common",
-  "version": "1.0.52",
+  "version": "1.0.53",
   "description": "Shared code between components of the Party Box codebase.",
   "types": "./dist/types.d.ts",
   "source": "./src/index.ts",
@@ -9,7 +9,7 @@
   "scripts": {
     "build": "parcel build",
     "watch": "parcel watch",
-    "postversion": "parcel build && yarn publish"
+    "postversion": "parcel build && pnpm publish"
   },
   "keywords": [],
   "author": "",

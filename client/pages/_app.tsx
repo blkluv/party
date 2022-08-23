@@ -1,9 +1,10 @@
+import "../styles/preflight.css";
 import "../styles/globals.css";
 import "@aws-amplify/ui-react/styles.css";
 import { Amplify, Auth } from "aws-amplify";
 import { useEffect, useState } from "react";
 import amplifyConfig from "~/config/amplify";
-import { Router, useRouter } from "next/router";
+import { Router } from "next/router";
 import NavigationDrawer from "~/components/NavigationDrawer";
 import TopNavigation from "~/components/TopNavigation";
 import BottomNavigation from "~/components/BottomNavigation";
@@ -21,46 +22,42 @@ dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);
 dayjs.extend(localeData);
 
+// Attach the user's access token (JWT) to axios headers if a user is present
+axios.interceptors.request.use(
+  async (config) => {
+    try {
+      const user = await Auth.currentSession();
+
+      config.headers.Authorization = `Bearer ${user.getAccessToken().getJwtToken()}`;
+
+      return config;
+    } catch (error) {
+      return config;
+    }
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 Amplify.configure(amplifyConfig);
 const queryClient = new QueryClient(queryClientConfig);
 
 const App = ({ Component, pageProps }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     // This is used to display a loading screen in transition
     // Helps for when we're fetching data from the server so the user has feedback in the meantime
     Router.events.on("routeChangeStart", () => {
+      setDrawerOpen(false);
       setLoading(true);
     });
     Router.events.on("routeChangeComplete", () => {
       setLoading(false);
     });
-
-    // Attach the user's access token (JWT) to axios headers if a user is present
-    axios.interceptors.request.use(
-      async (config) => {
-        try {
-          const user = await Auth.currentSession();
-
-          config.headers.Authorization = `Bearer ${user.getAccessToken().getJwtToken()}`;
-
-          return config;
-        } catch (error) {
-          return config;
-        }
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
   }, []);
-
-  useEffect(() => {
-    setDrawerOpen(false);
-  }, [router.pathname]);
 
   return (
     <QueryClientProvider client={queryClient}>

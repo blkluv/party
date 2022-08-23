@@ -7,8 +7,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-iam": "^3.154.0",
     "@aws-sdk/client-lambda": "^3.154.0",
     "consola": "^2.15.3",
-    "ora": "^6.1.2"
+    "ora": "^6.1.2",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.10",
+    "@types/ora": "^3.2.0",
+    "@types/uuid": "^8.3.4",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
   }
 }
