@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@conorroberts/beluga";
 import { LoadingIcon } from "~/components/Icons";
 import MetaData from "~/components/MetaData";
-import getToken from "~/utils/getToken";
 import isUserAdmin from "~/utils/isUserAdmin";
 import CreateHostForm from "~/components/CreateHostForm";
 import UserHostsViewCard from "~/components/UserHostsViewCard";
@@ -26,9 +25,7 @@ const Page = () => {
 
       if (!user) return;
 
-      const { data } = await axios.get<ProfileHostsDisplay[]>("/api/user/hosts", {
-        headers: { Authorization: `Bearer ${getToken(user)}` },
-      });
+      const { data } = await axios.get<ProfileHostsDisplay[]>("/api/user/hosts");
 
       setHosts(data);
     } catch (error) {

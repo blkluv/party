@@ -1,9 +1,7 @@
-import { useAuthenticator } from "@aws-amplify/ui-react";
 import { Button, Portal, Toast } from "@conorroberts/beluga";
 import { useRouter } from "next/router";
 import { FC, useState } from "react";
 import deleteEvent from "~/utils/deleteEvent";
-import getToken from "~/utils/getToken";
 import { LoadingIcon, PencilIcon, TrashIcon } from "./Icons";
 
 interface Props {
@@ -12,14 +10,13 @@ interface Props {
 
 const EventAdminToolbar: FC<Props> = ({ eventId }) => {
   const [loading, setLoading] = useState({ delete: false });
-  const { user } = useAuthenticator();
   const router = useRouter();
   const [showDeleteError, setShowDeleteError] = useState(false);
 
   const handleDelete = async () => {
     try {
       setLoading((prev) => ({ ...prev, delete: true }));
-      await deleteEvent(eventId, getToken(user));
+      await deleteEvent(eventId);
 
       await router.push("/");
     } catch (error) {

@@ -1,7 +1,5 @@
-import { useAuthenticator } from "@aws-amplify/ui-react";
 import { FC, useEffect } from "react";
 import { Button, Input } from "@conorroberts/beluga";
-import getToken from "~/utils/getToken";
 import { useFormik } from "formik";
 import FormGroup from "~/components/form/FormGroup";
 import { FileUploadField } from "~/components/form";
@@ -13,8 +11,6 @@ interface Props {
   onSubmit: () => void;
 }
 const CreateHostForm: FC<Props> = ({ onSubmit }) => {
-  const { user } = useAuthenticator();
-
   const { handleChange, handleSubmit, values, setFieldValue, errors } = useFormik({
     initialValues: {
       name: "",
@@ -24,7 +20,7 @@ const CreateHostForm: FC<Props> = ({ onSubmit }) => {
     },
     onSubmit: async ({ name, description, imageUrl }) => {
       try {
-        await createHost({ name, imageUrl, description }, values.imageData, getToken(user));
+        await createHost({ name, imageUrl, description }, values.imageData);
         onSubmit();
       } catch (error) {
         console.error(error);

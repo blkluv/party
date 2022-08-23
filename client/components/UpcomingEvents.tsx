@@ -1,28 +1,14 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
 import { PartyBoxEvent } from "@party-box/common";
 import EventPreview from "./EventPreview";
 import { LoadingIcon } from "./Icons";
+import { useQuery } from "react-query";
 
 const UpcomingEvents = () => {
-  const [events, setEvents] = useState<PartyBoxEvent[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(false);
-
-  const getUpcomingEvents = async () => {
-    try {
-      setEventsLoading(true);
-      const { data } = await axios.get("/api/events/upcoming");
-      setEvents(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setEventsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    getUpcomingEvents();
-  }, []);
+  const { data: events = [], isLoading: eventsLoading } = useQuery("upcomingEvents", async () => {
+    const { data } = await axios.get<PartyBoxEvent[]>("/api/events/upcoming");
+    return data;
+  });
 
   return (
     <>

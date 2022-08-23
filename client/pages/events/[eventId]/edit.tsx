@@ -5,7 +5,6 @@ import EventForm from "~/components/EventForm";
 import LoadingScreen from "~/components/LoadingScreen";
 import MetaData from "~/components/MetaData";
 import getFullEvent from "~/utils/getFullEvent";
-import getToken from "~/utils/getToken";
 import isUserAdmin from "~/utils/isUserAdmin";
 
 const Page = () => {
@@ -24,7 +23,7 @@ const Page = () => {
       }
 
       // We are an admin, so fetch the event data
-      const event = await getFullEvent(router.query.eventId as string, getToken(user));
+      const event = await getFullEvent(router.query.eventId as string);
       return event;
     },
     {

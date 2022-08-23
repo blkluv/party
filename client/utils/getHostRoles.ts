@@ -1,11 +1,9 @@
 import axios from "axios";
 import UserHostRole from "~/types/UserHostRole";
 
-const getHostRoles = async (hostId: number, token: string) => {
+const getHostRoles = async (hostId: number) => {
   try {
-    const { data } = await axios.get<UserHostRole[]>(`/api/hosts/${hostId}/roles`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const { data } = await axios.get<UserHostRole[]>(`/api/hosts/${hostId}/roles`);
 
     return data;
   } catch (error) {

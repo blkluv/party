@@ -5,7 +5,6 @@ import Link from "next/link";
 import { FC, useState } from "react";
 import ProfileHostData from "~/types/ProfileHostData";
 import deleteHost from "~/utils/deleteHost";
-import getToken from "~/utils/getToken";
 import { LoadingIcon, TrashIcon } from "./Icons";
 
 interface Props {
@@ -19,7 +18,6 @@ interface Props {
 
 const UserHostsViewCard: FC<Props> = ({ host: { id, imageUrl, name, description }, onDelete }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const { user } = useAuthenticator();
   const [loading, setLoading] = useState({ delete: false });
   const [error, setError] = useState({ delete: false });
 
@@ -27,7 +25,7 @@ const UserHostsViewCard: FC<Props> = ({ host: { id, imageUrl, name, description 
     try {
       setLoading((prev) => ({ ...prev, delete: true }));
 
-      await deleteHost(id, getToken(user));
+      await deleteHost(id);
 
       onDelete();
     } catch (error) {

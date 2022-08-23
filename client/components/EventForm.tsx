@@ -3,7 +3,6 @@ import { ErrorMessage, FieldArray, Form, Formik } from "formik";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { PartyBoxEvent, PartyBoxHost } from "@party-box/common";
-import getToken from "~/utils/getToken";
 import { CustomErrorMessage, FileUploadField, TextArea } from "./form";
 import FormGroup from "./form/FormGroup";
 import FormPreviewImage from "./FormPreviewImage";
@@ -76,9 +75,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get<PartyBoxHost[]>("/api/user/hosts", {
-          headers: { Authorization: `Bearer ${getToken(user)}` },
-        });
+        const { data } = await axios.get<PartyBoxHost[]>("/api/user/hosts");
         setAvailableHosts(data);
       } catch (error) {
         console.error(error);
@@ -116,7 +113,6 @@ const EventForm: FC<Props> = ({ initialValues }) => {
         try {
           const event = await createEvent({
             values,
-            token: getToken(user),
             setUploadState: setStatus,
             thumbnail,
             media,
@@ -429,7 +425,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
 
           <div className="flex items-center gap-4 justify-center">
             {!isSubmitting && (
-              <Button type="submit" variant="filled" color="gray">
+              <Button type="submit" variant="filled" color="red">
                 Submit
               </Button>
             )}

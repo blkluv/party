@@ -18,9 +18,12 @@ module.exports = {
           blue: "#6F81BE",
           purple: "#BA83E8",
           red: "#E88883",
-        }
+        },
       },
     },
+  },
+  corePlugins: {
+    preflight: false,
   },
   plugins: [require("ps-scrollbar-tailwind")],
 };
