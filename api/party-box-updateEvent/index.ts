@@ -122,20 +122,23 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const newNotifications: PartyBoxEventNotification[] = [];
 
-    // Clear all existing notifications
-    await pg<PartyBoxEventNotification>("eventNotifications").where("eventId", "=", Number(eventId)).del();
+    // If we have notifications, replace existing notifications with new ones
+    if (notifications.length > 0) {
+      // Clear all existing notifications
+      await pg<PartyBoxEventNotification>("eventNotifications").where("eventId", "=", Number(eventId)).del();
 
-    for (const n of notifications) {
-      const tmp = {
-        ...n,
-        eventId: Number(eventId),
-      };
+      for (const n of notifications) {
+        const tmp = {
+          ...n,
+          eventId: Number(eventId),
+        };
 
-      const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
-        .insert<PartyBoxCreateNotificationInput>(tmp)
-        .returning("*");
+        const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
+          .insert<PartyBoxCreateNotificationInput>(tmp)
+          .returning("*");
 
-      newNotifications.push(newNotificationData);
+        newNotifications.push(newNotificationData);
+      }
     }
 
     return {
