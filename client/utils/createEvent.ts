@@ -3,6 +3,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { EventFormData, EventFormDate } from "~/types/EventFormInput";
 import localeData from "dayjs/plugin/localeData";
+import uploadMedia from "./uploadMedia";
 
 dayjs.extend(localeData);
 
@@ -22,7 +23,6 @@ interface CreateEventParameters {
   media: (File | string)[];
   thumbnail: File | string;
   mode: "create" | "edit";
-  token: string;
   setUploadState: (_: string) => void;
   originalEventId?: number;
 }
@@ -34,7 +34,6 @@ interface CreateEventParameters {
 const createEvent = async ({
   values,
   media,
-  token,
   setUploadState,
   originalEventId,
   thumbnail,
@@ -62,16 +61,12 @@ const createEvent = async ({
   };
 
   if (mode === "create") {
-    const { data: event } = await axios.post("/api/events/create", eventData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const { data: event } = await axios.post("/api/events/create", eventData);
     eventId = event.id;
   } else {
     eventId = originalEventId;
 
-    await axios.post(`/api/events/${eventId}/update`, eventData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await axios.post(`/api/events/${eventId}/update`, eventData);
   }
 
   const posters = [];
@@ -89,12 +84,8 @@ const createEvent = async ({
 
     const {
       data: { uploadUrl: posterUploadUrl, downloadUrl: posterDownloadUrl },
-    } = await axios.post(
-      `/api/events/${eventId}/media/upload`,
-      { name: file.name },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    await axios.put(posterUploadUrl, file);
+    } = await axios.post(`/api/events/${eventId}/media/upload`, { name: file.name });
+    await uploadMedia(posterUploadUrl, file);
 
     // Keep track of the poster download URLs so we can update the event with them later
     posters.push(posterDownloadUrl);
@@ -111,26 +102,18 @@ const createEvent = async ({
   } else {
     const {
       data: { uploadUrl: thumbnailUploadUrl, downloadUrl },
-    } = await axios.post(
-      `/api/events/${eventId}/media/upload`,
-      { name: thumbnail.name },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    await axios.put(thumbnailUploadUrl, thumbnail);
+    } = await axios.post(`/api/events/${eventId}/media/upload`, { name: thumbnail.name });
+    await uploadMedia(thumbnailUploadUrl, thumbnail);
 
     thumbnailDownloadUrl = downloadUrl;
   }
 
   setUploadState("Updating event");
 
-  const { data } = await axios.post<PartyBoxEvent>(
-    `/api/events/${eventId}/update`,
-    {
-      media: posters,
-      thumbnail: thumbnailDownloadUrl,
-    },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+  const { data } = await axios.post<PartyBoxEvent>(`/api/events/${eventId}/update`, {
+    media: posters,
+    thumbnail: thumbnailDownloadUrl,
+  });
   setUploadState("Done");
 
   return data;

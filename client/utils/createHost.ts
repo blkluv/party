@@ -1,27 +1,22 @@
 import { PartyBoxHost, PartyBoxCreateHostInput } from "@party-box/common";
 import axios from "axios";
+import uploadMedia from "./uploadMedia";
 
-const createHost = async (newHostData: PartyBoxCreateHostInput, image: File, token: string) => {
+const createHost = async (newHostData: PartyBoxCreateHostInput, image: File) => {
   try {
-    const { data: createdHost } = await axios.post<PartyBoxHost>("/api/hosts/create", newHostData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const { data: createdHost } = await axios.post<PartyBoxHost>("/api/hosts/create", newHostData);
 
     const {
       data: { uploadUrl, downloadUrl },
-    } = await axios.post<{ downloadUrl: string; uploadUrl: string }>(
-      `/api/hosts/${createdHost.id}/upload`,
-      { name: image.name },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    } = await axios.post<{ downloadUrl: string; uploadUrl: string }>(`/api/hosts/${createdHost.id}/upload`, {
+      name: image.name,
+    });
 
-    await axios.put(uploadUrl, image);
+    await uploadMedia(uploadUrl, image);
 
-    const { data: updatedHost } = await axios.post<PartyBoxHost>(
-      `/api/hosts/${createdHost.id}`,
-      { imageUrl: downloadUrl },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const { data: updatedHost } = await axios.post<PartyBoxHost>(`/api/hosts/${createdHost.id}`, {
+      imageUrl: downloadUrl,
+    });
 
     return updatedHost;
   } catch (error) {

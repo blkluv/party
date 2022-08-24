@@ -1,11 +1,9 @@
 import axios from "axios";
 import AddHostMemberFormData from "~/types/AddHostMemberFormData";
 
-const addHostMember = async (memberData: AddHostMemberFormData, hostId: number, token: string) => {
+const addHostMember = async (memberData: AddHostMemberFormData, hostId: number) => {
   try {
-    const { data } = await axios.post(`/api/hosts/${hostId}/roles`, memberData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const { data } = await axios.post(`/api/hosts/${hostId}/roles`, memberData);
 
     return data;
   } catch (error) {

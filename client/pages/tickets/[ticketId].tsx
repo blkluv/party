@@ -7,7 +7,6 @@ import { Button } from "@conorroberts/beluga";
 import MetaData from "~/components/MetaData";
 import { API_URL, WEBSITE_URL } from "~/config/config";
 import { PartyBoxEventTicket } from "@party-box/common";
-import getToken from "~/utils/getToken";
 import isUserAdmin from "~/utils/isUserAdmin";
 import { CloseIcon, LoadingIcon } from "~/components/Icons";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -52,11 +51,7 @@ const Page: FC<PageProps> = ({ ticket: initialTicket, path }) => {
     async (value: boolean) => {
       if (!isUserAdmin(user)) return;
 
-      await axios.post(
-        `/api/tickets/${ticket.stripeSessionId}/update-use`,
-        { value },
-        { headers: { Authorization: `Bearer ${getToken(user)}` } }
-      );
+      await axios.post(`/api/tickets/${ticket.stripeSessionId}/update-use`, { value });
 
       queryClient.refetchQueries("getTicketData");
     }

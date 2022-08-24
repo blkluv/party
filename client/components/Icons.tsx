@@ -21,6 +21,7 @@ export {
   MdLink as LinkIcon,
   MdLocalDining as FoodIcon,
   MdOutlineEdit as PencilIcon,
+  MdOutlineMessage as MessageIcon,
 } from "react-icons/md";
 export {
   IoCloseOutline as CloseIcon,

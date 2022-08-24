@@ -3,7 +3,6 @@ import { ErrorMessage, FieldArray, Form, Formik } from "formik";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { PartyBoxEvent, PartyBoxHost } from "@party-box/common";
-import getToken from "~/utils/getToken";
 import { CustomErrorMessage, FileUploadField, TextArea } from "./form";
 import FormGroup from "./form/FormGroup";
 import FormPreviewImage from "./FormPreviewImage";
@@ -26,6 +25,7 @@ import {
 import createEvent from "~/utils/createEvent";
 import axios from "axios";
 import Image from "next/image";
+import { useQueryClient } from "react-query";
 
 interface Props {
   initialValues?: PartyBoxEvent;
@@ -35,6 +35,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
   const { user } = useAuthenticator();
   const router = useRouter();
   const mode = initialValues ? "edit" : "create";
+  const queryClient = useQueryClient();
 
   const [media, setMedia] = useState<(File | string)[]>(initialValues?.media ?? []);
   const [previewUrls, setPreviewUrls] = useState<string[]>(initialValues?.media ?? []);
@@ -76,9 +77,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get<PartyBoxHost[]>("/api/user/hosts", {
-          headers: { Authorization: `Bearer ${getToken(user)}` },
-        });
+        const { data } = await axios.get<PartyBoxHost[]>("/api/user/hosts");
         setAvailableHosts(data);
       } catch (error) {
         console.error(error);
@@ -116,13 +115,14 @@ const EventForm: FC<Props> = ({ initialValues }) => {
         try {
           const event = await createEvent({
             values,
-            token: getToken(user),
             setUploadState: setStatus,
             thumbnail,
             media,
             originalEventId: initialValues?.id,
             mode,
           });
+
+          await queryClient.invalidateQueries(["full", "event", event.id]);
 
           await router.push(`/events/${event.id}`);
         } catch (error) {
@@ -341,12 +341,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormGroup label="Name">
-                        <Input
-                          onChange={handleChange}
-                          name={`prices.${i}.name`}
-                          value={e.name}
-                          placeholder="Name"
-                        />
+                        <Input onChange={handleChange} name={`prices.${i}.name`} value={e.name} placeholder="Name" />
                       </FormGroup>
                       <FormGroup label="Price">
                         <Input
@@ -385,12 +380,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       <FormGroup label="Days">
-                        <Input
-                          onChange={handleChange}
-                          name={`notifications.${i}.days`}
-                          value={e.days}
-                          type="number"
-                        />
+                        <Input onChange={handleChange} name={`notifications.${i}.days`} value={e.days} type="number" />
                       </FormGroup>
                       <FormGroup label="Hours">
                         <Input
@@ -435,8 +425,8 @@ const EventForm: FC<Props> = ({ initialValues }) => {
             )}
             {isSubmitting && (
               <>
-                <LoadingIcon className="animate-spin" size={25} />
                 <p>{status}</p>
+                <LoadingIcon className="animate-spin" size={20} />
               </>
             )}
           </div>

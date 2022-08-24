@@ -5,8 +5,6 @@ import FormGroup from "./form/FormGroup";
 import * as Yup from "yup";
 import addHostMember from "~/utils/addHostMember";
 import AddHostMemberFormData from "~/types/AddHostMemberFormData";
-import getToken from "~/utils/getToken";
-import { useAuthenticator } from "@aws-amplify/ui-react";
 import { useQueryClient } from "react-query";
 
 interface Props {
@@ -14,7 +12,6 @@ interface Props {
 }
 
 const AddHostMemberForm: FC<Props> = ({ hostId }) => {
-  const { user } = useAuthenticator();
   const queryClient = useQueryClient();
   
   const { handleSubmit, values, errors, handleChange, setFieldValue, touched, resetForm } = useFormik({
@@ -25,7 +22,7 @@ const AddHostMemberForm: FC<Props> = ({ hostId }) => {
     onSubmit: async (values) => {
       console.log(values);
       try{
-        await addHostMember(values as AddHostMemberFormData, hostId, getToken(user));
+        await addHostMember(values as AddHostMemberFormData, hostId);
         resetForm();
         queryClient.refetchQueries("hostRoles");
       }catch(error){

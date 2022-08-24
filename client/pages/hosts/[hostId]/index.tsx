@@ -7,7 +7,6 @@ import MetaData from "~/components/MetaData";
 import { API_URL } from "~/config/config";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { useQuery } from "react-query";
-import getToken from "~/utils/getToken";
 import getHostRoles from "~/utils/getHostRoles";
 import HostRolesModal from "~/components/HostRolesModal";
 import getUserAttributes from "~/utils/getUserAttributes";
@@ -21,7 +20,7 @@ const Page: FC<Props> = ({ host }) => {
   const { user } = useAuthenticator();
   const { data: roles = [], isLoading } = useQuery(
     "hostRoles",
-    async () => await getHostRoles(host.id, getToken(user)),
+    async () => await getHostRoles(host.id),
     {
       enabled: Boolean(user),
     }

@@ -7,6 +7,9 @@ export type { default as PartyBoxUpdateHostInput } from "./PartyBoxUpdateHostInp
 export type { default as PartyBoxHostRole } from "./PartyBoxHostRole";
 export type { default as Role } from "./Role";
 
+export type { default as PartyBoxService } from "./PartyBoxService";
+export type { default as PartyBoxCreateServiceInput } from "./PartyBoxCreateServiceInput";
+
 export type { default as PartyBoxEventTicket } from "./PartyBoxEventTicket";
 export type { default as PartyBoxCreateTicketInput } from "./PartyBoxCreateTicketInput";
 

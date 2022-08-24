@@ -1,21 +1,18 @@
-import { useAuthenticator } from "@aws-amplify/ui-react";
 import { FC, useEffect } from "react";
 import { Button, Input } from "@conorroberts/beluga";
-import getToken from "~/utils/getToken";
 import { useFormik } from "formik";
 import FormGroup from "~/components/form/FormGroup";
 import { FileUploadField } from "~/components/form";
 import FormPreviewImage from "~/components/FormPreviewImage";
 import * as Yup from "yup";
 import createHost from "~/utils/createHost";
+import { LoadingIcon } from "./Icons";
 
 interface Props {
   onSubmit: () => void;
 }
 const CreateHostForm: FC<Props> = ({ onSubmit }) => {
-  const { user } = useAuthenticator();
-
-  const { handleChange, handleSubmit, values, setFieldValue, errors } = useFormik({
+  const { handleChange, handleSubmit, values, setFieldValue, errors, isSubmitting,touched } = useFormik({
     initialValues: {
       name: "",
       description: "",
@@ -24,7 +21,7 @@ const CreateHostForm: FC<Props> = ({ onSubmit }) => {
     },
     onSubmit: async ({ name, description, imageUrl }) => {
       try {
-        await createHost({ name, imageUrl, description }, values.imageData, getToken(user));
+        await createHost({ name, imageUrl, description }, values.imageData);
         onSubmit();
       } catch (error) {
         console.error(error);
@@ -50,10 +47,10 @@ const CreateHostForm: FC<Props> = ({ onSubmit }) => {
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-      <FormGroup label="Name" error={errors.name}>
+      <FormGroup label="Name" error={touched.name && errors.name}>
         <Input name="name" onChange={handleChange} value={values.name} placeholder="Name" />
       </FormGroup>
-      <FormGroup label="Description" error={errors.description}>
+      <FormGroup label="Description" error={touched.description && errors.description}>
         <Input onChange={handleChange} value={values.description} placeholder="Description" name="description" />
       </FormGroup>
       {!values.imageData && <FileUploadField onChange={(data) => setFieldValue("imageData", data)} />}
@@ -70,8 +67,9 @@ const CreateHostForm: FC<Props> = ({ onSubmit }) => {
         </div>
       )}
       <div className="flex justify-center">
-        <Button type="submit" variant="filled" color="gray">
-          Create Host
+        <Button type="submit" variant="filled" color="gray" disabled={isSubmitting}>
+          <p>Create Host</p>
+          {isSubmitting && <LoadingIcon className="animate-spin" size={20} />}
         </Button>
       </div>
     </form>

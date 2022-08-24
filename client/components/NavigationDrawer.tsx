@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import isUserAdmin from "~/utils/isUserAdmin";
 import { Drawer } from "@conorroberts/beluga";
-import { OutlinedPlusIcon, PersonIcon, SignInIcon, SignOutIcon } from "./Icons";
+import { MessageIcon, OutlinedPlusIcon, PersonIcon, SignInIcon, SignOutIcon } from "./Icons";
 import isUserHost from "~/utils/isUserHost";
 
 interface Props {
@@ -46,8 +46,14 @@ const NavigationDrawer = ({ setOpen, open }: Props) => {
             </Link>
           </>
         )}
+        <Link href="/hire-us" passHref>
+          <div className="nav-drawer-button">
+            <MessageIcon size={20} />
+            <p>Hire Us</p>
+          </div>
+        </Link>
         {!user && (
-          <div className="nav-drawer-button" onClick={signIn}>
+          <div className="nav-drawer-button" onClick={() => signIn()}>
             <SignInIcon size={20} />
             <p>Sign In</p>
           </div>

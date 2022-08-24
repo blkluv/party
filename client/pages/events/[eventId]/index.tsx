@@ -6,14 +6,10 @@ import MetaData from "~/components/MetaData";
 import { PartyBoxEvent } from "@party-box/common";
 import isUserAdmin from "~/utils/isUserAdmin";
 import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import localizedFormat from "dayjs/plugin/localizedFormat";
 import EventPrice from "~/components/EventPrice";
 import { NextPageContext } from "next";
 import { API_URL } from "~/config/config";
 import EventAdminToolbar from "~/components/EventAdminToolbar";
-dayjs.extend(relativeTime);
-dayjs.extend(localizedFormat);
 
 interface Props {
   eventData: PartyBoxEvent;
