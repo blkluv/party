@@ -12,7 +12,7 @@ const Page = () => {
   const router = useRouter();
 
   const { data: eventData, isLoading: loading } = useQuery(
-    "getFullEventData",
+    ["full", "event", router.query.eventId],
     async () => {
       // If we're still waiting on user data or event id, don't do anything
       if (!user || !router.query.eventId) return;

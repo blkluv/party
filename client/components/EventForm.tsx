@@ -25,6 +25,7 @@ import {
 import createEvent from "~/utils/createEvent";
 import axios from "axios";
 import Image from "next/image";
+import { useQueryClient } from "react-query";
 
 interface Props {
   initialValues?: PartyBoxEvent;
@@ -34,6 +35,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
   const { user } = useAuthenticator();
   const router = useRouter();
   const mode = initialValues ? "edit" : "create";
+  const queryClient = useQueryClient();
 
   const [media, setMedia] = useState<(File | string)[]>(initialValues?.media ?? []);
   const [previewUrls, setPreviewUrls] = useState<string[]>(initialValues?.media ?? []);
@@ -119,6 +121,8 @@ const EventForm: FC<Props> = ({ initialValues }) => {
             originalEventId: initialValues?.id,
             mode,
           });
+
+          await queryClient.invalidateQueries(["full", "event", event.id]);
 
           await router.push(`/events/${event.id}`);
         } catch (error) {
@@ -337,12 +341,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormGroup label="Name">
-                        <Input
-                          onChange={handleChange}
-                          name={`prices.${i}.name`}
-                          value={e.name}
-                          placeholder="Name"
-                        />
+                        <Input onChange={handleChange} name={`prices.${i}.name`} value={e.name} placeholder="Name" />
                       </FormGroup>
                       <FormGroup label="Price">
                         <Input
@@ -381,12 +380,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       <FormGroup label="Days">
-                        <Input
-                          onChange={handleChange}
-                          name={`notifications.${i}.days`}
-                          value={e.days}
-                          type="number"
-                        />
+                        <Input onChange={handleChange} name={`notifications.${i}.days`} value={e.days} type="number" />
                       </FormGroup>
                       <FormGroup label="Hours">
                         <Input
@@ -425,14 +419,14 @@ const EventForm: FC<Props> = ({ initialValues }) => {
 
           <div className="flex items-center gap-4 justify-center">
             {!isSubmitting && (
-              <Button type="submit" variant="filled" color="red">
+              <Button type="submit" variant="filled" color="gray">
                 Submit
               </Button>
             )}
             {isSubmitting && (
               <>
-                <LoadingIcon className="animate-spin" size={25} />
                 <p>{status}</p>
+                <LoadingIcon className="animate-spin" size={20} />
               </>
             )}
           </div>

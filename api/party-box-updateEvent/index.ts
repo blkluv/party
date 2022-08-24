@@ -26,7 +26,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
 
 /**
  * @method POST
- * @description Update event in Dynamo and Stripe
+ * @description Update event in Postgres and Stripe
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
