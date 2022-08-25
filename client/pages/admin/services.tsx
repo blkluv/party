@@ -2,6 +2,7 @@ import { useAuthenticator } from "@aws-amplify/ui-react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import LoadingScreen from "~/components/LoadingScreen";
+import ServiceForm from "~/components/ServiceForm";
 import isUserAdmin from "~/utils/isUserAdmin";
 
 const Page = () => {
@@ -18,8 +19,9 @@ const Page = () => {
   if (!user) return <LoadingScreen />;
 
   return (
-    <div>
-      <h1>Manage Services</h1>
+    <div className="mx-auto max-w-3xl w-full pt-5">
+      <h1 className="text-xl font-bold text-center">Manage Services</h1>
+      <ServiceForm />
     </div>
   );
 };

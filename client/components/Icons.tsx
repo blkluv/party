@@ -22,6 +22,7 @@ export {
   MdLocalDining as FoodIcon,
   MdOutlineEdit as PencilIcon,
   MdOutlineMessage as MessageIcon,
+  MdGroups as GroupIcon
 } from "react-icons/md";
 export {
   IoCloseOutline as CloseIcon,

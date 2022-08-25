@@ -64,6 +64,8 @@ import { randomBytes } from "crypto";
 
   consola.success("Files copied to new folder");
 
+  return;
+
   consola.info("Creating IAM role");
 
   const newRoleName = `party-box-${camelCaseWorkflowName}-${randomBytes(8).toString("hex").slice(0, 8)}`;
@@ -87,7 +89,6 @@ import { randomBytes } from "crypto";
   const createRoleOutput = await iam.send(createRoleCommand);
   if (!createRoleOutput?.Role?.Arn) throw new Error("Role creation failed");
   console.log(createRoleOutput);
-  return;
   await iam.send(
     new AttachRolePolicyCommand({
       RoleName: newRoleName,
