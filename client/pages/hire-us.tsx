@@ -17,7 +17,7 @@ const Page = () => {
   const describeEventTitle = useRef<HTMLHeadingElement>();
   const contactTitle = useRef<HTMLHeadingElement>();
   const servicesTitle = useRef<HTMLHeadingElement>();
-  const reviewTitle = useRef<HTMLHeadingElement>();
+  // const reviewTitle = useRef<HTMLHeadingElement>();
 
   const { data: services, isLoading: servicesLoading } = useQuery("services", getEventServices);
 
@@ -185,9 +185,9 @@ const Page = () => {
           <Input onChange={handleChange} name="phoneNumber" value={values.phoneNumber} />
         </FormGroup>
 
-        <h2 className="font-bold text-lg" ref={reviewTitle}>
+        {/* <h2 className="font-bold text-lg" ref={reviewTitle}>
           Review
-        </h2>
+        </h2> */}
 
         <div className="flex justify-center">
           <Button type="submit" variant="filled" color="gray">

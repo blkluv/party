@@ -16,12 +16,12 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
   try {
     if (!body) throw new Error("No body provided");
+    
     // Forward body to email
-
     await sns.send(
       new PublishCommand({
         Message: body,
-        TopicArn: `${stage}-event-requests`,
+        TopicArn: `arn:aws:sns:us-east-1:356466505463:${stage}-event-requests`,
       })
     );
 
