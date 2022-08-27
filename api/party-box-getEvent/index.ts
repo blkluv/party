@@ -7,7 +7,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
 
 /**
  * @method GET
- * @description Get event with given ID from DynamoDB
+ * @description Get event with given ID from Postgres
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   const { eventId } = event.pathParameters as PathParameters;

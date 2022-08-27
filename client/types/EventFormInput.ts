@@ -1,8 +1,10 @@
+import FormDateValues from "./FormDateValues";
+
 export interface EventFormData {
   name: string;
   description: string;
-  startTime: EventFormDate;
-  endTime: EventFormDate;
+  startTime: FormDateValues;
+  endTime: FormDateValues;
   location: string;
   hostId: string;
   maxTickets: string;
@@ -22,13 +24,4 @@ export interface EventFormData {
     price: string;
   }[];
   published: boolean;
-}
-
-export interface EventFormDate {
-  day: string;
-  month: string;
-  year: string;
-  minute: string;
-  hour: string;
-  modifier: "AM" | "PM";
 }

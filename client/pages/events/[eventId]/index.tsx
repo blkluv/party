@@ -1,7 +1,5 @@
-/* eslint-disable @next/next/no-img-element */
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { FC, useEffect, useState } from "react";
-import { LeftCaretIcon, RightCaretIcon } from "~/components/Icons";
 import MetaData from "~/components/MetaData";
 import { PartyBoxEvent } from "@party-box/common";
 import isUserAdmin from "~/utils/isUserAdmin";
@@ -10,6 +8,7 @@ import EventPrice from "~/components/EventPrice";
 import { NextPageContext } from "next";
 import { API_URL } from "~/config/config";
 import EventAdminToolbar from "~/components/EventAdminToolbar";
+import MediaCarousel from "~/components/MediaCarousel";
 
 interface Props {
   eventData: PartyBoxEvent;
@@ -18,12 +17,9 @@ interface Props {
 const Page: FC<Props> = ({ eventData }) => {
   const { user } = useAuthenticator();
 
-  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [countdown, setCountDown] = useState("");
 
   const admin = isUserAdmin(user);
-  const showLeftMediaButton = currentMediaIndex > 0;
-  const showRightMediaButton = currentMediaIndex < eventData?.media?.length - 1;
 
   useEffect(() => {
     if (!eventData) return;
@@ -40,29 +36,9 @@ const Page: FC<Props> = ({ eventData }) => {
   }, [eventData]);
 
   return (
-    <div className="flex flex-col mx-auto max-w-6xl w-full md:flex-row">
+    <div className="flex flex-col mx-auto max-w-6xl w-full md:flex-row flex-1">
       <MetaData title={`${eventData.name}`} description={eventData.description} image={eventData.thumbnail} />
-      <div className="relative overflow-hidden rounded-md mx-auto md:flex-1 md:w-auto w-full">
-        {showLeftMediaButton && (
-          <div
-            className="absolute top-1/2 left-6 -translate-x-1/2 rounded-full p-1 bg-opacity-50 backdrop-filter backdrop-blur-sm bg-gray-900 hover:bg-gray-800 cursor-pointer transition flex items-center justify-center"
-            onClick={() => setCurrentMediaIndex((curr) => curr - 1)}
-          >
-            <LeftCaretIcon size={20} />
-          </div>
-        )}
-        {eventData?.media[currentMediaIndex] && (
-          <img src={eventData.media[currentMediaIndex]} alt="Poster" loading="eager" className="w-full max-h-screen" />
-        )}
-        {showRightMediaButton && (
-          <div
-            className="absolute top-1/2 right-6 translate-x-1/2 rounded-full p-1 bg-opacity-50 backdrop-filter backdrop-blur-sm bg-gray-900 hover:bg-gray-800 cursor-pointer transition flex items-center justify-center"
-            onClick={() => setCurrentMediaIndex((curr) => curr + 1)}
-          >
-            <RightCaretIcon size={20} />
-          </div>
-        )}
-      </div>
+      <MediaCarousel media={eventData.media} />
       <div className="p-3 md:p-6 flex flex-col gap-6 md:flex-1">
         {admin && <EventAdminToolbar eventId={eventData.id} />}
         <div>
