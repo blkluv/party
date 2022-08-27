@@ -1,13 +1,14 @@
 import { PartyBoxEvent } from "@party-box/common";
 import axios from "axios";
 import dayjs from "dayjs";
-import { EventFormData, EventFormDate } from "~/types/EventFormInput";
+import { EventFormData } from "~/types/EventFormInput";
 import localeData from "dayjs/plugin/localeData";
 import uploadMedia from "./uploadMedia";
+import FormDateValues from "~/types/FormDateValues";
 
 dayjs.extend(localeData);
 
-const dateConvert = (date: EventFormDate) => {
+const dateConvert = (date: FormDateValues) => {
   return dayjs()
     .year(Number(date.year))
     .month(Number(date.month))
