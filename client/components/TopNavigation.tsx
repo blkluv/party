@@ -19,7 +19,7 @@ const TopNavigation = ({ setDrawerOpen }: Props) => {
       </Link>
       <div className="flex gap-4 ml-auto">
         <Link passHref href="/hire-us">
-          <a className="cursor-pointer primary-hover">Hire Us</a>
+          <a className="cursor-pointer primary-hover">Host a Party</a>
         </Link>
       </div>
     </div>

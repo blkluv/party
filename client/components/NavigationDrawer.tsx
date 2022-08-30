@@ -59,7 +59,7 @@ const NavigationDrawer = ({ setOpen, open }: Props) => {
         <Link href="/hire-us" passHref>
           <div className="nav-drawer-button">
             <MessageIcon size={20} />
-            <p>Hire Us</p>
+            <p>Host a Party</p>
           </div>
         </Link>
         {!user && (
