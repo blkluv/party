@@ -60,7 +60,7 @@ const Page = () => {
 
   return (
     <div>
-      <h1 className="font-bold text-3xl text-center">Page</h1>
+      <h1 className="font-bold text-3xl text-center">Host a Party</h1>
 
       <MetaData title="Hire Us" />
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xl mx-auto">
