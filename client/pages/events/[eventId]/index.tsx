@@ -17,23 +17,7 @@ interface Props {
 const Page: FC<Props> = ({ eventData }) => {
   const { user } = useAuthenticator();
 
-  const [countdown, setCountDown] = useState("");
-
   const admin = isUserAdmin(user);
-
-  useEffect(() => {
-    if (!eventData) return;
-
-    setCountDown(dayjs(new Date(eventData.startTime).toISOString()).fromNow());
-
-    const interval = setInterval(() => {
-      setCountDown(dayjs(new Date(eventData.startTime).toISOString()).fromNow());
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [eventData]);
 
   return (
     <div className="flex flex-col mx-auto max-w-6xl w-full md:flex-row flex-1">
@@ -44,8 +28,7 @@ const Page: FC<Props> = ({ eventData }) => {
         <div>
           <h2 className="font-bold text-3xl md:text-4xl text-center">{eventData.name}</h2>
           <p className="text-sm text-center mt-1 md:text-base">
-            {`${dayjs(eventData.startTime).toDate().toLocaleDateString()} -
-            ${countdown}`}
+            {dayjs(eventData.startTime).format("dddd MMMM D [at] h:mm A")}
           </p>
         </div>
         <p className="text-sm md:text-base">{eventData.description}</p>
