@@ -1,4 +1,3 @@
-/* eslint-disable indent */
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import {
   getPostgresClient,
@@ -8,6 +7,8 @@ import {
   PartyBoxCreateTicketInput,
 } from "@party-box/common";
 import { SNS } from "@aws-sdk/client-sns";
+import { SecretsManager } from "@aws-sdk/client-secrets-manager";
+import twilio from "twilio";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -29,6 +30,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sns = new SNS({});
   const pg = await getPostgresClient(stage);
   const stripeClient = await getStripeClient(stage);
+  const secretsManager = new SecretsManager({});
 
   try {
     const chargeId = data.id;
@@ -46,24 +48,28 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const customerPhoneNumber = session.data[0].customer_details?.phone;
     const ticketQuantity = Number(session.data[0].line_items?.data[0].quantity);
 
+    const newTicketData = {
+      eventId,
+      stripeSessionId: session?.data?.at(0)?.id ?? "",
+      stripeChargeId: chargeId,
+      receiptUrl,
+      customerName,
+      customerEmail,
+      customerPhoneNumber: customerPhoneNumber ?? "",
+      purchasedAt: new Date().toISOString(),
+      ticketQuantity: Number(ticketQuantity),
+      used: false,
+    };
+
     // Create ticket in DynamoDB
     const [ticketData] = await pg<PartyBoxEventTicket>("tickets")
-      .insert<PartyBoxCreateTicketInput>({
-        eventId,
-        stripeSessionId: session?.data?.at(0)?.id ?? "",
-        stripeChargeId: chargeId,
-        receiptUrl,
-        customerName,
-        customerEmail,
-        customerPhoneNumber: customerPhoneNumber ?? "",
-        purchasedAt: new Date().toISOString(),
-        ticketQuantity: Number(ticketQuantity),
-        used: false,
-      })
+      .insert<PartyBoxCreateTicketInput>(newTicketData)
       .returning("*");
 
     const [eventData] = await pg<PartyBoxEvent>("events").where("id", "=", Number(eventId));
-    const [ticketsSold] = await pg<PartyBoxEventTicket>("tickets").where("id", "=", Number(eventId)).sum("ticketQuantity");
+    const [ticketsSold] = await pg<PartyBoxEventTicket>("tickets")
+      .where("id", "=", Number(eventId))
+      .sum("ticketQuantity");
 
     // Once enough stock is sold, disable product on stripe
     if (ticketsSold >= eventData?.maxTickets) {
@@ -82,30 +88,48 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     });
 
     // Create a temp topic to send a one-time sms message to the customer
-    const tempTopic = await sns.createTopic({
-      Name: `${stage}-party-box-ticket-temp-${ticketData.id}`,
-    });
+    // const tempTopic = await sns.createTopic({
+    //   Name: `${stage}-party-box-ticket-temp-${ticketData.id}`,
+    // });
 
-    await sns.subscribe({
-      TopicArn: tempTopic.TopicArn,
-      Protocol: "sms",
-      Endpoint: customerPhoneNumber?.toString(),
-    });
+    // await sns.subscribe({
+    //   TopicArn: tempTopic.TopicArn,
+    //   Protocol: "sms",
+    //   Endpoint: customerPhoneNumber?.toString(),
+    // });
 
     if (ticketQuantity === null || ticketQuantity === undefined) throw new Error("Ticket quantity was undefined");
+    if (!customerPhoneNumber) throw new Error("Customer phone number was undefined");
 
-    await sns.publish({
-      Message: `
-        Thank you for purchasing ${ticketQuantity} ticket${ticketQuantity > 1 ? "s" : ""} to ${
-        eventData?.name
-      }!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.stripeSessionId}\n\nReceipt: ${receiptUrl}
-      `,
-      TopicArn: tempTopic.TopicArn,
+    // Get Twilio client
+    const { SecretString: twilioSecretString } = await secretsManager.getSecretValue({
+      SecretId: "dev/conor/twilio",
+    });
+    if (!twilioSecretString) throw new Error("Twilio secret was undefined.");
+    const { sid, token, phoneNumber } = JSON.parse(twilioSecretString);
+
+    const twilioClient = twilio(sid, token);
+
+    const ticketPurchaseMessage = `Thank you for purchasing ${ticketQuantity} ticket${
+      ticketQuantity > 1 ? "s" : ""
+    } to ${eventData?.name}!\n\nView your ticket at ${websiteUrl}/tickets/${
+      ticketData.stripeSessionId
+    }\n\nReceipt: ${receiptUrl}`;
+
+    await twilioClient.messages.create({
+      body: ticketPurchaseMessage,
+      to: customerPhoneNumber,
+      from: phoneNumber,
     });
 
-    await sns.deleteTopic({
-      TopicArn: tempTopic.TopicArn,
-    });
+    // await sns.publish({
+    //   Message: ticketPurchaseMessage,
+    //   TopicArn: tempTopic.TopicArn,
+    // });
+
+    // await sns.deleteTopic({
+    //   TopicArn: tempTopic.TopicArn,
+    // });
 
     return { statusCode: 200, body: JSON.stringify({ message: "Success" }) };
   } catch (error) {
