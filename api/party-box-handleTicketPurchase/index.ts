@@ -67,18 +67,18 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       .returning("*");
 
     const [eventData] = await pg<PartyBoxEvent>("events").where("id", "=", Number(eventId));
-    const [ticketsSold] = await pg<PartyBoxEventTicket>("tickets")
+    const ticketsSold = await pg<PartyBoxEventTicket>("tickets")
       .where("eventId", "=", Number(eventId))
       .sum("ticketQuantity");
 
     console.log(ticketsSold);
 
     // Once enough stock is sold, disable product on stripe
-    if (ticketsSold >= eventData?.maxTickets) {
-      await stripeClient.products.update(eventData?.stripeProductId, {
-        active: false,
-      });
-    }
+    // if (ticketsSold >= eventData?.maxTickets) {
+    //   await stripeClient.products.update(eventData?.stripeProductId, {
+    //     active: false,
+    //   });
+    // }
 
     if (!eventData) throw new Error("Couldn't find event data");
 
