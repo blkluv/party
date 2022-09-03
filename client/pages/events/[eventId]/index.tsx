@@ -1,11 +1,10 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
-import { FC, useEffect, useState } from "react";
 import MetaData from "~/components/MetaData";
 import { PartyBoxEvent } from "@party-box/common";
 import isUserAdmin from "~/utils/isUserAdmin";
 import dayjs from "dayjs";
 import EventPrice from "~/components/EventPrice";
-import { NextPageContext } from "next";
+import { NextPage, NextPageContext } from "next";
 import { API_URL } from "~/config/config";
 import EventAdminToolbar from "~/components/EventAdminToolbar";
 import MediaCarousel from "~/components/MediaCarousel";
@@ -14,7 +13,7 @@ interface Props {
   eventData: PartyBoxEvent;
 }
 
-const Page: FC<Props> = ({ eventData }) => {
+const Page: NextPage<Props> = ({ eventData }) => {
   const { user } = useAuthenticator();
 
   const admin = isUserAdmin(user);

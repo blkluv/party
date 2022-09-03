@@ -109,6 +109,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           metadata: {
             eventId,
           },
+          allow_promotion_codes: true,
           phone_number_collection: {
             enabled: true,
           },

@@ -1,5 +1,6 @@
 import { getPostgresClient, PartyBoxEvent } from "@party-box/common";
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
+import dayjs from "dayjs";
 
 /**
  * @method POST
@@ -12,7 +13,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const events = await pg<PartyBoxEvent>("events")
       .select("id", "startTime", "endTime", "name", "description", "hashtags", "maxTickets", "thumbnail")
       .where("published", "=", true)
-      .andWhere("startTime", ">", new Date().toISOString());
+      .andWhere("startTime", ">", dayjs().add(6, "hour").toISOString());
 
     return { statusCode: 200, body: JSON.stringify(events) };
   } catch (error) {

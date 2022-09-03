@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@party-box/common": "^1.0.24"
+    "@party-box/common": "^1.0.24",
+    "dayjs": "^1.11.5"
   }
 }
