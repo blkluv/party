@@ -39,7 +39,7 @@ importers:
       uuid: ^8.3.2
     dependencies:
       '@aws-sdk/client-sns': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
       knex: 2.2.0_pg@8.8.0
       pg: 8.8.0
       uuid: 8.3.2
@@ -62,7 +62,7 @@ importers:
       uuid: ^8.3.2
     dependencies:
       '@aws-sdk/client-sns': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
       knex: 2.2.0_pg@8.8.0
       pg: 8.8.0
       uuid: 8.3.2
@@ -79,7 +79,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -92,7 +92,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -105,7 +105,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -124,7 +124,7 @@ importers:
       '@aws-sdk/client-s3': 3.154.0
       '@aws-sdk/client-secrets-manager': 3.154.0
       '@aws-sdk/client-sns': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -139,7 +139,7 @@ importers:
       typescript: ^4.7.3
     dependencies:
       '@aws-sdk/client-s3': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -152,7 +152,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -165,7 +165,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -178,7 +178,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -191,7 +191,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -204,7 +204,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -217,7 +217,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -231,7 +231,7 @@ importers:
       dayjs: ^1.11.5
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
       dayjs: 1.11.5
     devDependencies:
       '@types/aws-lambda': 8.10.102
@@ -245,7 +245,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -260,7 +260,7 @@ importers:
       typescript: ^4.7.3
     dependencies:
       '@aws-sdk/client-sns': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -275,7 +275,7 @@ importers:
       typescript: ^4.7.3
     dependencies:
       '@aws-sdk/client-cognito-identity-provider': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -290,7 +290,7 @@ importers:
       typescript: ^4.7.3
     dependencies:
       '@aws-sdk/client-sns': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -317,7 +317,7 @@ importers:
       '@aws-sdk/client-dynamodb': 3.154.0
       '@aws-sdk/client-secrets-manager': 3.154.0
       '@aws-sdk/lib-dynamodb': 3.154.0_24jphh2fhwrglgfbwv7v7ifmqm
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
       dayjs: 1.11.5
       jsonwebtoken: 8.5.1
       pg: 8.8.0
@@ -338,7 +338,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -351,7 +351,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -372,7 +372,7 @@ importers:
       '@aws-sdk/client-s3': 3.154.0
       '@aws-sdk/client-secrets-manager': 3.154.0
       '@aws-sdk/s3-request-presigner': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
       uuid: 8.3.2
     devDependencies:
       '@types/aws-lambda': 8.10.102
@@ -395,7 +395,7 @@ importers:
       '@aws-sdk/client-s3': 3.154.0
       '@aws-sdk/client-secrets-manager': 3.154.0
       '@aws-sdk/s3-request-presigner': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
       uuid: 8.3.2
     devDependencies:
       '@types/aws-lambda': 8.10.102
@@ -418,7 +418,7 @@ importers:
       '@aws-sdk/client-s3': 3.154.0
       '@aws-sdk/client-secrets-manager': 3.154.0
       '@aws-sdk/s3-request-presigner': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.58
       uuid: 8.3.2
     devDependencies:
       '@types/aws-lambda': 8.10.102
@@ -466,7 +466,7 @@ importers:
       '@aws-amplify/auth': 4.6.3_react-native@0.69.4
       '@aws-amplify/ui-react': 3.4.1_zhamp3zyympytfawajwh3mu5b4
       '@conorroberts/beluga': 1.0.31_zxljzmqdrxwnuenbkrz77w74uy
-      '@party-box/common': link:../common
+      '@party-box/common': 1.0.58
       aws-amplify: 4.3.32_react-native@0.69.4
       axios: 0.24.0
       dayjs: 1.11.5
@@ -6520,6 +6520,27 @@ packages:
       chrome-trace-event: 1.0.3
       nullthrows: 1.1.1
     dev: true
+
+  /@party-box/common/1.0.58:
+    resolution: {integrity: sha512-ZoPfoJcl20SP0vXJLppBmFQERQ9crIRF44bxnYvrb9I1Fxgr5q8JQ8w74EbcuecsNOMhGyqx0xDN7k9sb0hzug==}
+    dependencies:
+      '@aws-sdk/client-s3': 3.154.0
+      '@aws-sdk/client-secrets-manager': 3.154.0
+      jsonwebtoken: 8.5.1
+      knex: 2.2.0_pg@8.8.0
+      pg: 8.8.0
+      stripe: 9.16.0
+    transitivePeerDependencies:
+      - '@aws-sdk/signature-v4-crt'
+      - aws-crt
+      - better-sqlite3
+      - mysql
+      - mysql2
+      - pg-native
+      - sqlite3
+      - supports-color
+      - tedious
+    dev: false
 
   /@prisma/engines/4.2.1:
     resolution: {integrity: sha512-0KqBwREUOjBiHwITsQzw2DWfLHjntvbqzGRawj4sBMnIiL5CXwyDUKeHOwXzKMtNr1rEjxEsypM14g0CzLRK3g==}
