@@ -39,7 +39,30 @@ importers:
       uuid: ^8.3.2
     dependencies:
       '@aws-sdk/client-sns': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
+      knex: 2.2.0_pg@8.8.0
+      pg: 8.8.0
+      uuid: 8.3.2
+    devDependencies:
+      '@types/aws-lambda': 8.10.102
+      '@types/node': 17.0.45
+      '@types/uuid': 8.3.4
+      typescript: 4.7.4
+
+  api/party-box-createEventRequest:
+    specifiers:
+      '@aws-sdk/client-sns': ^3.121.0
+      '@party-box/common': latest
+      '@types/aws-lambda': ^8.10.99
+      '@types/node': ^17.0.41
+      '@types/uuid': ^8.3.4
+      knex: ^2.2.0
+      pg: ^8.7.3
+      typescript: ^4.7.3
+      uuid: ^8.3.2
+    dependencies:
+      '@aws-sdk/client-sns': 3.154.0
+      '@party-box/common': 1.0.56
       knex: 2.2.0_pg@8.8.0
       pg: 8.8.0
       uuid: 8.3.2
@@ -56,7 +79,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -69,7 +92,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -82,7 +105,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -101,7 +124,7 @@ importers:
       '@aws-sdk/client-s3': 3.154.0
       '@aws-sdk/client-secrets-manager': 3.154.0
       '@aws-sdk/client-sns': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -116,7 +139,7 @@ importers:
       typescript: ^4.7.3
     dependencies:
       '@aws-sdk/client-s3': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -129,7 +152,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -142,7 +165,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -155,7 +178,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -168,7 +191,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -181,7 +204,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -194,7 +217,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -222,7 +245,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -230,18 +253,14 @@ importers:
 
   api/party-box-handleTicketPurchase:
     specifiers:
-      '@aws-sdk/client-secrets-manager': ^3.162.0
       '@aws-sdk/client-sns': ^3.121.0
       '@party-box/common': ^1.0.27
       '@types/aws-lambda': ^8.10.99
       '@types/node': ^17.0.41
-      twilio: ^3.81.0
       typescript: ^4.7.3
     dependencies:
-      '@aws-sdk/client-secrets-manager': 3.162.0
       '@aws-sdk/client-sns': 3.154.0
       '@party-box/common': 1.0.56
-      twilio: 3.81.0
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -256,7 +275,7 @@ importers:
       typescript: ^4.7.3
     dependencies:
       '@aws-sdk/client-cognito-identity-provider': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -271,7 +290,7 @@ importers:
       typescript: ^4.7.3
     dependencies:
       '@aws-sdk/client-sns': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -297,8 +316,8 @@ importers:
     dependencies:
       '@aws-sdk/client-dynamodb': 3.154.0
       '@aws-sdk/client-secrets-manager': 3.154.0
-      '@aws-sdk/lib-dynamodb': 3.154.0_lzuh6le54663pybgv3mztdqjzi
-      '@party-box/common': link:../../common
+      '@aws-sdk/lib-dynamodb': 3.154.0_24jphh2fhwrglgfbwv7v7ifmqm
+      '@party-box/common': 1.0.56
       dayjs: 1.11.5
       jsonwebtoken: 8.5.1
       pg: 8.8.0
@@ -319,7 +338,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -332,7 +351,7 @@ importers:
       '@types/node': ^17.0.41
       typescript: ^4.7.3
     dependencies:
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
     devDependencies:
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
@@ -353,7 +372,7 @@ importers:
       '@aws-sdk/client-s3': 3.154.0
       '@aws-sdk/client-secrets-manager': 3.154.0
       '@aws-sdk/s3-request-presigner': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
       uuid: 8.3.2
     devDependencies:
       '@types/aws-lambda': 8.10.102
@@ -376,7 +395,7 @@ importers:
       '@aws-sdk/client-s3': 3.154.0
       '@aws-sdk/client-secrets-manager': 3.154.0
       '@aws-sdk/s3-request-presigner': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
       uuid: 8.3.2
     devDependencies:
       '@types/aws-lambda': 8.10.102
@@ -399,7 +418,7 @@ importers:
       '@aws-sdk/client-s3': 3.154.0
       '@aws-sdk/client-secrets-manager': 3.154.0
       '@aws-sdk/s3-request-presigner': 3.154.0
-      '@party-box/common': link:../../common
+      '@party-box/common': 1.0.56
       uuid: 8.3.2
     devDependencies:
       '@types/aws-lambda': 8.10.102
@@ -447,7 +466,7 @@ importers:
       '@aws-amplify/auth': 4.6.3_react-native@0.69.4
       '@aws-amplify/ui-react': 3.4.1_sctvcdzuqmlxl7qjkuvs3atqse
       '@conorroberts/beluga': 1.0.31_x6vcehmdzjj6pm7ndhhuigqb3i
-      '@party-box/common': link:../common
+      '@party-box/common': 1.0.56
       aws-amplify: 4.3.32_react-native@0.69.4
       axios: 0.24.0
       dayjs: 1.11.5
@@ -2799,7 +2818,7 @@ packages:
       tslib: 1.14.1
     dev: false
 
-  /@aws-sdk/lib-dynamodb/3.154.0_lzuh6le54663pybgv3mztdqjzi:
+  /@aws-sdk/lib-dynamodb/3.154.0_24jphh2fhwrglgfbwv7v7ifmqm:
     resolution: {integrity: sha512-7z3AoYF18T9Nrke5TkoBROuS5ad3qb2Uf4Ir0xIe5Tfx4zq9f9dHS9vB+Fs4KAT9IWs1XkXvcvrGUdtosbQAFQ==}
     engines: {node: '>= 12.0.0'}
     peerDependencies:
@@ -2808,8 +2827,8 @@ packages:
       '@aws-sdk/types': ^3.0.0
     dependencies:
       '@aws-sdk/client-dynamodb': 3.154.0
-      '@aws-sdk/smithy-client': 3.142.0
-      '@aws-sdk/types': 3.127.0
+      '@aws-sdk/smithy-client': 3.162.0
+      '@aws-sdk/types': 3.162.0
       '@aws-sdk/util-dynamodb': 3.154.0
       tslib: 2.4.0
     dev: false
@@ -8870,15 +8889,6 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  /agent-base/6.0.2:
-    resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
-    engines: {node: '>= 6.0.0'}
-    dependencies:
-      debug: 4.3.4
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
   /ajv-errors/1.0.1_ajv@6.12.6:
     resolution: {integrity: sha512-DCRfO/4nQ+89p/RK43i8Ezd41EqdGIU4ld7nGF8OQ14oc/we5rEntLCUa7+jrn3nn83BosfwZA0wb4pon2o8iQ==}
     peerDependencies:
@@ -9200,14 +9210,6 @@ packages:
 
   /axios/0.26.0:
     resolution: {integrity: sha512-lKoGLMYtHvFrPVt3r+RBMp9nh34N0M8zEfCWqdWZx6phynIEhQqAdydpyBAAG211zlhX9Rgu08cOamy6XjE5Og==}
-    dependencies:
-      follow-redirects: 1.15.1
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /axios/0.26.1:
-    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
     dependencies:
       follow-redirects: 1.15.1
     transitivePeerDependencies:
@@ -11817,16 +11819,6 @@ packages:
     resolution: {integrity: sha512-J+FkSdyD+0mA0N+81tMotaRMfSL9SGi+xpD3T6YApKsc3bGSXJlfXri3VyFOeYkfLRQisDk1W+jIFFKBeUBbBg==}
     dev: false
 
-  /https-proxy-agent/5.0.1:
-    resolution: {integrity: sha512-dFcAjpTQFgoLMzC2VwU+C/CbS7uRL0lWmxDITmqm7C+7F0Odmj6s9l6alZc6AELXhrnggM2CeWSXHGOdX2YtwA==}
-    engines: {node: '>= 6'}
-    dependencies:
-      agent-base: 6.0.2
-      debug: 4.3.4
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
   /idb/5.0.6:
     resolution: {integrity: sha512-/PFvOWPzRcEPmlDt5jEvzVZVs0wyd/EvGvkDIcbBpGuMMLQKrTPG0TxvE2UJtgZtCQCmOtM2QD7yQJBVEjKGOw==}
     dev: false
@@ -14174,10 +14166,6 @@ packages:
     engines: {node: '>=10.13.0'}
     dev: false
 
-  /pop-iterate/1.0.1:
-    resolution: {integrity: sha512-HRCx4+KJE30JhX84wBN4+vja9bNfysxg1y28l0DuJmkoaICiv2ZSilKddbS48pq50P8d2erAhqDLbp47yv3MbQ==}
-    dev: false
-
   /popmotion/11.0.3:
     resolution: {integrity: sha512-Y55FLdj3UxkR7Vl3s7Qr4e9m0onSnP8W7d/xQLsoJM40vs6UKHFdygs6SWryasTZYqugMjm3BepCF4CWXDiHgA==}
     dependencies:
@@ -14490,14 +14478,6 @@ packages:
       postcss-selector-parser: 6.0.10
     dev: false
 
-  /q/2.0.3:
-    resolution: {integrity: sha512-gv6vLGcmAOg96/fgo3d9tvA4dJNZL3fMyBqVRrGxQ+Q/o4k9QzbJ3NQF9cOO/71wRodoXhaPgphvMFU68qVAJQ==}
-    dependencies:
-      asap: 2.0.6
-      pop-iterate: 1.0.1
-      weak-map: 1.0.8
-    dev: false
-
   /qr.js/0.0.0:
     resolution: {integrity: sha512-c4iYnWb+k2E+vYpRimHqSu575b1/wKl4XFeJGpFmrJQz5I88v9aY2czh7s0w36srfCM1sXgC/xpoJz5dJfq+OQ==}
     dev: false
@@ -14529,10 +14509,6 @@ packages:
     resolution: {integrity: sha1-sgmEkgO7Jd+CDadW50cAWHhSFiA=}
     engines: {node: '>=0.4.x'}
     deprecated: The querystring API is considered Legacy. new code should use the URLSearchParams API instead.
-    dev: false
-
-  /querystringify/2.2.0:
-    resolution: {integrity: sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==}
     dev: false
 
   /queue-microtask/1.2.3:
@@ -15061,10 +15037,6 @@ packages:
     resolution: {integrity: sha512-NKN5kMDylKuldxYLSUfrbo5Tuzh4hd+2E8NPPX02mZtn1VuREQToYe/ZdlJy+J3uCpfaiGF05e7B8W0iXbQHmg==}
     dev: false
 
-  /requires-port/1.0.0:
-    resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==}
-    dev: false
-
   /resolve-from/3.0.0:
     resolution: {integrity: sha512-GnlH6vxLymXJNMBo7XP1fJIzBFbdYt49CuTwmB/6N53t+kMPRMFKz783LlQ4tv28XoQfMWinAJX6WCGf2IlaIw==}
     engines: {node: '>=4'}
@@ -15212,10 +15184,6 @@ packages:
       acorn: 7.4.1
     dev: false
 
-  /rootpath/0.1.2:
-    resolution: {integrity: sha512-R3wLbuAYejpxQjL/SjXo1Cjv4wcJECnMRT/FlcCfTwCBhaji9rWaRCoVEQ1SPiTJ4kKK+yh+bZLAV7SCafoDDw==}
-    dev: false
-
   /run-parallel/1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
     dependencies:
@@ -15270,10 +15238,6 @@ packages:
       ajv: 6.12.6
       ajv-errors: 1.0.1_ajv@6.12.6
       ajv-keywords: 3.5.2_ajv@6.12.6
-    dev: false
-
-  /scmp/2.1.0:
-    resolution: {integrity: sha512-o/mRQGk9Rcer/jEEw/yw4mwo3EU/NvYvp577/Btqrym9Qy5/MdWGBqipbALgd2lrdWTJ5/gqDusxfnQBxOxT2Q==}
     dev: false
 
   /semver/5.7.1:
@@ -16307,26 +16271,6 @@ packages:
       turbo-windows-arm64: 1.4.4
     dev: true
 
-  /twilio/3.81.0:
-    resolution: {integrity: sha512-ipeYAhAxD0ql/1Jq0DfTm1SvU+kdGcS+JJEbfWuCOG5vyyiB6C4nlLGR/tdojZDwuP7Dxf4TZ+oFE+6FL8c3Aw==}
-    engines: {node: '>=6.0'}
-    dependencies:
-      axios: 0.26.1
-      dayjs: 1.11.5
-      https-proxy-agent: 5.0.1
-      jsonwebtoken: 8.5.1
-      lodash: 4.17.21
-      q: 2.0.3
-      qs: 6.11.0
-      rootpath: 0.1.2
-      scmp: 2.1.0
-      url-parse: 1.5.10
-      xmlbuilder: 13.0.2
-    transitivePeerDependencies:
-      - debug
-      - supports-color
-    dev: false
-
   /type-check/0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
     engines: {node: '>= 0.8.0'}
@@ -16512,13 +16456,6 @@ packages:
     deprecated: Please see https://github.com/lydell/urix#deprecated
     dev: false
 
-  /url-parse/1.5.10:
-    resolution: {integrity: sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==}
-    dependencies:
-      querystringify: 2.2.0
-      requires-port: 1.0.0
-    dev: false
-
   /url/0.11.0:
     resolution: {integrity: sha512-kbailJa29QrtXnxgq+DdCEGlbTeYM2eJUxsz6vjZavrCYPMIFHMKQmSKYAIuUK2i7hgPm28a8piX5NTUtM/LKQ==}
     dependencies:
@@ -16688,10 +16625,6 @@ packages:
   /weak-lru-cache/1.2.2:
     resolution: {integrity: sha512-DEAoo25RfSYMuTGc9vPJzZcZullwIqRDSI9LOy+fkCJPi6hykCnfKaXTuPBDuXAUcqHXyOgFtHNp/kB2FjYHbw==}
     dev: true
-
-  /weak-map/1.0.8:
-    resolution: {integrity: sha512-lNR9aAefbGPpHO7AEnY0hCFjz1eTkWCXYvkTRrTHs9qv8zJp+SkVYpzfLIFXQQiG3tVvbNFQgVg2bQS8YGgxyw==}
-    dev: false
 
   /webidl-conversions/3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
@@ -16990,11 +16923,6 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
-    dev: false
-
-  /xmlbuilder/13.0.2:
-    resolution: {integrity: sha512-Eux0i2QdDYKbdbA6AM6xE4m6ZTZr4G4xF9kahI2ukSEMCzwce2eX9WlTI5J3s+NU7hpasFsr8hWIONae7LluAQ==}
-    engines: {node: '>=6.0'}
     dev: false
 
   /xmlbuilder/15.1.1:

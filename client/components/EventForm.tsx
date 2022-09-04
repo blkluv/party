@@ -21,6 +21,8 @@ import {
   DropdownItem,
   Select,
   SelectOption,
+  Portal,
+  Toast,
 } from "@conorroberts/beluga";
 import createEvent from "~/utils/createEvent";
 import axios from "axios";
@@ -42,6 +44,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
   const [thumbnail, setThumbnail] = useState<File | string>(initialValues?.thumbnail ?? null);
   const [thumbnailPreview, setThumbnailPreview] = useState(initialValues?.thumbnail ?? "");
   const [availableHosts, setAvailableHosts] = useState<PartyBoxHost[]>([]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Add a new file to the array of media files
   const addMediaImage = (file: File) => {
@@ -127,12 +130,23 @@ const EventForm: FC<Props> = ({ initialValues }) => {
           await router.push(`/events/${event.id}`);
         } catch (error) {
           console.error(error);
+          setSubmitError(`Error ${mode === "create" ? "creating" : "updating"} event`);
         }
       }}
       initialValues={initialValues ? formatEventFormValues(initialValues) : defaultEventData}
     >
       {({ isSubmitting, values, handleChange, setFieldValue, status, errors }) => (
         <Form className="flex flex-col gap-2">
+          <Portal>
+            <Toast
+              open={Boolean(submitError)}
+              onOpenChange={(value) => value === false && setSubmitError(null)}
+              variant="error"
+              title="Error"
+            >
+              {submitError}
+            </Toast>
+          </Portal>
           <div className="flex gap-4 items-center">
             <p>Publish event</p>
             <Switch
