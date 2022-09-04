@@ -2,9 +2,9 @@ FROM public.ecr.aws/lambda/nodejs:16
 
 COPY . .
 
-RUN npm install -g yarn
-RUN yarn install
-RUN yarn tsc
-RUN yarn install --only=production
+RUN npm install -g pnpm
+RUN pnpm install
+RUN pnpm tsc
+RUN pnpm prune --prod
 
 CMD [ "index.handler" ]

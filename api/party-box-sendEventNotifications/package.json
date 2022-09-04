@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-sns": "^3.121.0",
-    "@party-box/common": "^1.0.28"
+    "@party-box/common": "^1.0.57"
   },
   "keywords": [],
   "author": "",
