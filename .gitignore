@@ -6,3 +6,4 @@
 common/dist
 **/*.log
 .turbo
+**/.terraform

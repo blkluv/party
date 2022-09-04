@@ -49,13 +49,6 @@ jobs:
           --function-name ${{ inputs.function-name }} \
           --image-uri ${{ steps.set-image-name.outputs.image }}
 
-      - name: Update Lambda configuration
-        run: |
-          aws lambda wait function-updated --function-name ${{ inputs.function-name }}
-          aws lambda update-function-configuration \
-          --function-name ${{ inputs.function-name }} \
-          --timeout 60
-
       - name: Publish new Lambda version
         run: |
           aws lambda wait function-updated --function-name ${{ inputs.function-name }}
