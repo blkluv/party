@@ -6,9 +6,9 @@ import {
   PartyBoxEventTicket,
   PartyBoxCreateTicketInput,
   PartyBoxEventNotification,
+  formatEventNotification,
 } from "@party-box/common";
 import { SNS } from "@aws-sdk/client-sns";
-import { formatEventNotification } from "../../common/dist/types";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
