@@ -8,6 +8,7 @@ import {
   PartyBoxEventNotification,
 } from "@party-box/common";
 import { SNS } from "@aws-sdk/client-sns";
+import { formatEventNotification } from "../../common/dist/types";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -120,7 +121,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     if (eventNotification) {
       await sns.publish({
-        Message: eventNotification.message,
+        Message: formatEventNotification(eventNotification.message, eventData),
         TopicArn: tempTopic.TopicArn,
       });
     }

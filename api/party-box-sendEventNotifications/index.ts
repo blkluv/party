@@ -1,6 +1,11 @@
 import { SNS } from "@aws-sdk/client-sns";
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, PartyBoxEvent, PartyBoxEventNotification } from "@party-box/common";
+import {
+  formatEventNotification,
+  getPostgresClient,
+  PartyBoxEvent,
+  PartyBoxEventNotification,
+} from "@party-box/common";
 
 /**
  * @description Send out event notifications to all event ticket holders.
@@ -19,21 +24,32 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       .where("messageTime", "<=", "now()")
       .join<PartyBoxEvent>("events", "events.id", "=", "eventNotifications.eventId");
 
+    const eventData = await pg<PartyBoxEvent>("events")
+      .select("*")
+      .whereIn(
+        "id",
+        notifications.map((e) => e.eventId)
+      );
     if (notifications?.length === 0) throw new Error("No notifications to send.");
 
+    const sentNotifications: number[] = [];
+
     // Send out notifcations using AWS SNS
-    for (const e of notifications) {
+    for (const { snsTopicArn, eventId, message, id } of notifications) {
+      const event = eventData.find((e) => e.id === eventId);
+
+      if (!event) throw new Error("Event not found.");
+
       await sns.publish({
-        Message: e.message,
-        TopicArn: e.snsTopicArn,
+        Message: formatEventNotification(message, event),
+        TopicArn: snsTopicArn,
       });
+
+      sentNotifications.push(id);
     }
 
     // Delete all selected messages
-    await pg<PartyBoxEventNotification>("eventNotifications").whereIn(
-      "id",
-      notifications.map((e) => e.id)
-    );
+    await pg<PartyBoxEventNotification>("eventNotifications").whereIn("id", sentNotifications);
 
     return {
       statusCode: 200,
