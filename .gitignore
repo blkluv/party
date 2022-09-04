@@ -5,3 +5,5 @@
 .parcel-cache
 common/dist
 **/*.log
+.turbo
+**/.terraform
