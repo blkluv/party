@@ -5,7 +5,6 @@ services:
       dockerfile: ./docker/api/Dockerfile
       args:
         dir: ./api/party-box-createEvent
-        workspace: create-event
     image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-createEvent
   party-box-getUpcomingEvents:
     build:
@@ -13,5 +12,4 @@ services:
       dockerfile: ./docker/api/Dockerfile
       args:
         dir: ./api/party-box-getUpcomingEvents
-        workspace: get-upcoming-events
     image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getUpcomingEvents
