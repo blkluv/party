@@ -12,7 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@party-box/common": "^1.0.24",
+    "@party-box/common": "workspace:^",
+    "@party-box/prisma": "workspace:^",
     "dayjs": "^1.11.5"
   }
 }

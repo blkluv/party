@@ -2,7 +2,11 @@
   "name": "create-event",
   "version": "1.0.0",
   "description": "",
+  "source": "index.ts",
   "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.99",
     "@types/node": "^17.0.41",
@@ -14,9 +18,11 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-sns": "^3.121.0",
-    "@party-box/common": "latest",
+    "@party-box/common": "workspace:^",
     "knex": "^2.2.0",
     "pg": "^8.7.3",
+    "@party-box/prisma": "workspace:^",
     "uuid": "^8.3.2"
   }
 }
+

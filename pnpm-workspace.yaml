@@ -1,6 +1,7 @@
 packages:
   - "client"
   - "database"
-  - "common"
+  - "@party-box/common"
+  - "@party-box/prisma"
   - "api/*"
   - "scripts"

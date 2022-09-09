@@ -8,8 +8,9 @@ import {
   getStripeClient,
   getPostgresClient,
   decodeJwt,
-  PartyBoxHostRole,
 } from "@party-box/common";
+
+import { HostRole as PartyBoxHostRole } from "@party-box/prisma/client";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;

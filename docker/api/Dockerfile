@@ -5,7 +5,8 @@ ARG workspace
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml .npmrc package.json ./
 COPY ${dir}/index.ts ${dir}/tsconfig.json ${dir}/package.json ./function/
-COPY ./prisma ./prisma
+COPY ./@party-box/prisma ./@party-box/prisma
+COPY ./@party-box/common ./@party-box/common
 
 RUN npm install -g pnpm
 

@@ -1,5 +1,5 @@
 {
-  "name": "create-event",
+  "name": "create-event-request",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -17,6 +17,7 @@
     "@party-box/common": "latest",
     "knex": "^2.2.0",
     "pg": "^8.7.3",
+    "prisma": "^4.3.1",
     "uuid": "^8.3.2"
   }
 }
