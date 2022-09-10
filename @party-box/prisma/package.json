@@ -1,6 +1,7 @@
 {
   "name": "@party-box/prisma",
   "description": "Prisma client for Party Box",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "main":"index.js"
 }
 
