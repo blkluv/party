@@ -2,11 +2,10 @@
   "name": "@party-box/prisma",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "main": "./client/index.js",
+  "types": "./client/index.d.ts",
   "keywords": [],
   "author": "",
   "license": "ISC"
 }
+
