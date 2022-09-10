@@ -8,6 +8,6 @@ COPY ${dir}/index.ts ${dir}/tsconfig.json ${dir}/package.json ./function/
 COPY ./@party-box/prisma ./@party-box/prisma
 COPY ./@party-box/common ./@party-box/common
 
-RUN npm install -g pnpm && pnpm i && pnpm -F database generate && pnpm -F ./function exec tsc && pnpm prune -P
+RUN npm install -g pnpm && pnpm i && pnpm -F ./function exec tsc && pnpm prune -P
 
 CMD [ "./function/index.handler" ]
