@@ -11,4 +11,4 @@ Dockerfile
 .dockerignore
 .env*
 *-lock.*
-prisma/client
+@party-box/prisma/client

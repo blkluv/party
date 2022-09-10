@@ -4,8 +4,9 @@ datasource db {
 }
 
 generator client {
-  output   = "../../@party-box/prisma/client"
-  provider = "prisma-client-js"
+  output        = "../../@party-box/prisma/client"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 model Event {

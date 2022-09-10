@@ -223,7 +223,16 @@ const config = {
     "config": {
       "engineType": "library"
     },
-    "binaryTargets": [],
+    "binaryTargets": [
+      {
+        "fromEnvVar": null,
+        "value": "windows"
+      },
+      {
+        "fromEnvVar": null,
+        "value": "rhel-openssl-1.0.x"
+      }
+    ],
     "previewFeatures": [],
     "isCustomOutput": true
   },
@@ -259,5 +268,8 @@ Object.assign(exports, Prisma)
 
 path.join(__dirname, "query_engine-windows.dll.node");
 path.join(process.cwd(), "..\\@party-box\\prisma\\client\\query_engine-windows.dll.node")
+
+path.join(__dirname, "libquery_engine-rhel-openssl-1.0.x.so.node");
+path.join(process.cwd(), "..\\@party-box\\prisma\\client\\libquery_engine-rhel-openssl-1.0.x.so.node")
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "..\\@party-box\\prisma\\client\\schema.prisma")
