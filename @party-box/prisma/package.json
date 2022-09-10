@@ -1,7 +1,12 @@
 {
   "name": "@party-box/prisma",
-  "description": "Prisma client for Party Box",
   "version": "1.0.0",
-  "main":"index.js"
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
-
