@@ -15,6 +15,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
   const connectionString = await getPostgresConnectionString(stage);
   const prisma = new PrismaClient({ datasources: { db: { url: connectionString } } });
+  await prisma.$connect();
 
   try {
     const { sub } = decodeJwt(Authorization, ["admin"]);

@@ -1,5 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, decodeJwt, PartyBoxHost, PartyBoxHostRole } from "@party-box/common";
+import { decodeJwt, getPostgresConnectionString } from "@party-box/common";
+import { PrismaClient } from "@party-box/prisma";
 
 /**
  * Get hosts that a user has relationships with
@@ -10,17 +11,30 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
 
-  const pg = await getPostgresClient(stage);
+  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
+  await prisma.$connect();
 
   try {
     const { sub: userId } = decodeJwt(Authorization);
 
     if (!userId) throw new Error("Missing userId");
 
-    const hosts = await pg<PartyBoxHostRole>("hostRoles")
-      .select("hosts.id", "hostRoles.role", "hosts.description", "hosts.imageUrl", "hosts.name")
-      .where("userId", "=", userId)
-      .innerJoin<PartyBoxHost>("hosts", "hostRoles.hostId", "hosts.id");
+    const hosts = await prisma.hostRole.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        role: true,
+        host: {
+          select: {
+            name: true,
+            description: true,
+            imageUrl: true,
+            id: true,
+          },
+        },
+      },
+    });
 
     return {
       statusCode: 200,
@@ -33,6 +47,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       body: JSON.stringify(error),
     };
   } finally {
-    await pg.destroy();
+    await prisma.$disconnect();
   }
 };

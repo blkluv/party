@@ -1,5 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { decodeJwt, getPostgresClient, PartyBoxHostRole, PartyBoxUser, verifyHostRoles } from "@party-box/common";
+import { decodeJwt, getPostgresConnectionString } from "@party-box/common";
+import { PrismaClient } from "@party-box/prisma";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   hostId: string;
@@ -14,7 +15,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
 
-  const pg = await getPostgresClient(stage);
+  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
+  await prisma.$connect();
 
   try {
     // Verify that the requesting user has permission to view this host
@@ -22,18 +24,23 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     if (!userId) throw new Error("Missing userId");
 
-    const validRole = await verifyHostRoles(pg, userId, Number(hostId), ["admin", "manager"]);
+    const { role: userRoleOfHost } = await prisma.hostRole.findFirstOrThrow({
+      where: { hostId: Number(hostId), userId },
+      select: { role: true },
+    });
 
-    if (!validRole) throw new Error("User does not have permission to get roles for this host");
+    if (userRoleOfHost !== "manager" && userRoleOfHost !== "admin") {
+      throw new Error(`Invalid role to update host. User has role: "${userRoleOfHost}"`);
+    }
 
-    const hostUsers = await pg<PartyBoxHostRole>("hostRoles")
-      .select("hostRoles.role", "users.id", "users.email", "users.name")
-      .where("hostId", "=", Number(hostId))
-      .innerJoin<PartyBoxUser>("users", "hostRoles.userId", "users.id");
+    const hostUsers = await prisma.hostRole.findMany({
+      select: { role: true, user: { select: { id: true, email: true, name: true } } },
+      where: { hostId: Number(hostId) },
+    });
 
     return {
+      body: JSON.stringify(hostUsers.map((e) => ({ ...e, ...e.user }))),
       statusCode: 200,
-      body: JSON.stringify(hostUsers),
     };
   } catch (error) {
     console.error(error);
@@ -42,6 +49,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       body: JSON.stringify(error),
     };
   } finally {
-    await pg.destroy();
+    await prisma.$disconnect();
   }
 };

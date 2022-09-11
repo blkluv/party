@@ -15,6 +15,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { stage } = event.requestContext;
 
   const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
+  await prisma.$connect();
 
   try {
     const eventData = await prisma.event.findFirstOrThrow({

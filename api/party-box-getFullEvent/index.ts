@@ -1,5 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, PartyBoxEvent, decodeJwt } from "@party-box/common";
+import { decodeJwt, getPostgresConnectionString } from "@party-box/common";
+import { PrismaClient } from "@party-box/prisma";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -16,22 +17,19 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
 
-  const pg = await getPostgresClient(stage);
+  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
+  await prisma.$connect();
 
   try {
     decodeJwt(Authorization, ["admin"]);
 
-    const [eventData] = await pg<PartyBoxEvent>("events").select("*").where("id", "=", Number(eventId));
-    const notificationData = await pg<PartyBoxEvent>("eventNotifications")
-      .select("*")
-      .where("eventId", "=", Number(eventId));
-
-    if (!eventData) throw new Error("Event not found");
+    const eventData = await prisma.event.findFirstOrThrow({ where: { id: Number(eventId) } });
+    const notificationData = await prisma.eventNotification.findMany({ where: { eventId: Number(eventId) } });
 
     return {
       statusCode: 200,
       body: JSON.stringify({ ...eventData, notifications: notificationData }),
-    }; 
+    };
   } catch (error) {
     console.error(error);
     return {
@@ -39,6 +37,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       body: JSON.stringify(error),
     };
   } finally {
-    await pg.destroy();
+    await prisma.$disconnect();
   }
 };

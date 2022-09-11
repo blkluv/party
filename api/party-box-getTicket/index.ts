@@ -1,5 +1,6 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, getStripeClient, PartyBoxEvent, PartyBoxEventTicket } from "@party-box/common";
+import { APIGatewayProxyEventPathParameters, APIGatewayProxyHandler } from "aws-lambda";
+import { getPostgresConnectionString, getStripeClient } from "@party-box/common";
+import { PrismaClient } from "@party-box/prisma";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   ticketId: string;
@@ -9,20 +10,23 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
  * @method POST
  * @description Retrieve ticket data from postgres and stripe given a session id (treated as ticketId)
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
+export const handler: APIGatewayProxyHandler = async (event) => {
   console.log(event);
-  const { ticketId:stripeSessionId } = event.pathParameters as PathParameters;
+
+  const { ticketId: stripeSessionId } = event.pathParameters as PathParameters;
 
   const { stage } = event.requestContext;
+  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
+  await prisma.$connect();
 
-  const pg = await getPostgresClient(stage);
   const stripe = await getStripeClient(stage);
 
   try {
-    const [ticketData] = await pg<PartyBoxEventTicket>("tickets").where("stripeSessionId", stripeSessionId);
-    const [eventData] = await pg<PartyBoxEvent>("events")
-      .select("name", "description", "id", "startTime", "endTime", "hashtags")
-      .where("id", ticketData.eventId);
+    const ticketData = await prisma.ticket.findFirstOrThrow({ where: { stripeSessionId } });
+    const eventData = await prisma.event.findFirstOrThrow({
+      where: { id: ticketData.eventId },
+      select: { name: true, description: true, id: true, startTime: true, endTime: true, hashtags: true },
+    });
 
     const session = await stripe.checkout.sessions.retrieve(stripeSessionId);
     const paymentIntent = await stripe.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
@@ -42,6 +46,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       body: JSON.stringify(error),
     };
   } finally {
-    await pg.destroy();
+    await prisma.$disconnect();
   }
 };

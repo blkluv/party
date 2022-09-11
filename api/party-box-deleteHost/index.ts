@@ -19,9 +19,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
   const connectionString = await getPostgresConnectionString(stage);
   const prisma = new PrismaClient({ datasources: { db: { url: connectionString } } });
+  await prisma.$connect();
 
   const s3 = await getS3Client();
-  const pg = await getPostgresClient(stage);
 
   try {
     const { sub: userId } = decodeJwt(Authorization, ["admin", "user"]);
@@ -69,6 +69,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       body: JSON.stringify(error),
     };
   } finally {
-    await pg.destroy();
+    await prisma.$disconnect();
   }
 };
