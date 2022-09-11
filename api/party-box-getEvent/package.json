@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@party-box/common": "^1.0.43"
+    "@party-box/common": "workspace:^",
+    "@party-box/prisma": "workspace:^"
   }
 }
