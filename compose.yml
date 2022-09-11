@@ -13,3 +13,169 @@ services:
       args:
         dir: ./api/party-box-getUpcomingEvents
     image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getUpcomingEvents
+  party-box-createEventRequest:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-createEventRequest
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-createEventRequest
+  party-box-createEventService:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-createEventService
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-createEventService
+  party-box-createHost:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-createHost
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-createHost
+  party-box-createHostMember:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-createHostMember
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-createHostMember
+  party-box-deleteEvent:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-deleteEvent
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-deleteEvent
+  party-box-deleteHost:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-deleteHost
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-deleteHost
+    
+  party-box-getEvent:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-getEvent
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getEvent
+  party-box-getEventServices:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-getEventServices
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getEventServices
+  party-box-getFullEvent:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-getFullEvent
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getFullEvent
+  party-box-getHostProfile:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-getHostProfile
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getHostProfile
+  party-box-getHostRoles:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-getHostRoles
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getHostRoles
+  party-box-getTicket:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-getTicket
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getTicket
+    
+  party-box-getUserHosts:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-getUserHosts
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getUserHosts
+    
+  party-box-handleTicketPurchase:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-handleTicketPurchase
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-handleTicketPurchase
+    
+  party-box-postSignUp:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-postSignUp
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-postSignUp
+  party-box-refundTicket:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-refundTicket
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-refundTicket
+  party-box-sendEventNotifications:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-sendEventNotifications
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-sendEventNotifications
+  party-box-updateEvent:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-updateEvent
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-updateEvent
+  party-box-updateHost:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-updateHost
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-updateHost
+  party-box-updateTicketUsage:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-updateTicketUsage
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-updateTicketUsage
+  party-box-uploadEventMedia:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-uploadEventMedia
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-uploadEventMedia
+  party-box-uploadHostMedia:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-uploadHostMedia
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-uploadHostMedia
+  party-box-uploadServiceMedia:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-uploadServiceMedia
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-uploadServiceMedia
+    
