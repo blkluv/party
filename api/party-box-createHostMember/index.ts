@@ -1,5 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { decodeJwt, getPostgresClient, PartyBoxHostRole, PartyBoxUser, Role, verifyHostRoles } from "@party-box/common";
+import { decodeJwt, getPostgresConnectionString, Role } from "@party-box/common";
+import { PrismaClient } from "@party-box/prisma";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   hostId: string;
@@ -19,7 +20,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
 
-  const pg = await getPostgresClient(stage);
+  const connectionString = await getPostgresConnectionString(stage);
+  const prisma = new PrismaClient({ datasources: { db: { url: connectionString } } });
 
   try {
     if (!event.body) throw new Error("Missing body");
@@ -27,28 +29,30 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     // Verify that the requesting user has permission to view this host
     const { sub: userId } = decodeJwt(Authorization);
-
     if (!userId) throw new Error("Missing userId");
 
-    const validRole = await verifyHostRoles(pg, userId, Number(hostId), ["admin", "manager"]);
+    const { role: userRoleOfHost } = await prisma.hostRole.findFirstOrThrow({
+      where: { hostId: Number(hostId), userId },
+      select: { role: true },
+    });
 
-    if (!validRole) throw new Error("User does not have permission to get roles for this host");
+    if (userRoleOfHost !== "manager" && userRoleOfHost !== "admin") {
+      throw new Error(`Invalid role to update host. User has role: "${userRoleOfHost}"`);
+    }
 
-    const userData = await pg<PartyBoxUser>("users").select("id").where("email", "=", body.email).first();
+    const { id } = await prisma.user.findFirstOrThrow({ where: { email: body.email }, select: { id: true } });
 
-    if (!userData) throw new Error("User does not exist");
-
-    const hostUsers = await pg<PartyBoxHostRole>("hostRoles")
-      .insert({
+    const newHostRole = await prisma.hostRole.create({
+      data: {
         hostId: Number(hostId),
-        userId: userData.id,
+        userId: id,
         role: body.role,
-      })
-      .returning("*");
+      },
+    });
 
     return {
       statusCode: 200,
-      body: JSON.stringify(hostUsers),
+      body: JSON.stringify(newHostRole),
     };
   } catch (error) {
     console.error(error);
@@ -57,6 +61,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       body: JSON.stringify(error),
     };
   } finally {
-    await pg.destroy();
+    await prisma.$disconnect();
   }
 };

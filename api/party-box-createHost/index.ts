@@ -1,5 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, decodeJwt, PartyBoxHost, PartyBoxHostRole } from "@party-box/common";
+import { decodeJwt, getPostgresConnectionString } from "@party-box/common";
+import { PrismaClient } from "@party-box/prisma";
 
 /**
  * Create a host entity within Postgres and add the creator as an admin
@@ -10,7 +11,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
 
-  const pg = await getPostgresClient(stage);
+  const connectionString = await getPostgresConnectionString(stage);
+  const prisma = new PrismaClient({ datasources: { db: { url: connectionString } } });
 
   try {
     if (!event.body) throw new Error("Missing event body");
@@ -18,19 +20,22 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const { name, description } = JSON.parse(event.body);
 
     const { sub: userId } = decodeJwt(Authorization, ["host"]);
+    if (!userId) throw new Error("Missing userId");
 
-    const [newHostData] = await pg<PartyBoxHost>("hosts")
-      .insert({
+    const newHostData = await prisma.host.create({
+      data: {
         name,
         description,
         createdBy: userId,
-      })
-      .returning("*");
+      },
+    });
 
-    await pg<PartyBoxHostRole>("hostRoles").insert({
-      hostId: newHostData.id,
-      userId,
-      role: "admin",
+    await prisma.hostRole.create({
+      data: {
+        hostId: newHostData.id,
+        userId,
+        role: "admin",
+      },
     });
 
     return {
@@ -44,6 +49,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       body: JSON.stringify(error),
     };
   } finally {
-    await pg.destroy();
+    await prisma.$disconnect();
   }
 };

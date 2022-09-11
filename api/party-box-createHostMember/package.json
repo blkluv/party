@@ -12,7 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@party-box/common": "latest"
+    "@party-box/common": "workspace:^",
+    "@party-box/prisma": "workspace:^"
   }
 }
 
