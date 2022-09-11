@@ -36,6 +36,18 @@ jobs:
         run: |
           echo "::set-output name=image::${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ inputs.function-name }}"
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2.2.2
+        with:
+          version: latest
+          run_install: true
+
+      - name: Generate Prisma client
+        env:
+          DATABASE_URL: ${{ secrets.DEV_POSTGRES_URL }}
+        run: |
+          pnpm -F database generate
+
       - name: Build and push to AWS ECR
         run: |
           docker compose build ${{ inputs.function-name }}
