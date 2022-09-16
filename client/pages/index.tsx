@@ -9,7 +9,7 @@ const Page = () => {
       <MetaData title="Home" />
       <div className="mx-auto flex gap-8 items-center">
         {/* <h1 className="font-bold text-5xl sm:text-7xl logo-gradient py-2">Party Box</h1> */}
-        <div className="relative w-[calc(250px*1.3)] h-[calc(75px*1.3)] sm:w-[calc(250px*3)] sm:h-[calc(75px*3)]">
+        <div className="relative w-[calc(250px*1.3)] h-[calc(75px*1.3)] sm:w-[calc(250px*2.5)] sm:h-[calc(75px*2.5)] md:w-[calc(250px*3)] md:h-[calc(75px*3)]">
           <Image src="/images/text-logo.svg" alt="Logo" layout="fill" objectFit="contain" priority loading="eager" />
         </div>
       </div>
