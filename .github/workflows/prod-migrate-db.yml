@@ -22,12 +22,10 @@ jobs:
         with:
           version: latest
           run_install: |
-            - args: [-P]
+            - args: [-P, -F @party-box/prisma]
 
       - name: Migrate
-        working-directory: database
+
         env:
           DATABASE_URL: ${{ secrets.PROD_POSTGRES_URL }}
-        run: |
-          pnpm install
-          pnpm -F @party-box/prisma migrate:prod
+        run: pnpm -F @party-box/prisma migrate:prod
