@@ -8,8 +8,8 @@
     "client"
   ],
   "scripts": {
-    "migrate:dev": "prisma migrate dev -n Update",
-    "migrate:prod": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev -n Update --skip-generate",
+    "migrate:prod": "prisma migrate deploy --skip-generate",
     "build": "prisma generate"
   },
   "keywords": [],
