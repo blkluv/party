@@ -1,12 +1,14 @@
 {
-  "name": "create-event",
+  "name": "create-event-request",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "source": "index.ts",
   "devDependencies": {
+    "config": "workspace:^",
+    "parcel": "^2.6.2",
     "@types/aws-lambda": "^8.10.99",
     "@types/node": "^17.0.41",
-    "@types/uuid": "^8.3.4",
     "typescript": "^4.7.3"
   },
   "keywords": [],
@@ -14,9 +16,10 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-sns": "^3.121.0",
-    "@party-box/common": "latest",
-    "knex": "^2.2.0",
-    "pg": "^8.7.3",
-    "uuid": "^8.3.2"
+    "@party-box/common": "workspace:^",
+    "@party-box/prisma": "workspace:^"
+  },
+  "scripts": {
+    "build": "parcel build"
   }
 }

@@ -1,0 +1,132 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  output        = "../client"
+  provider      = "prisma-client-js"
+  binaryTargets = ["rhel-openssl-1.0.x"]
+}
+
+model Event {
+  id                 Int                 @id @default(autoincrement())
+  name               String              @default("Unnamed Event")
+  description        String?
+  published          Boolean             @default(false)
+  prices             Json[]
+  media              String[]
+  thumbnail          String?
+  hashtags           String[]
+  maxTickets         Int                 @default(0)
+  location           String              @default("TBD")
+  tickets            Ticket[]
+  stripeProductId    String?
+  snsTopicArn        String?
+  startTime          DateTime
+  endTime            DateTime
+  eventNotifications EventNotification[]
+
+  hostId Int
+  host   Host @relation(fields: [hostId], references: [id])
+
+  @@map("events")
+}
+
+model EventNotification {
+  id          Int      @id @default(autoincrement())
+  messageTime DateTime
+  message     String
+  eventId     Int
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sent        Boolean  @default(false)
+
+  @@map("eventNotifications")
+}
+
+model User {
+  id        String     @id @unique
+  email     String     @unique
+  name      String?
+  roles     String[]   @default(["user"])
+  hostRoles HostRole[]
+  tickets   Ticket[]
+  hosts     Host[]
+
+  @@map("users")
+}
+
+model Host {
+  id          Int        @id @default(autoincrement())
+  name        String     @default("Unnamed Host")
+  description String?
+  events      Event[]
+  hostRoles   HostRole[]
+  createdBy   String
+  creator     User       @relation(fields: [createdBy], references: [id])
+  imageUrl    String?    @default("https://www.gravatar.com/avatar?d=mp")
+
+  @@map("hosts")
+}
+
+model HostRole {
+  hostId Int
+  host   Host @relation(fields: [hostId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  role String
+
+  @@id([hostId, userId])
+  @@map("hostRoles")
+}
+
+model Ticket {
+  id      Int   @id @default(autoincrement())
+  eventId Int
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  stripeSessionId String
+  stripeChargeId  String
+  receiptUrl      String
+
+  customerName        String
+  customerPhoneNumber String
+  customerEmail       String
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  ticketQuantity Int
+  used           Boolean
+  purchasedAt    DateTime @default(now())
+
+  @@map("tickets")
+}
+
+model Service {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  imageUrl    String?
+  price       Float
+
+  @@map("services")
+}
+
+model Artist {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  imageUrl    String?
+  price       Int
+
+  // Contact info
+  phoneNumber String?
+  email       String?
+  website     String?
+  genres      String[]
+
+  @@map("artists")
+}

@@ -18,13 +18,9 @@ interface Props {
 
 const Page: FC<Props> = ({ host }) => {
   const { user } = useAuthenticator();
-  const { data: roles = [], isLoading } = useQuery(
-    "hostRoles",
-    async () => await getHostRoles(host.id),
-    {
-      enabled: Boolean(user),
-    }
-  );
+  const { data: roles = [], isLoading } = useQuery("hostRoles", async () => await getHostRoles(host.id), {
+    enabled: Boolean(user),
+  });
 
   const attributes = getUserAttributes(user);
 
@@ -56,15 +52,10 @@ const Page: FC<Props> = ({ host }) => {
           <div className="flex flex-col divide-y divide-gray-800">
             {host.events.map((e) => (
               <Link key={`event ${e.id}`} passHref href={`/events/${e.id}`}>
-                <a className="flex gap-2 p-2 hover:bg-gray-800 cursor-pointer transition">
-                  <Image
-                    height={75}
-                    width={75}
-                    objectFit="cover"
-                    alt={`host ${e.id}`}
-                    src={e.thumbnail}
-                    className="rounded"
-                  />
+                <a className="flex gap-2 p-2 hover:bg-gray-800 cursor-pointer transition flex-col md:flex-row md:items-center">
+                  <div className="relative h-36 md:w-36 rounded-xl overflow-hidden">
+                    <Image layout="fill" objectFit="cover" alt={`host ${e.id}`} src={e.thumbnail} />
+                  </div>
                   <div className="flex-1">
                     <h4 className="font-bold text-lg">{e.name}</h4>
                     <p className="text-sm text-gray-400">{e.description}</p>

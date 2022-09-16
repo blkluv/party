@@ -1,14 +1,7 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
-import {
-  getPostgresClient,
-  getStripeClient,
-  PartyBoxEvent,
-  PartyBoxEventTicket,
-  PartyBoxCreateTicketInput,
-  PartyBoxEventNotification,
-  formatEventNotification,
-} from "@party-box/common";
+import { getStripeClient, formatEventNotification, getPostgresConnectionString } from "@party-box/common";
 import { SNS } from "@aws-sdk/client-sns";
+import { PrismaClient } from "@party-box/prisma";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -28,7 +21,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   } = JSON.parse(event.body ?? "{}");
 
   const sns = new SNS({});
-  const pg = await getPostgresClient(stage);
+  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
+  await prisma.$connect();
   const stripeClient = await getStripeClient(stage);
 
   try {
@@ -47,32 +41,33 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const customerPhoneNumber = session.data[0].customer_details?.phone;
     const ticketQuantity = Number(session.data[0].line_items?.data[0].quantity);
 
-    const newTicketData = {
-      eventId,
-      stripeSessionId: session?.data?.at(0)?.id ?? "",
-      stripeChargeId: chargeId,
-      receiptUrl,
-      customerName,
-      customerEmail,
-      customerPhoneNumber: customerPhoneNumber ?? "",
-      purchasedAt: new Date().toISOString(),
-      ticketQuantity: Number(ticketQuantity),
-      used: false,
-    };
+    // Create ticket in Postgres
+    const ticketData = await prisma.ticket.create({
+      data: {
+        eventId: Number(eventId),
+        stripeSessionId: session?.data?.at(0)?.id ?? "",
+        stripeChargeId: chargeId,
+        receiptUrl,
+        customerName,
+        customerEmail,
+        customerPhoneNumber: customerPhoneNumber ?? "",
+        purchasedAt: new Date().toISOString(),
+        ticketQuantity: Number(ticketQuantity),
+        used: false,
+      },
+    });
 
-    // Create ticket in DynamoDB
-    const [ticketData] = await pg<PartyBoxEventTicket>("tickets")
-      .insert<PartyBoxCreateTicketInput>(newTicketData)
-      .returning("*");
-
-    const [eventData] = await pg<PartyBoxEvent>("events").where("id", "=", Number(eventId));
-    const [{ sum: ticketsSold }] = await pg<PartyBoxEventTicket>("tickets")
-      .where("eventId", "=", Number(eventId))
-      .sum("ticketQuantity");
+    const eventData = await prisma.event.findFirstOrThrow({ where: { id: Number(eventId) } });
+    const { _sum: ticketsSold = 0 } = await prisma.ticket.aggregate({
+      where: { eventId: Number(eventId) },
+      _sum: {
+        ticketQuantity: true,
+      },
+    });
 
     // Once enough stock is sold, disable product on stripe
-    if (ticketsSold >= eventData?.maxTickets) {
-      await stripeClient.products.update(eventData?.stripeProductId, {
+    if (ticketsSold >= eventData?.maxTickets && eventData.stripeProductId) {
+      await stripeClient.products.update(eventData.stripeProductId, {
         active: false,
       });
     }
@@ -80,11 +75,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     if (!eventData) throw new Error("Couldn't find event data");
 
     // Subscribe customerPhoneNumber to the event's SNS topic
-    await sns.subscribe({
-      TopicArn: eventData?.snsTopicArn,
-      Protocol: "sms",
-      Endpoint: customerPhoneNumber?.toString(),
-    });
+    if (eventData.snsTopicArn) {
+      await sns.subscribe({
+        TopicArn: eventData?.snsTopicArn,
+        Protocol: "sms",
+        Endpoint: customerPhoneNumber?.toString(),
+      });
+    }
 
     // Create a temp topic to send a one-time sms message to the customer
     const tempTopic = await sns.createTopic({
@@ -113,15 +110,18 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     // Check if this user should be recieving any event notifications
     // If so, get the latest one and send it to them
-    const eventNotification = await pg<PartyBoxEventNotification>("eventNotifications")
-      .where("eventId", "=", Number(eventId))
-      .andWhere("messageTime", "<=", new Date().toISOString())
-      .orderBy("messageTime", "desc")
-      .first();
+    const latestEventNotification = await prisma.eventNotification.findFirst({
+      where: { eventId: Number(eventId), messageTime: { lte: new Date().toISOString() } },
+      orderBy: { messageTime: "desc" },
+    });
 
-    if (eventNotification) {
+    if (latestEventNotification) {
       await sns.publish({
-        Message: formatEventNotification(eventNotification.message, eventData),
+        Message: formatEventNotification(latestEventNotification.message, {
+          location: eventData.location,
+          startTime: eventData.startTime.toString(),
+          name: eventData.name,
+        }),
         TopicArn: tempTopic.TopicArn,
       });
     }
@@ -135,6 +135,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.error(error);
     return { statusCode: 500, body: JSON.stringify(error) };
   } finally {
-    await pg.destroy();
+    await prisma.$disconnect();
   }
 };

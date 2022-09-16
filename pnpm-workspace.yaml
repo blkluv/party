@@ -1,6 +1,9 @@
 packages:
   - "client"
   - "database"
-  - "common"
+  - "@party-box/*"
   - "api/*"
-  - "scripts"
+  - "config"
+
+  # This one is just for Docker image builds. We use a temp directory named 'function'
+  - "function"

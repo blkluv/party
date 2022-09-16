@@ -36,12 +36,16 @@ jobs:
         run: |
           echo "::set-output name=image::${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ inputs.function-name }}"
 
-      - name: Build and push to AWS ECR
-        uses: docker/build-push-action@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2.2.2
         with:
-          context: api/${{ inputs.function-name }}
-          push: true
-          tags: ${{ steps.set-image-name.outputs.image }}
+          version: latest
+          run_install: true
+
+      - name: Build and push to AWS ECR
+        run: |
+          docker compose build ${{ inputs.function-name }} --build-arg DATABASE_URL=${{ secrets.DEV_POSTGRES_URL }}
+          docker compose push ${{ inputs.function-name }}
 
       - name: Deploy code to Lambda
         run: |

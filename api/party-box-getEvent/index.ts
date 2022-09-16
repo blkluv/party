@@ -1,5 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, PartyBoxEvent, PartyBoxHost } from "@party-box/common";
+import { getPostgresConnectionString } from "@party-box/common";
+import { PrismaClient } from "@party-box/prisma";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -13,18 +14,30 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { eventId } = event.pathParameters as PathParameters;
   const { stage } = event.requestContext;
 
-  const pg = await getPostgresClient(stage);
+  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
+  await prisma.$connect();
 
   try {
-    const [eventData] = await pg<PartyBoxEvent>("events")
-      .select("id", "startTime", "endTime", "name", "description", "hashtags", "thumbnail", "media", "prices", "hostId")
-      .where("id", "=", Number(eventId));
+    const eventData = await prisma.event.findFirstOrThrow({
+      where: { id: Number(eventId) },
+      select: {
+        startTime: true,
+        endTime: true,
+        id: true,
+        name: true,
+        description: true,
+        media: true,
+        prices: true,
+        hostId: true,
+        thumbnail: true,
+        hashtags: true,
+      },
+    });
 
-    if (!eventData) throw new Error("Event not found");
-
-    const [hostData] = await pg<PartyBoxHost>("hosts").select("name", "imageUrl", "id", "description").where("id", "=", Number(eventData.hostId));
-
-    if (!hostData) throw new Error("Host not found");
+    const hostData = await prisma.host.findFirstOrThrow({
+      where: { id: Number(eventData.hostId) },
+      select: { name: true, imageUrl: true, description: true, id: true },
+    });
 
     return {
       statusCode: 200,
@@ -37,6 +50,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       body: JSON.stringify(error),
     };
   } finally {
-    await pg.destroy();
+    await prisma.$disconnect();
   }
 };

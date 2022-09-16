@@ -1,6 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 import { PublishCommand, SNS } from "@aws-sdk/client-sns";
-import { getPostgresClient } from "@party-box/common";
 
 /**
  * @method POST
@@ -12,7 +11,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { stage } = event.requestContext;
 
   const sns = new SNS({});
-  const pg = await getPostgresClient(stage);
 
   try {
     if (!body) throw new Error("No body provided");
@@ -28,7 +26,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     return { statusCode: 201, body: JSON.stringify({}) };
   } catch (error) {
     console.error(error);
-    await pg.destroy();
 
     return { statusCode: 500, body: JSON.stringify(error) };
   }

@@ -1,9 +1,11 @@
-**/node_modules
+node_modules
 .vscode
 *.session.sql
 .idea
 .parcel-cache
-common/dist
-**/*.log
+*.log
 .turbo
-**/.terraform
+.terraform
+dist
+.env*
+@party-box/prisma/client
