@@ -16,7 +16,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const events = await prisma.event.findMany({
       where: {
         startTime: {
-          lte: dayjs().add(6, "hour").toISOString(),
+          lte: dayjs().add(6, "hour").toDate(),
         },
         published: true,
       },
