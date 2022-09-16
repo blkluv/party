@@ -30,4 +30,4 @@ jobs:
           DATABASE_URL: ${{ secrets.PROD_POSTGRES_URL }}
         run: |
           pnpm install
-          pnpm -F database migrate:prod
+          pnpm -F @party-box/prisma migrate:prod
