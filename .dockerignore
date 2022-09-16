@@ -2,3 +2,5 @@
 **/yarn.lock
 **/.parcel-cache
 **/dist
+**/.env*
+@party-box/prisma/client
