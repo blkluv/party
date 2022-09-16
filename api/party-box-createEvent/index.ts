@@ -3,7 +3,7 @@ import { v4 as uuid } from "uuid";
 import { SNS } from "@aws-sdk/client-sns";
 import { PartyBoxCreateEventInput, getStripeClient, decodeJwt, getPostgresConnectionString } from "@party-box/common";
 
-import { PrismaClient } from "@party-box/prisma/client";
+import { PrismaClient } from "@party-box/prisma";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
