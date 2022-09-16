@@ -38,7 +38,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     return {
       statusCode: 200,
-      body: JSON.stringify(hosts),
+      body: JSON.stringify(hosts.map(({ host, role }) => ({ ...host, role }))),
     };
   } catch (error) {
     console.error(error);
