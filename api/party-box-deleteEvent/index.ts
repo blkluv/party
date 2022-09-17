@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { SNS } from "@aws-sdk/client-sns";
+import { AuthorizationErrorException, SNS } from "@aws-sdk/client-sns";
 import {
   decodeJwt,
   getPostgresClient,
@@ -34,11 +34,22 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const stripeClient = await getStripeClient(stage);
 
   try {
-    const { sub: userId } = decodeJwt(Authorization, ["admin"]);
-    if (!userId) throw new Error("Missing sub");
+    const { sub: userId } = decodeJwt(Authorization);
+    if (!userId) throw new Error("Missing user id (sub) in JWT");
+
+    // Get event from the Postgres
+    const [{ prices, snsTopicArn, stripeProductId,hostId }] = await sql<PartyBoxEvent[]>`
+      SELECT 
+        "prices",
+        "stripeProductId",
+        "snsTopicArn",
+        "hostId"
+      FROM "events"
+      WHERE "id" = ${Number(eventId)};
+    `;
 
     // Check if the user is an admin of the given host
-    const validRole = await verifyHostRoles(sql, userId, Number(eventId), ["admin", "manager"]);
+    const validRole = await verifyHostRoles(sql, userId, Number(hostId), ["admin", "manager"]);
     if (!validRole) throw new Error("User does not have permission to delete an event for this host");
 
     // Get access keys for S3 login
@@ -53,15 +64,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       },
     });
 
-    // Get event from the Postgres
-    const [{ prices, snsTopicArn, stripeProductId }] = await sql<PartyBoxEvent[]>`
-      SELECT 
-        "prices",
-        "stripeProductId",
-        "snsTopicArn"
-      FROM "events"
-      WHERE "id" = ${Number(eventId)};
-    `;
 
     // Delete all stripe prices associated with this event
     // We can't actually delete them, but we can make them inactive
