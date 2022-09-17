@@ -27,7 +27,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       throw new Error(`Invalid role to update host."`);
     }
 
-    const [users] = await sql<(Pick<PartyBoxHostRole, "role"> & PartyBoxUser)[]>`
+    const users = await sql<(Pick<PartyBoxHostRole, "role"> & PartyBoxUser)[]>`
       SELECT 
         "hostRoles"."role",
         "users"."id",
@@ -38,8 +38,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         "users" ON "users"."id" = "hostRoles"."userId"
       WHERE 
         "hostRoles"."hostId" = ${Number(hostId)}
-      AND 
-        "hostRoles"."userId" = ${userId}
       `;
 
     return {
