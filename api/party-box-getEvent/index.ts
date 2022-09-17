@@ -29,8 +29,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         "prices",
         "hashtags"
       FROM events
-      WHERE id = ${Number(eventId)}
       INNER JOIN "hosts" ON "hosts"."id" = "events"."hostId";
+      WHERE id = ${Number(eventId)}
     `;
 
     // const hostData = await prisma.host.findFirstOrThrow({
