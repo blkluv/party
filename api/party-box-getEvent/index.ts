@@ -32,6 +32,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       WHERE "id" = ${Number(eventId)}
     `;
 
+    console.info(`Found event: ${JSON.stringify(eventData)}`);
+
     const [hostData] = await sql<PartyBoxHost[]>`
       SELECT
         "id",
@@ -42,6 +44,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       FROM "hosts"
       WHERE "id" = ${eventData.hostId}
     `;
+
+    console.info(`Found host: ${JSON.stringify(hostData)}`);
 
     return {
       statusCode: 200,
