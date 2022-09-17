@@ -24,6 +24,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       WHERE "id" = ${Number(hostId)}
     `;
 
+    if (!hostData) throw new Error("Host not found");
+
     console.info(`Found host: ${JSON.stringify(hostData)}`);
 
     const events = await sql<PartyBoxEvent[]>`
