@@ -7,10 +7,13 @@ const verifyHostRoles = async (sql: Sql<Record<string, unknown>>, userId: string
   });
 
   const [record] = await sql`
-      select "role"
-      from "hostRoles"
-      where "hostId" = ${hostId}
-      and "userId" = ${userId}`;
+      select 
+        "role"
+      from  "hostRoles"
+      where 
+        "hostId" = ${hostId}
+      and 
+        "userId" = ${userId}`;
 
   const { role } = schema.parse(record);
 
