@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/nodejs:16
+FROM public.ecr.aws/lambda/nodejs:16 as build
 
 ARG dir
 ARG DATABASE_URL
@@ -7,18 +7,17 @@ ENV DATABASE_URL DATABASE_URL
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml .npmrc package.json turbo.json ./
 
-COPY ${dir}/index.ts ${dir}/tsconfig.json ${dir}/package.json ./function/
+COPY ${dir} ./function/
 
-COPY ./@party-box/prisma ./@party-box/prisma
-COPY ./config ./config
-COPY ./@party-box/common/src ./@party-box/common/src
-COPY ./@party-box/common/tsconfig.json ./@party-box/common/package.json ./@party-box/common/
+COPY ./packages ./packages
 
 RUN npm install -g pnpm
+
 RUN pnpm install --no-frozen-lockfile --shamefully-hoist  
 RUN pnpm build
-RUN rm -rf ./.parcel-cache ./@party-box/common/src ./@party-box/prisma/prisma./node_modules/.cache ./node_modules/@parcel
-RUN rm turbo.json .npmrc
-RUN pnpm install -P
+
+FROM public.ecr.aws/lambda/nodejs:16
+
+COPY --from=build ./var/task/function/dist ./function/dist
 
 CMD [ "./function/dist/index.handler" ]

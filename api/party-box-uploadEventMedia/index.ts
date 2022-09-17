@@ -3,7 +3,7 @@ import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { v4 as uuid } from "uuid";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { decodeJwt } from "@party-box/common";
+import { decodeJwt, getPostgresClient, PartyBoxEvent, verifyHostRoles } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -26,8 +26,20 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { name } = JSON.parse(event.body ?? "{}") as Body;
   const { Authorization } = event.headers;
 
+  const sql = await getPostgresClient(stage);
+
   try {
-    const _auth = decodeJwt(Authorization, ["admin"]);
+    const { sub: userId } = decodeJwt(Authorization);
+    if (!userId) throw new Error("Missing user id");
+
+    const [{ hostId }] = await sql<PartyBoxEvent[]>`
+      SELECT "hostId" 
+      FROM "events" 
+      WHERE "id" = ${eventId};
+    `;
+
+    const validRole = await verifyHostRoles(sql, userId, hostId, ["admin", "manager"]);
+    if (!validRole) throw new Error("User does not have permission upload event media for this host");
 
     // Get access keys for S3 login
     const { SecretString: s3SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/access-keys" });

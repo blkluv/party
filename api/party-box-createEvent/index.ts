@@ -1,9 +1,14 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import { v4 as uuid } from "uuid";
 import { SNS } from "@aws-sdk/client-sns";
-import { PartyBoxCreateEventInput, getStripeClient, decodeJwt, getPostgresConnectionString } from "@party-box/common";
-
-import { PrismaClient } from "@party-box/prisma";
+import {
+  PartyBoxCreateEventInput,
+  getStripeClient,
+  decodeJwt,
+  getPostgresClient,
+  verifyHostRoles,
+  PartyBoxEvent,
+} from "@party-box/common";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -32,10 +37,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
 
-  const sns = new SNS({});
-  const db = await getPostgresConnectionString(stage);
-  const prisma = new PrismaClient({ datasources: { db: { url: db } } });
-  await prisma.$connect();
+  const sns = new SNS({ region: "us-east-1" });
+  const sql = await getPostgresClient(stage);
 
   try {
     const { sub } = decodeJwt(Authorization, ["admin"]);
@@ -44,31 +47,28 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const stripeClient = await getStripeClient(stage);
 
     // Check if the user is an admin of the given host
+    const validRole = verifyHostRoles(sql, sub, hostId, ["admin"]);
+    if (!validRole) throw new Error("User does not have permission to create an event for this host");
 
-    const hostToVerify = await prisma.hostRole.findFirst({
-      where: {
-        hostId,
-        userId: sub,
-        role: "admin",
-      },
-    });
-    if (!hostToVerify) throw new Error("User is not an admin of the host");
-
-    const { id: eventId } = await prisma.event.create({
-      data: {
-        hostId: Number(hostId),
-        name,
-        description,
-        maxTickets: Number(maxTickets),
-        startTime,
-        endTime,
-        location,
-        published,
-        media: [],
-        thumbnail: "",
-        hashtags,
-      },
-    });
+    // Create the event in Postgres
+    const [{ id: eventId }] = await sql<Pick<PartyBoxEvent, "id">[]>`
+      INSERT INTO events (
+        ${sql({
+          name,
+          hostId: Number(hostId),
+          description,
+          startTime,
+          endTime,
+          location,
+          maxTickets: Number(maxTickets),
+          published,
+          media: [],
+          thumbnail: "",
+          hashtags: [],
+        })}
+      )
+      RETURNING id;
+    `;
 
     console.log(`Created event with id ${eventId}`);
 
@@ -142,28 +142,40 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       Name: `${stage}-party-box-event-notifications-${eventId}`,
     });
 
+    if (!snsTopic?.TopicArn) throw new Error("Sns topic was not created successfully");
+
     // Update the event with data created above
     // We store prices as JSON because we don't actually care about indexing them.
     // Having another table is overkill.
-    const eventData = await prisma.event.update({
-      where: {
-        id: eventId,
-      },
-      data: {
+    const updateEventData = sql(
+      {
         stripeProductId: stripeProduct.id,
         prices: newPrices,
         snsTopicArn: snsTopic.TopicArn,
       },
-    });
+      "stripeProductId",
+      "snsTopicArn",
+      "prices"
+    );
+    const [eventData] = await sql<PartyBoxEvent[]>`
+      UPDATE "events"
+      SET ${updateEventData}
+      WHERE "id" = ${eventId}
+      RETURNING *;
+    `;
 
     // Schedule some messages
-    await prisma.eventNotification.createMany({
-      data: notifications.map((n) => ({
-        messageTime: n.messageTime,
-        message: n.message,
-        eventId,
-      })),
-    });
+    await sql`
+      INSERT INTO event_notifications ${sql(
+        notifications.map((n) => ({
+          messageTime: n.messageTime,
+          message: n.message,
+          eventId,
+        })),
+        "eventId",
+        "message",
+        "messageTime"
+      )}`;
 
     return { statusCode: 201, body: JSON.stringify(eventData) };
   } catch (error) {
@@ -171,6 +183,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     return { statusCode: 500, body: JSON.stringify(error) };
   } finally {
-    await prisma.$disconnect();
+    await sql.end();
   }
 };

@@ -1,7 +1,6 @@
-import { getPostgresConnectionString } from "@party-box/common";
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 import dayjs from "dayjs";
-import { PrismaClient } from "@party-box/prisma";
+import { getPostgresClient } from "@party-box/common";
 
 /**
  * @method POST
@@ -9,36 +8,23 @@ import { PrismaClient } from "@party-box/prisma";
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   const { stage } = event.requestContext;
-  const db = await getPostgresConnectionString(stage);
-  const prisma = new PrismaClient({ datasources: { db: { url: db } } });
-  await prisma.$connect();
-  try {
-    const events = await prisma.event.findMany({
-      where: {
-        startTime: {
-          lte: dayjs().add(6, "hour").toDate(),
-        },
-        published: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        startTime: true,
-        endTime: true,
-        published: true,
-        hashtags: true,
-        thumbnail: true,
-        maxTickets: true,
-      },
-    });
+  const sql = await getPostgresClient(stage);
 
-    return { statusCode: 200, body: JSON.stringify(events) };
+  try {
+    const lastStartTime = dayjs().add(6, "hour").toISOString();
+
+    const records = await sql`
+      select "id","name","description","startTime","endTime","published","thumbnail","hashtags","maxTickets"
+      from events 
+      where "startTime" > ${lastStartTime} 
+      order by "startTime" asc 
+      limit 10;
+    `;
+    
+    return { statusCode: 200, body: JSON.stringify(records) };
   } catch (error) {
     console.error(error);
 
     return { statusCode: 500, body: JSON.stringify(error) };
-  } finally {
-    await prisma.$disconnect();
   }
 };

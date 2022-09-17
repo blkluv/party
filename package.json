@@ -31,7 +31,9 @@
     "@party-box/*",
     "api/*",
     "function",
-    "config"
+    "config",
+    "packages/*",
+    "apps/*"
   ],
   "license": "ISC",
   "bugs": {
