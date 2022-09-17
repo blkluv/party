@@ -17,6 +17,8 @@ COPY ./@party-box/common/tsconfig.json ./@party-box/common/package.json ./@party
 RUN npm install -g pnpm
 RUN pnpm install --no-frozen-lockfile --shamefully-hoist  
 RUN pnpm build
-RUN pnpm prune --prod
+RUN rm -rf ./.parcel-cache ./@party-box/common/src ./@party-box/prisma/prisma./node_modules/.cache ./node_modules/@parcel
+RUN rm turbo.json .npmrc
+RUN pnpm install -P
 
 CMD [ "./function/dist/index.handler" ]
