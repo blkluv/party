@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, PartyBoxEvent } from "@party-box/common";
+import { getPostgresClient, PartyBoxEvent, PartyBoxHost } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -28,21 +28,26 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         "thumbnail",
         "prices",
         "hashtags"
-      FROM events
-      INNER JOIN "hosts" ON "hosts"."id" = "events"."hostId"
-      WHERE "events"."id" = ${Number(eventId)}
+      FROM "events"
+      WHERE "id" = ${Number(eventId)}
     `;
 
-    // const hostData = await prisma.host.findFirstOrThrow({
-    //   where: { id: Number(eventData.hostId) },
-    //   select: { name: true, imageUrl: true, description: true, id: true },
-    // });
+    const [hostData] = await sql<PartyBoxHost[]>`
+      SELECT
+        "id",
+        "name",
+        "description",
+        "imageUrl",
+        "createdAt"
+      FROM "hosts"
+      WHERE "id" = ${eventData.hostId}
+    `;
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         ...eventData,
-        // host: hostData
+        host: hostData,
       }),
     };
   } catch (error) {
