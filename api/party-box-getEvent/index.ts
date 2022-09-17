@@ -40,8 +40,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         "id",
         "name",
         "description",
-        "imageUrl",
-        "createdAt"
+        "imageUrl"
       FROM "hosts"
       WHERE "id" = ${eventData.hostId}
     `;
