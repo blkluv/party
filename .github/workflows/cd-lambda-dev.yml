@@ -38,7 +38,7 @@ jobs:
 
       - name: Build and push to AWS ECR
         run: |
-          docker compose build ${{ inputs.function-name }} --build-arg DATABASE_URL=${{ secrets.DEV_POSTGRES_URL }}
+          docker compose build ${{ inputs.function-name }}
           docker compose push ${{ inputs.function-name }}
 
       - name: Deploy code to Lambda

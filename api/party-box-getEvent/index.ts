@@ -1,6 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresConnectionString } from "@party-box/common";
-import { PrismaClient } from "@party-box/prisma";
+import { getPostgresClient, PartyBoxEvent } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -14,34 +13,37 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { eventId } = event.pathParameters as PathParameters;
   const { stage } = event.requestContext;
 
-  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
-  await prisma.$connect();
+  const sql = await getPostgresClient(stage);
 
   try {
-    const eventData = await prisma.event.findFirstOrThrow({
-      where: { id: Number(eventId) },
-      select: {
-        startTime: true,
-        endTime: true,
-        id: true,
-        name: true,
-        description: true,
-        media: true,
-        prices: true,
-        hostId: true,
-        thumbnail: true,
-        hashtags: true,
-      },
-    });
+    const [eventData] = await sql<PartyBoxEvent[]>`
+      SELECT
+        "id",
+        "name",
+        "description",
+        "startTime",
+        "endTime",
+        "maxTickets",
+        "media",
+        "thumbnail",
+        "prices",
+        "hashtags"
+      FROM events
+      WHERE id = ${Number(eventId)}
+      INNER JOIN "hosts" ON "hosts"."id" = "events"."hostId";
+    `;
 
-    const hostData = await prisma.host.findFirstOrThrow({
-      where: { id: Number(eventData.hostId) },
-      select: { name: true, imageUrl: true, description: true, id: true },
-    });
+    // const hostData = await prisma.host.findFirstOrThrow({
+    //   where: { id: Number(eventData.hostId) },
+    //   select: { name: true, imageUrl: true, description: true, id: true },
+    // });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ ...eventData, host: hostData }),
+      body: JSON.stringify({
+        ...eventData,
+        // host: hostData
+      }),
     };
   } catch (error) {
     console.error(error);
@@ -49,7 +51,5 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       statusCode: 500,
       body: JSON.stringify(error),
     };
-  } finally {
-    await prisma.$disconnect();
   }
 };
