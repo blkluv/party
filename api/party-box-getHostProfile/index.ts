@@ -26,9 +26,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     console.info(`Found host: ${JSON.stringify(hostData)}`);
 
-    const [events] = await sql<PartyBoxEvent[]>`
+    const events = await sql<PartyBoxEvent[]>`
       select "id","name","description","startTime","endTime","published","thumbnail","hashtags","maxTickets"
-      from events
+      from "events"
       where "hostId" = ${Number(hostId)}
       order by "startTime" desc
     `;
