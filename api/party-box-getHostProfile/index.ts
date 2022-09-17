@@ -1,6 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresConnectionString } from "@party-box/common";
-import { PrismaClient } from "@party-box/prisma";
+import { getPostgresClient, PartyBoxEvent, PartyBoxHost } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   hostId: string;
@@ -16,12 +15,23 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { hostId } = event.pathParameters as PathParameters;
   const { stage } = event.requestContext;
 
-  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
-  await prisma.$connect();
+  const sql = await getPostgresClient(stage);
 
   try {
-    const hostData = await prisma.host.findFirstOrThrow({ where: { id: Number(hostId) } });
-    const events = await prisma.event.findMany({ where: { hostId: Number(hostId) } });
+    const [hostData] = await sql<PartyBoxHost[]>`
+      SELECT * 
+      FROM "hosts"
+      WHERE "id" = ${Number(hostId)}
+    `;
+
+    console.info(`Found host: ${JSON.stringify(hostData)}`);
+
+    const [events] = await sql<PartyBoxEvent[]>`
+      select "id","name","description","startTime","endTime","published","thumbnail","hashtags","maxTickets"
+      from events
+      where "hostId" = ${Number(hostId)}
+      order by "startTime" desc
+    `;
 
     return {
       statusCode: 200,
@@ -33,7 +43,5 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       statusCode: 500,
       body: JSON.stringify(error),
     };
-  } finally {
-    await prisma.$disconnect();
   }
 };
