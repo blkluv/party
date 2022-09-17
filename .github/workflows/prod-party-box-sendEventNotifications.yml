@@ -8,6 +8,7 @@ on:
       - "api/party-box-sendEventNotifications/**"
       - ".github/workflows/prod-party-box-sendEventNotifications.yml"
       - ".github/workflows/cd-lambda-prod.yml"
+      - "docker/api/Dockerfile"
 
 jobs:
   deploy:

@@ -8,6 +8,7 @@ on:
       - "api/party-box-createHostMember/**"
       - ".github/workflows/prod-party-box-createHostMember.yml"
       - ".github/workflows/cd-lambda-prod.yml"
+      - "docker/api/Dockerfile"
 
 jobs:
   deploy:

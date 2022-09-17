@@ -8,6 +8,7 @@ on:
       - "api/party-box-getUserHosts/**"
       - ".github/workflows/prod-party-box-getUserHosts.yml"
       - ".github/workflows/cd-lambda-prod.yml"
+      - "docker/api/Dockerfile"
 
 jobs:
   deploy:

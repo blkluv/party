@@ -9,6 +9,7 @@ on:
       - ".github/workflows/dev-party-box-getUpcomingEvents.yml"
       - ".github/workflows/cd-lambda-dev.yml"
       - "docker/api/Dockerfile"
+      - "docker/api/Dockerfile"
 
 jobs:
   deploy:
