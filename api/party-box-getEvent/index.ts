@@ -29,7 +29,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         "prices",
         "hashtags"
       FROM events
-      INNER JOIN "hosts" ON "hosts"."id" = "events"."hostId";
+      INNER JOIN "hosts" ON "hosts"."id" = "events"."hostId"
       WHERE id = ${Number(eventId)}
     `;
 
