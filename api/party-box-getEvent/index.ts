@@ -27,7 +27,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         "media",
         "thumbnail",
         "prices",
-        "hashtags"
+        "hashtags",
+        "hostId"
       FROM "events"
       WHERE "id" = ${Number(eventId)}
     `;
