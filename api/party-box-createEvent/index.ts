@@ -49,11 +49,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const validRole = verifyHostRoles(sql, sub, hostId, ["admin"]);
     if (!validRole) throw new Error("User does not have permission to create an event for this host");
 
+    console.info("Role validated");
+
     // Create the event in Postgres
     const [{ id: eventId }] = await sql<Pick<PartyBoxEvent, "id">[]>`
-      INSERT INTO events (
+      INSERT INTO events 
         ${sql({
-          name,
+          name: name,
           hostId: Number(hostId),
           description,
           startTime,
@@ -65,7 +67,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           thumbnail: "",
           hashtags: [],
         })}
-      )
       RETURNING id;
     `;
 
@@ -146,19 +147,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     // Update the event with data created above
     // We store prices as JSON because we don't actually care about indexing them.
     // Having another table is overkill.
-    const updateEventData = sql(
-      {
+    const [eventData] = await sql<PartyBoxEvent[]>`
+      UPDATE "events"
+      SET ${sql({
         stripeProductId: stripeProduct.id,
         prices: newPrices,
         snsTopicArn: snsTopic.TopicArn,
-      },
-      "stripeProductId",
-      "snsTopicArn",
-      "prices"
-    );
-    const [eventData] = await sql<PartyBoxEvent[]>`
-      UPDATE "events"
-      SET ${updateEventData}
+      })}
       WHERE "id" = ${eventId}
       RETURNING *;
     `;
@@ -170,10 +165,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           messageTime: n.messageTime,
           message: n.message,
           eventId,
-        })),
-        "eventId",
-        "message",
-        "messageTime"
+        }))
       )}`;
 
     return { statusCode: 201, body: JSON.stringify(eventData) };
