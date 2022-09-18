@@ -8,4 +8,4 @@ node_modules
 .terraform
 dist
 .env*
-@party-box/prisma/client
+packages/prisma/client

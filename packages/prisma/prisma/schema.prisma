@@ -10,20 +10,18 @@ generator client {
 }
 
 generator zod {
-  provider                 = "zod-prisma"
-  output                   = "../../zod/schema" // (default) the directory where generated zod schemas will be saved
+  provider = "zod-prisma"
+  output   = "../../common/src/schema" // (default) the directory where generated zod schemas will be saved
 
-  relationModel            = true // (default) Create and export both plain and related models.
+  relationModel = true // (default) Create and export both plain and related models.
 
-  modelCase                = "PascalCase" // (default) Output models using pascal case (ex. UserModel, PostModel)
+  modelCase = "PascalCase" // (default) Output models using pascal case (ex. UserModel, PostModel)
 
-  modelSuffix              = "Model" // (default) Suffix to apply to your prisma models when naming Zod schemas
+  modelSuffix = "Model" // (default) Suffix to apply to your prisma models when naming Zod schemas
 
-  useDecimalJs             = true // represent the prisma Decimal type using Decimal.js (as Prisma does)
+  useDecimalJs = true // represent the prisma Decimal type using Decimal.js (as Prisma does)
 
-  // imports                  = null // (default) will import the referenced file in generated schemas to be used via imports.someExportedVariable
-
-  prismaJsonNullability    = true // (default) uses prisma's scheme for JSON field nullability
+  prismaJsonNullability = true // (default) uses prisma's scheme for JSON field nullability
 }
 
 model Event {
@@ -44,8 +42,9 @@ model Event {
   endTime            DateTime
   eventNotifications EventNotification[]
 
-  hostId Int
-  host   Host @relation(fields: [hostId], references: [id])
+  hostId      Int
+  host        Host          @relation(fields: [hostId], references: [id])
+  TicketPrice TicketPrice[]
 
   @@map("events")
 }
@@ -104,22 +103,40 @@ model Ticket {
   eventId Int
   event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  stripeSessionId String
-  stripeChargeId  String
-  receiptUrl      String
+  stripeSessionId String?
+  stripeChargeId  String?
+  receiptUrl      String?
 
   customerName        String
   customerPhoneNumber String
-  customerEmail       String
+  customerEmail       String?
 
   userId String?
   user   User?   @relation(fields: [userId], references: [id])
 
   ticketQuantity Int
   used           Boolean
-  purchasedAt    DateTime @default(now())
+  purchasedAt    DateTime     @default(now())
+  slug           String       @unique
+  TicketPrice    TicketPrice? @relation(fields: [ticketPriceId], references: [id])
+  ticketPriceId  Int?
 
   @@map("tickets")
+}
+
+model TicketPrice {
+  id      Int      @id @default(autoincrement())
+  name    String
+  price   Int
+  eventId Int
+  event   Event    @relation(fields: [eventId], references: [id])
+  free    Boolean? @default(false)
+  Ticket  Ticket[]
+
+  paymentLink   String?
+  paymentLinkId String?
+
+  @@map("ticketPrices")
 }
 
 model Service {
