@@ -33,7 +33,7 @@ const Page: NextPage<Props> = ({ eventData }) => {
         <p className="text-sm md:text-base">{eventData.description}</p>
 
         <h2 className="text-center text-lg font-semibold">Tickets</h2>
-        <div className="flex justify-center">
+        <div className="flex justify-center flex-col gap-4">
           {eventData.prices.map((price) => (
             <EventPrice key={price.id} {...price} />
           ))}
