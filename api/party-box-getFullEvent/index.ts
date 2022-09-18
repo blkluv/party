@@ -1,6 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { decodeJwt, getPostgresConnectionString } from "@party-box/common";
-import { PrismaClient } from "@party-box/prisma";
+import { decodeJwt, getPostgresClient, PartyBoxEvent, verifyHostRoles } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -17,14 +16,24 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
 
-  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
-  await prisma.$connect();
+  const sql = await getPostgresClient(stage);
 
   try {
-    decodeJwt(Authorization, ["admin"]);
+    const { sub: userId } = decodeJwt(Authorization);
+    if (!userId) throw new Error("Missing userId");
 
-    const eventData = await prisma.event.findFirstOrThrow({ where: { id: Number(eventId) } });
-    const notificationData = await prisma.eventNotification.findMany({ where: { eventId: Number(eventId) } });
+    const [eventData] = await sql<PartyBoxEvent[]>`
+      select * from "events" 
+      where "id" = ${Number(eventId)}
+    `;
+
+    const validRole = await verifyHostRoles(sql, userId, eventData.hostId, ["admin", "manager"]);
+    if (!validRole) throw new Error("Invalid role");
+
+    const notificationData = await sql`
+      select * from "eventNotifications" 
+      where "eventId" = ${Number(eventId)}
+    `;
 
     return {
       statusCode: 200,
@@ -36,7 +45,5 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       statusCode: 500,
       body: JSON.stringify(error),
     };
-  } finally {
-    await prisma.$disconnect();
   }
 };
