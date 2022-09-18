@@ -1,67 +1,55 @@
-import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyEventStageVariables, APIGatewayProxyHandler } from "aws-lambda";
+import { SNS } from "@aws-sdk/client-sns";
 import {
-  getStripeClient,
   formatEventNotification,
   getPostgresClient,
-  PartyBoxEventTicket,
+  getStripeClient,
   PartyBoxEvent,
   PartyBoxEventNotification,
+  PartyBoxEventTicket,
 } from "@party-box/common";
-import { SNS } from "@aws-sdk/client-sns";
+import zod from "zod";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
 }
 
+const bodySchema = zod.object({
+  customerName: zod.string(),
+  customerPhoneNumber: zod.string().min(10).max(12),
+  ticketQuantity: zod.number().min(1).max(10),
+});
+
+const pathParametersSchema = zod.object({
+  eventId: zod.number(),
+});
+
 /**
  * @method POST
- * @description Create ticket within DynamoDB and Stripe
+ * @description Handle a free ticket purchase
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
+export const handler: APIGatewayProxyHandler = async (event) => {
   console.log(event);
-
-  const { stage } = event.requestContext;
+  const { customerName, ticketQuantity, customerPhoneNumber } = bodySchema.parse(event.body);
   const { websiteUrl } = event.stageVariables as StageVariables;
-  const {
-    data: { object: data },
-  } = JSON.parse(event.body ?? "{}");
+  const { eventId } = pathParametersSchema.parse(event.pathParameters);
+  const { stage } = event.requestContext;
 
-  const sns = new SNS({});
+  const sns = new SNS({ region: "us-east-1" });
   const sql = await getPostgresClient(stage);
   const stripeClient = await getStripeClient(stage);
 
   try {
-    const chargeId = data.id;
-    const customerName = data.billing_details.name;
-    const customerEmail = data.billing_details.email;
-    const receiptUrl = data.receipt_url;
-
-    const paymentIntent = await stripeClient.paymentIntents.retrieve(data.payment_intent);
-    const session = await stripeClient.checkout.sessions.list({
-      payment_intent: paymentIntent.id,
-      expand: ["data.line_items"],
-    });
-
-    const eventId = session?.data[0]?.metadata?.eventId ?? "";
-    const customerPhoneNumber = session.data[0].customer_details?.phone;
-    const ticketQuantity = Number(session.data[0].line_items?.data[0].quantity);
-
-    // Create ticket in Postgres
     const [ticketData] = await sql<PartyBoxEventTicket[]>`
       INSERT INTO "tickets"
       ${sql({
-        eventId: Number(eventId),
-        stripeSessionId: session?.data?.at(0)?.id ?? "",
-        stripeChargeId: chargeId,
-        receiptUrl,
         customerName,
-        customerEmail,
-        customerPhoneNumber: customerPhoneNumber ?? "",
+        ticketQuantity,
+        customerPhoneNumber,
         purchasedAt: new Date().toISOString(),
-        ticketQuantity: Number(ticketQuantity),
         used: false,
       })}
-      RETURNING *
+      RETURNING *;
     `;
     const [eventData] = await sql<PartyBoxEvent[]>`
       SELECT * FROM "events" WHERE "id" = ${eventId}
@@ -109,9 +97,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const ticketPurchaseMessage = `Thank you for purchasing ${ticketQuantity} ticket${
       ticketQuantity > 1 ? "s" : ""
-    } to ${eventData?.name}!\n\nView your ticket at ${websiteUrl}/tickets/${
-      ticketData.stripeSessionId
-    }\n\nReceipt: ${receiptUrl}`;
+    } to ${eventData?.name}!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.id}`;
 
     await sns.publish({
       Message: ticketPurchaseMessage,
@@ -125,7 +111,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       WHERE "eventId" = ${eventId} 
       AND "messageTime" <= ${new Date().toISOString()}
       ORDER BY "messageTime" DESC
-    `
+    `;
 
     if (latestEventNotification) {
       await sns.publish({
@@ -142,11 +128,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       TopicArn: tempTopic.TopicArn,
     });
 
-    return { statusCode: 200, body: JSON.stringify({ message: "Success" }) };
+    return { statusCode: 201, body: JSON.stringify({ status: "Success" }) };
   } catch (error) {
     console.error(error);
+
     return { statusCode: 500, body: JSON.stringify(error) };
-  } finally {
-    await sql.end();
   }
 };
