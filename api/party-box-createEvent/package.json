@@ -25,8 +25,6 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-sns": "^3.121.0",
-    "@party-box/common": "workspace:^",
-    "crypto-js": "^4.1.1",
-    "uuid": "^8.3.2"
+    "@party-box/common": "workspace:^"
   }
 }
