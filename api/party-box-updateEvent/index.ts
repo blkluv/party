@@ -64,7 +64,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     });
 
     // Add price to price array and Stirpe if it doesn't have an ID
-    const newPrices: PartyBoxEventPrice[] = [];
+
+    // TODO remove any in place of PartyBoxEventPrice
+    // This is a workaround for a bug in postgres's typing
+    const newPrices: any[] = [];
     for (const price of prices) {
       if (!price?.id) {
         if (price.price > 0.5) {
@@ -124,13 +127,14 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     await sql`
       update "events" 
-      set ${sql({ prices: JSON.stringify(newPrices) })} 
+      set "prices" = ${sql(newPrices)}
       where "id" = ${Number(eventId)}
     `;
 
     const newNotifications: PartyBoxEventNotification[] = [];
 
     // If we have notifications, replace existing notifications with new ones
+    // Rebuild notifications
     if (notifications.length > 0) {
       // Clear all existing notifications
       await sql`
@@ -166,5 +170,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         error,
       }),
     };
+  } finally {
+    await sql.end();
   }
 };
