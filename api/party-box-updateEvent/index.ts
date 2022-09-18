@@ -127,7 +127,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     await sql`
       update "events" 
-      set "prices" = ${sql(newPrices)}
+      set ${sql({ prices: newPrices })}
       where "id" = ${Number(eventId)}
     `;
 
