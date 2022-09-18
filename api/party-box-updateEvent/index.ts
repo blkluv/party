@@ -13,6 +13,7 @@ import {
   PartyBoxEvent,
   PartyBoxEventNotification,
   PartyBoxUpdateEventInput,
+  PartyBoxUpdateNotificationInput,
   verifyHostRoles,
 } from "@party-box/common";
 
@@ -36,27 +37,24 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { stage } = event.requestContext;
   const { websiteUrl } = event.stageVariables as StageVariables;
 
+  const sql = await getPostgresClient(stage);
   try {
     const { sub: userId } = decodeJwt(Authorization, ["host"]);
-
     if (!userId) throw Error("Missing userId");
 
     const stripeClient = await getStripeClient(stage);
-    const pg = await getPostgresClient(stage);
 
-    const existingEventData = await pg<PartyBoxEvent>("events").select("*").where("id", "=", Number(eventId)).first();
-
+    const [existingEventData] = await sql<PartyBoxEvent[]>`
+      select * from "events" where "id" = ${Number(eventId)}
+    `;
     if (!existingEventData) throw Error("Existing event not found");
 
-    const validRoles = await verifyHostRoles(pg, userId, Number(existingEventData.hostId), ["admin", "manager"]);
-
+    const validRoles = await verifyHostRoles(sql, userId, Number(existingEventData.hostId), ["admin", "manager"]);
     if (!validRoles) throw Error("User is not authorized to update event");
 
-    const [newEventData] = await pg<PartyBoxEvent>("events")
-      .where("id", "=", Number(eventId))
-      .update<PartyBoxUpdateEventInput>(body)
-      .returning("*");
-
+    const [newEventData] = await sql<PartyBoxEvent[]>`
+        update "events" set ${sql(body)} where "id" = ${Number(eventId)} returning *
+      `;
     if (!newEventData.stripeProductId) throw new Error("Missing Stripe product id");
 
     await stripeClient.products.update(newEventData.stripeProductId, {
@@ -125,17 +123,22 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     // If we have notifications, replace existing notifications with new ones
     if (notifications.length > 0) {
       // Clear all existing notifications
-      await pg<PartyBoxEventNotification>("eventNotifications").where("eventId", "=", Number(eventId)).del();
+      await sql`
+        delete from "eventNotifications"
+        where "eventId" = ${Number(eventId)}
+      `;
 
       for (const n of notifications) {
         const tmp = {
-          ...n,
+          message: n.message,
+          messageTime: n.messageTime,
           eventId: Number(eventId),
         };
 
-        const [newNotificationData] = await pg<PartyBoxEventNotification>("eventNotifications")
-          .insert<PartyBoxCreateNotificationInput>(tmp)
-          .returning("*");
+        const [newNotificationData] = await sql<PartyBoxEventNotification[]>`
+          insert into "eventNotifications" ${sql(tmp)} 
+          returning *
+        `;
 
         newNotifications.push(newNotificationData);
       }
