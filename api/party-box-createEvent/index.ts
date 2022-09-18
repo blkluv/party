@@ -1,6 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
-import { v4 as uuid } from "uuid";
-import { SNS } from "@aws-sdk/client-sns";
+ import { SNS } from "@aws-sdk/client-sns";
 import {
   PartyBoxCreateEventInput,
   getStripeClient,
@@ -128,7 +127,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         });
       } else {
         newPrices.push({
-          id: uuid(),
+          id: crypto.randomUUID(),
           name: "Regular",
           price: price.price,
           free: true,
