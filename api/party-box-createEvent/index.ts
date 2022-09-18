@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
- import { SNS } from "@aws-sdk/client-sns";
+import { SNS } from "@aws-sdk/client-sns";
 import {
   PartyBoxCreateEventInput,
   getStripeClient,
