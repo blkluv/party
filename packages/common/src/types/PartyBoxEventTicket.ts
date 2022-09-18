@@ -1,7 +1,16 @@
 import PartyBoxEvent from "./PartyBoxEvent";
 
+type Status =
+  | "canceled"
+  | "processing"
+  | "requires_action"
+  | "requires_capture"
+  | "requires_confirmation"
+  | "requires_payment_method"
+  | "succeeded";
+
 interface PartyBoxEventTicket {
-  status: "succeeded" | "failed" | "pending";
+  status: Status;
   customerPhoneNumber: string;
   customerName: string;
   ticketQuantity: number;

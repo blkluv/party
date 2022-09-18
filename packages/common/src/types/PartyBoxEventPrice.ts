@@ -1,10 +1,6 @@
-interface PartyBoxEventPrice {
-  id: string;
-  name: string;
-  paymentLink: string | null;
-  paymentLinkId: string | null;
-  free?: boolean;
-  price: number;
-}
+import zod from "zod";
+import { TicketPriceModel } from "../schema";
+
+type PartyBoxEventPrice = zod.infer<typeof TicketPriceModel>;
 
 export default PartyBoxEventPrice;
