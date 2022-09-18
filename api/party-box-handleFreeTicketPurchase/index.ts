@@ -9,6 +9,7 @@ import {
   PartyBoxEventTicket,
 } from "@party-box/common";
 import zod from "zod";
+import { randomUUID } from "crypto";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -48,6 +49,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         customerPhoneNumber,
         purchasedAt: new Date().toISOString(),
         used: false,
+        slug: randomUUID(),
       })}
       RETURNING *;
     `;

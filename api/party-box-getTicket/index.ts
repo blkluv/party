@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventPathParameters, APIGatewayProxyHandler } from "aws-lambda";
-import { getPostgresClient, getStripeClient } from "@party-box/common";
+import { getPostgresClient, getStripeClient, PartyBoxEvent, PartyBoxEventTicket } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   ticketId: string;
@@ -12,7 +12,7 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
 export const handler: APIGatewayProxyHandler = async (event) => {
   console.log(event);
 
-  const { ticketId: stripeSessionId } = event.pathParameters as PathParameters;
+  const { ticketId } = event.pathParameters as PathParameters;
 
   const { stage } = event.requestContext;
   const sql = await getPostgresClient(stage);
@@ -20,14 +20,14 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   const stripe = await getStripeClient(stage);
 
   try {
-    const [ticketData] = await sql`
+    const [ticketData] = await sql<PartyBoxEventTicket[]>`
       SELECT *
       FROM "tickets"
-      WHERE "stripeSessionId" = ${stripeSessionId}
+      WHERE "slug" = ${ticketId}
     `;
     if (!ticketData) throw new Error("Ticket not found");
 
-    const [eventData] = await sql`
+    const [eventData] = await sql<PartyBoxEvent[]>`
       SELECT ${sql([
         "id",
         "name",
@@ -45,16 +45,22 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     if (!eventData) throw new Error("Event not found");
 
-    const session = await stripe.checkout.sessions.retrieve(stripeSessionId);
-    const paymentIntent = await stripe.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
+    const response: PartyBoxEventTicket = {
+      ...ticketData,
+      status: "succeeded",
+      event: eventData,
+    };
+
+    // If the price associated with this event is free
+    if (ticketData.stripeSessionId) {
+      const session = await stripe.checkout.sessions.retrieve(ticketData.stripeSessionId);
+      const paymentIntent = await stripe.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
+      response.status = paymentIntent?.status;
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        ...ticketData,
-        status: paymentIntent?.status ?? "pending",
-        event: eventData,
-      }),
+      body: JSON.stringify(ticketData),
     };
   } catch (error) {
     console.error(error);
