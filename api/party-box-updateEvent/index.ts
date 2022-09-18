@@ -131,6 +131,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       where "id" = ${Number(eventId)}
     `;
 
+    console.info("Created prices");
+
     const newNotifications: PartyBoxEventNotification[] = [];
 
     // If we have notifications, replace existing notifications with new ones
@@ -156,6 +158,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
         newNotifications.push(newNotificationData);
       }
+
+      console.log("Created notifications");
     }
 
     return {
