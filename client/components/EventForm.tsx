@@ -28,6 +28,7 @@ import createEvent from "~/utils/createEvent";
 import axios from "axios";
 import Image from "next/image";
 import { useQueryClient } from "react-query";
+import updateEvent from "~/utils/updateEvent";
 
 interface Props {
   initialValues?: PartyBoxEvent;
@@ -116,14 +117,25 @@ const EventForm: FC<Props> = ({ initialValues }) => {
       validationSchema={eventFormSchema}
       onSubmit={async (values, { setStatus }) => {
         try {
-          const event = await createEvent({
-            values,
-            setUploadState: setStatus,
-            thumbnail,
-            media,
-            originalEventId: initialValues?.id,
-            mode,
-          });
+          let event: PartyBoxEvent;
+          if (mode === "create") {
+            event = await createEvent({
+              values,
+              setUploadState: setStatus,
+              thumbnail,
+              media,
+              originalEventId: initialValues?.id,
+              mode,
+            });
+          } else if (mode === "edit") {
+            event = await updateEvent({
+              values,
+              setUploadState: setStatus,
+              thumbnail,
+              media,
+              originalEventId: initialValues?.id,
+            });
+          }
 
           await queryClient.invalidateQueries(["full", "event", event.id]);
 
@@ -370,7 +382,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                   </div>
                 ))}
                 <div className="flex">
-                  <Button variant="outlined" onClick={() => push({ name: "", price: "0" })}>
+                  <Button variant="outlined" type="button" onClick={() => push({ name: "", price: "0" })}>
                     New Price
                   </Button>
                 </div>
@@ -423,7 +435,11 @@ const EventForm: FC<Props> = ({ initialValues }) => {
                   </div>
                 ))}
                 <div className="flex">
-                  <Button variant="outlined" onClick={() => push({ message: "", days: "", hours: "", minutes: "" })}>
+                  <Button
+                    variant="outlined"
+                    type="button"
+                    onClick={() => push({ message: "", days: "", hours: "", minutes: "" })}
+                  >
                     New Notification
                   </Button>
                 </div>
