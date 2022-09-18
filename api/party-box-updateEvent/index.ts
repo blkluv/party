@@ -12,8 +12,8 @@ import {
   PartyBoxCreateNotificationInput,
   PartyBoxEvent,
   PartyBoxEventNotification,
+  PartyBoxEventPrice,
   PartyBoxUpdateEventInput,
-  PartyBoxUpdateNotificationInput,
   verifyHostRoles,
 } from "@party-box/common";
 
@@ -64,7 +64,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     });
 
     // Add price to price array and Stirpe if it doesn't have an ID
-    const newPrices = [];
+    const newPrices: PartyBoxEventPrice[] = [];
     for (const price of prices) {
       if (!price?.id) {
         if (price.price > 0.5) {
@@ -105,18 +105,28 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
             paymentLink: paymentLink.url,
             paymentLinkId: paymentLink.id,
             price: price.price,
+            free: false,
           });
         } else {
           newPrices.push({
             id: uuid(),
             name: price.name,
             price: price.price,
+            free: true,
+            paymentLink: null,
+            paymentLinkId: null,
           });
         }
       } else {
         newPrices.push(price);
       }
     }
+
+    await sql`
+      update "events" 
+      set ${sql({ prices: JSON.stringify(newPrices) })} 
+      where "id" = ${Number(eventId)}
+    `;
 
     const newNotifications: PartyBoxEventNotification[] = [];
 
