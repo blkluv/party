@@ -1,18 +1,11 @@
 import * as z from "zod"
 import { CompleteTicket, RelatedTicketModel, CompleteEventNotification, RelatedEventNotificationModel, CompleteHost, RelatedHostModel, CompleteTicketPrice, RelatedTicketPriceModel } from "./index"
 
-// Helper schema for JSON fields
-type Literal = boolean | number | string
-type Json = Literal | { [key: string]: Json } | Json[]
-const literalSchema = z.union([z.string(), z.number(), z.boolean()])
-const jsonSchema: z.ZodSchema<Json> = z.lazy(() => z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)]))
-
 export const EventModel = z.object({
   id: z.number().int(),
   name: z.string(),
   description: z.string().nullish(),
   published: z.boolean(),
-  prices: jsonSchema.array(),
   media: z.string().array(),
   thumbnail: z.string().nullish(),
   hashtags: z.string().array(),
@@ -29,7 +22,7 @@ export interface CompleteEvent extends z.infer<typeof EventModel> {
   tickets: CompleteTicket[]
   eventNotifications: CompleteEventNotification[]
   host: CompleteHost
-  TicketPrice: CompleteTicketPrice[]
+  prices: CompleteTicketPrice[]
 }
 
 /**
@@ -41,5 +34,5 @@ export const RelatedEventModel: z.ZodSchema<CompleteEvent> = z.lazy(() => EventM
   tickets: RelatedTicketModel.array(),
   eventNotifications: RelatedEventNotificationModel.array(),
   host: RelatedHostModel,
-  TicketPrice: RelatedTicketPriceModel.array(),
+  prices: RelatedTicketPriceModel.array(),
 }))

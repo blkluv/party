@@ -6,7 +6,7 @@ datasource db {
 generator client {
   output        = "../client"
   provider      = "prisma-client-js"
-  binaryTargets = ["rhel-openssl-1.0.x"]
+  binaryTargets = ["native"]
 }
 
 generator zod {
@@ -29,7 +29,6 @@ model Event {
   name               String              @default("Unnamed Event")
   description        String?
   published          Boolean             @default(false)
-  prices             Json[]
   media              String[]
   thumbnail          String?
   hashtags           String[]
@@ -42,9 +41,9 @@ model Event {
   endTime            DateTime
   eventNotifications EventNotification[]
 
-  hostId      Int
-  host        Host          @relation(fields: [hostId], references: [id])
-  TicketPrice TicketPrice[]
+  hostId Int
+  host   Host          @relation(fields: [hostId], references: [id])
+  prices TicketPrice[]
 
   @@map("events")
 }
@@ -118,8 +117,8 @@ model Ticket {
   used           Boolean
   purchasedAt    DateTime     @default(now())
   slug           String       @unique
-  TicketPrice    TicketPrice? @relation(fields: [ticketPriceId], references: [id])
   ticketPriceId  Int?
+  ticketPriceurn TicketPrice? @relation(fields: [ticketPriceId], references: [id])
 
   @@map("tickets")
 }
@@ -131,10 +130,11 @@ model TicketPrice {
   eventId Int
   event   Event    @relation(fields: [eventId], references: [id])
   free    Boolean? @default(false)
-  Ticket  Ticket[]
+  ticket  Ticket[]
 
   paymentLink   String?
   paymentLinkId String?
+  stripePriceId String?
 
   @@map("ticketPrices")
 }

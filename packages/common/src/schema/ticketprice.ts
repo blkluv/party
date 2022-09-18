@@ -9,11 +9,12 @@ export const TicketPriceModel = z.object({
   free: z.boolean().nullish(),
   paymentLink: z.string().nullish(),
   paymentLinkId: z.string().nullish(),
+  stripePriceId: z.string().nullish(),
 })
 
 export interface CompleteTicketPrice extends z.infer<typeof TicketPriceModel> {
   event: CompleteEvent
-  Ticket: CompleteTicket[]
+  ticket: CompleteTicket[]
 }
 
 /**
@@ -23,5 +24,5 @@ export interface CompleteTicketPrice extends z.infer<typeof TicketPriceModel> {
  */
 export const RelatedTicketPriceModel: z.ZodSchema<CompleteTicketPrice> = z.lazy(() => TicketPriceModel.extend({
   event: RelatedEventModel,
-  Ticket: RelatedTicketModel.array(),
+  ticket: RelatedTicketModel.array(),
 }))

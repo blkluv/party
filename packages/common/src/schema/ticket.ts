@@ -21,7 +21,7 @@ export const TicketModel = z.object({
 export interface CompleteTicket extends z.infer<typeof TicketModel> {
   event: CompleteEvent
   user?: CompleteUser | null
-  TicketPrice?: CompleteTicketPrice | null
+  ticketPriceurn?: CompleteTicketPrice | null
 }
 
 /**
@@ -32,5 +32,5 @@ export interface CompleteTicket extends z.infer<typeof TicketModel> {
 export const RelatedTicketModel: z.ZodSchema<CompleteTicket> = z.lazy(() => TicketModel.extend({
   event: RelatedEventModel,
   user: RelatedUserModel.nullish(),
-  TicketPrice: RelatedTicketPriceModel.nullish(),
+  ticketPriceurn: RelatedTicketPriceModel.nullish(),
 }))
