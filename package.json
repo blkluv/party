@@ -27,11 +27,9 @@
   },
   "workspaces": [
     "client",
-    "database",
     "@party-box/*",
     "api/*",
     "function",
-    "config",
     "packages/*",
     "apps/*"
   ],

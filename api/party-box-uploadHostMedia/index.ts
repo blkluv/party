@@ -23,14 +23,14 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { hostId } = event.pathParameters as PathParameters;
   const { name } = JSON.parse(event.body ?? "{}") as Body;
   const { Authorization } = event.headers;
-  const pg = await getPostgresClient(stage);
+  const sql = await getPostgresClient(stage);
 
   try {
     const { sub: userId } = decodeJwt(Authorization);
     if (!userId) throw new Error("Missing userId");
 
     // Check whether the user is an admin/manager of the host.
-    const validRole = await verifyHostRoles(pg, userId, Number(hostId), ["admin", "manager"]);
+    const validRole = await verifyHostRoles(sql, userId, Number(hostId), ["admin", "manager"]);
     if (!validRole) throw new Error("User is not permitted to update this host.");
 
     const s3 = await getS3Client();
@@ -54,7 +54,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   } catch (error) {
     console.error(error);
     throw error;
-  } finally {
-    await pg.destroy();
+  }finally{
+    await sql.end();
   }
 };

@@ -42,9 +42,11 @@ importers:
       rollup: ^2.79.0
       rollup-plugin-terser: ^7.0.2
       typescript: ^4.7.3
+      zod: ^3.19.1
     dependencies:
       '@aws-sdk/client-sns': 3.154.0
       '@party-box/common': link:../../packages/common
+      zod: 3.19.1
     devDependencies:
       '@party-box/config': link:../../packages/config
       '@rollup/plugin-commonjs': 22.0.2_rollup@2.79.0
@@ -101,7 +103,6 @@ importers:
       '@rollup/plugin-typescript': ^8.5.0
       '@types/aws-lambda': ^8.10.99
       '@types/node': ^17.0.41
-      parcel: ^2.6.2
       rollup: ^2.79.0
       rollup-plugin-terser: ^7.0.2
       typescript: ^4.7.3
@@ -116,7 +117,6 @@ importers:
       '@rollup/plugin-typescript': 8.5.0_xdb5ss5ub2cemhlks3szmapm6q
       '@types/aws-lambda': 8.10.102
       '@types/node': 17.0.45
-      parcel: 2.7.0
       rollup: 2.79.0
       rollup-plugin-terser: 7.0.2_rollup@2.79.0
       typescript: 4.7.4
@@ -161,8 +161,10 @@ importers:
       rollup: ^2.79.0
       rollup-plugin-terser: ^7.0.2
       typescript: ^4.7.3
+      zod: ^3.19.1
     dependencies:
       '@party-box/common': link:../../packages/common
+      zod: 3.19.1
     devDependencies:
       '@party-box/config': link:../../packages/config
       '@rollup/plugin-commonjs': 22.0.2_rollup@2.79.0
@@ -883,11 +885,18 @@ importers:
       '@aws-sdk/client-secrets-manager': ^3.137.0
       '@parcel/packager-ts': 2.7.0
       '@parcel/transformer-typescript-types': 2.7.0
+      '@rollup/plugin-commonjs': ^22.0.2
+      '@rollup/plugin-json': ^4.1.0
+      '@rollup/plugin-node-resolve': ^14.1.0
+      '@rollup/plugin-typescript': ^8.5.0
       '@types/jsonwebtoken': ^8.5.8
       '@types/node': ^18.6.3
       jsonwebtoken: ^8.5.1
-      parcel: ^2.6.2
+      parcel: ^2.7.0
       postgres: ^3.2.4
+      rollup: ^2.79.0
+      rollup-plugin-dts: ^4.2.2
+      rollup-plugin-terser: ^7.0.2
       stripe: ^9.16.0
       typescript: ^4.7.4
       zod: ^3.19.1
@@ -901,9 +910,16 @@ importers:
     devDependencies:
       '@parcel/packager-ts': 2.7.0_@parcel+core@2.7.0
       '@parcel/transformer-typescript-types': 2.7.0_7uecuwfxmxckiccza3belyuzhe
+      '@rollup/plugin-commonjs': 22.0.2_rollup@2.79.0
+      '@rollup/plugin-json': 4.1.0_rollup@2.79.0
+      '@rollup/plugin-node-resolve': 14.1.0_rollup@2.79.0
+      '@rollup/plugin-typescript': 8.5.0_xdb5ss5ub2cemhlks3szmapm6q
       '@types/jsonwebtoken': 8.5.8
       '@types/node': 18.7.14
       parcel: 2.7.0
+      rollup: 2.79.0
+      rollup-plugin-dts: 4.2.2_xdb5ss5ub2cemhlks3szmapm6q
+      rollup-plugin-terser: 7.0.2_rollup@2.79.0
       typescript: 4.7.4
 
   packages/config:
@@ -923,33 +939,6 @@ importers:
       prisma: 4.3.1
       typescript: 4.7.4
       zod-prisma: 0.5.4_prisma@4.3.1+zod@3.19.1
-
-  packages/zod:
-    specifiers:
-      '@aws-sdk/client-secrets-manager': ^3.137.0
-      '@parcel/core': ^2.7.0
-      '@parcel/packager-ts': 2.7.0
-      '@parcel/transformer-typescript-types': 2.7.0
-      '@types/jsonwebtoken': ^8.5.8
-      '@types/node': ^18.6.3
-      '@types/pg': ^8.6.5
-      parcel: ^2.6.2
-      postgres: ^3.2.4
-      typescript: ^4.7.4
-      zod: ^3.19.1
-    dependencies:
-      '@aws-sdk/client-secrets-manager': 3.154.0
-      postgres: 3.2.4
-      zod: 3.19.1
-    devDependencies:
-      '@parcel/core': 2.7.0
-      '@parcel/packager-ts': 2.7.0_@parcel+core@2.7.0
-      '@parcel/transformer-typescript-types': 2.7.0_7uecuwfxmxckiccza3belyuzhe
-      '@types/jsonwebtoken': 8.5.8
-      '@types/node': 18.7.14
-      '@types/pg': 8.6.5
-      parcel: 2.7.0
-      typescript: 4.7.4
 
 packages:
 
@@ -8244,14 +8233,6 @@ packages:
     resolution: {integrity: sha512-EDrLIPaPXOZqDjrkzxxbX7UlJSeQVgah3i0aA4pOSzmK9zq3BIh7/MZIQxED7slJByvKM4Gc6Hypyu2lJzh3SQ==}
     dev: false
 
-  /@types/pg/8.6.5:
-    resolution: {integrity: sha512-tOkGtAqRVkHa/PVZicq67zuujI4Oorfglsr2IbKofDwBSysnaqSx7W1mDqFqdkGE6Fbgh+PZAl0r/BWON/mozw==}
-    dependencies:
-      '@types/node': 18.7.14
-      pg-protocol: 1.5.0
-      pg-types: 2.2.0
-    dev: true
-
   /@types/prop-types/15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
 
@@ -10243,7 +10224,7 @@ packages:
     dev: false
 
   /ee-first/1.1.1:
-    resolution: {integrity: sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=}
+    resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
     dev: false
 
   /ejs/2.7.4:
@@ -11078,7 +11059,7 @@ packages:
     dev: false
 
   /fresh/0.5.2:
-    resolution: {integrity: sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=}
+    resolution: {integrity: sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==}
     engines: {node: '>= 0.6'}
     dev: false
 
@@ -12470,6 +12451,13 @@ packages:
     dependencies:
       sourcemap-codec: 1.4.8
 
+  /magic-string/0.26.3:
+    resolution: {integrity: sha512-u1Po0NDyFcwdg2nzHT88wSK0+Rih0N1M+Ph1Sp08k8yvFFU3KR72wryS7e1qMPJypt99WB7fIFVCA92mQrMjrg==}
+    engines: {node: '>=12'}
+    dependencies:
+      sourcemap-codec: 1.4.8
+    dev: true
+
   /make-dir/2.1.0:
     resolution: {integrity: sha512-LS9X+dc8KLxXCb8dni79fLIIUA5VyZoyjSMCwTluaXA0o27cCK0bhXkpgw+sTXVpPy/lSO57ilRixqk0vDmtRA==}
     engines: {node: '>=6'}
@@ -13731,26 +13719,6 @@ packages:
       sha.js: 2.4.11
     dev: false
 
-  /pg-int8/1.0.1:
-    resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
-    engines: {node: '>=4.0.0'}
-    dev: true
-
-  /pg-protocol/1.5.0:
-    resolution: {integrity: sha512-muRttij7H8TqRNu/DxrAJQITO4Ac7RmX3Klyr/9mJEOBeIpgnF8f9jAfRz5d3XwQZl5qBjF9gLsUtMPJE0vezQ==}
-    dev: true
-
-  /pg-types/2.2.0:
-    resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
-    engines: {node: '>=4'}
-    dependencies:
-      pg-int8: 1.0.1
-      postgres-array: 2.0.0
-      postgres-bytea: 1.0.0
-      postgres-date: 1.0.7
-      postgres-interval: 1.2.0
-    dev: true
-
   /picocolors/1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
 
@@ -13900,28 +13868,6 @@ packages:
       nanoid: 3.3.4
       picocolors: 1.0.0
       source-map-js: 1.0.2
-
-  /postgres-array/2.0.0:
-    resolution: {integrity: sha512-VpZrUqU5A69eQyW2c5CA1jtLecCsN2U/bD6VilrFDWq5+5UIEVO7nazS3TEcHf1zuPYO/sqGvUvW62g86RXZuA==}
-    engines: {node: '>=4'}
-    dev: true
-
-  /postgres-bytea/1.0.0:
-    resolution: {integrity: sha512-xy3pmLuQqRBZBXDULy7KbaitYqLcmxigw14Q5sj8QBVLqEwXfeybIKVWiqAXTlcvdvb0+xkOtDbfQMOf4lST1w==}
-    engines: {node: '>=0.10.0'}
-    dev: true
-
-  /postgres-date/1.0.7:
-    resolution: {integrity: sha512-suDmjLVQg78nMK2UZ454hAG+OAW+HQPZ6n++TNDUX+L0+uUlLywnoxJKDou51Zm+zTCjrCl0Nq6J9C5hP9vK/Q==}
-    engines: {node: '>=0.10.0'}
-    dev: true
-
-  /postgres-interval/1.2.0:
-    resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      xtend: 4.0.2
-    dev: true
 
   /postgres/3.2.4:
     resolution: {integrity: sha512-iscysD+ZlM4A9zj0RS2zo3f4Us4yuov94Yx+p3dE1rEARaBHC8R3/gRq40KEnWp1lxjuFq9EjuAenIUsPaTaDA==}
@@ -14779,6 +14725,20 @@ packages:
       rollup: 1.32.1
       rollup-pluginutils: 2.8.2
     dev: false
+
+  /rollup-plugin-dts/4.2.2_xdb5ss5ub2cemhlks3szmapm6q:
+    resolution: {integrity: sha512-A3g6Rogyko/PXeKoUlkjxkP++8UDVpgA7C+Tdl77Xj4fgEaIjPSnxRmR53EzvoYy97VMVwLAOcWJudaVAuxneQ==}
+    engines: {node: '>=v12.22.11'}
+    peerDependencies:
+      rollup: ^2.55
+      typescript: ^4.1
+    dependencies:
+      magic-string: 0.26.3
+      rollup: 2.79.0
+      typescript: 4.7.4
+    optionalDependencies:
+      '@babel/code-frame': 7.18.6
+    dev: true
 
   /rollup-plugin-terser/5.3.1_rollup@1.32.1:
     resolution: {integrity: sha512-1pkwkervMJQGFYvM9nscrUoncPwiKR/K+bHdjv6PFgRo3cgPHoRT83y2Aa3GvINj4539S15t/tpFPb775TDs6w==}
@@ -15734,7 +15694,7 @@ packages:
     dev: true
 
   /tty-browserify/0.0.0:
-    resolution: {integrity: sha1-oVe6QC2iTpv5V/mqadUk7tQpAaY=}
+    resolution: {integrity: sha512-JVa5ijo+j/sOoHGjw0sxw734b1LhBkQ3bvUGNdxnVXDCX81Yx7TFgnZygxrIIWn23hbfTaMYLwRmAxFyDuFmIw==}
     dev: false
 
   /turbo-android-arm64/1.4.6:
@@ -16140,7 +16100,7 @@ packages:
     dev: true
 
   /utils-merge/1.0.1:
-    resolution: {integrity: sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=}
+    resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
     dev: false
 

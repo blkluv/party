@@ -25,6 +25,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-sns": "^3.121.0",
-    "@party-box/common": "workspace:^"
+    "@party-box/common": "workspace:^",
+    "zod": "^3.19.1"
   }
 }

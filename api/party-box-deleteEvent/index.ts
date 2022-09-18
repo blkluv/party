@@ -1,11 +1,11 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { AuthorizationErrorException, SNS } from "@aws-sdk/client-sns";
+import { SNS } from "@aws-sdk/client-sns";
 import {
   decodeJwt,
   getPostgresClient,
   getStripeClient,
   PartyBoxEvent,
-  PartyBoxEventPrice,
+  TicketPriceModel,
   verifyHostRoles,
 } from "@party-box/common";
 import { DeleteObjectsCommand, ListObjectsCommand, S3Client } from "@aws-sdk/client-s3";
@@ -38,7 +38,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     if (!userId) throw new Error("Missing user id (sub) in JWT");
 
     // Get event from the Postgres
-    const [{ prices, snsTopicArn, stripeProductId,hostId }] = await sql<PartyBoxEvent[]>`
+    const [{ prices, snsTopicArn, stripeProductId, hostId }] = await sql<PartyBoxEvent[]>`
       SELECT 
         "prices",
         "stripeProductId",
@@ -64,7 +64,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       },
     });
 
-
     // Delete all stripe prices associated with this event
     // We can't actually delete them, but we can make them inactive
     for (const price of prices) {
@@ -74,10 +73,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         // I don't know how to have price typed by default without creating an entity for it
         // This works in place of the above approach
         // I use the `valueOf` function to cast to object so that I can then cast to PartyBoxEventPrice
-        const typedPrice = price.valueOf() as PartyBoxEventPrice;
+        const typedPrice = TicketPriceModel.parse(price);
 
         if (typedPrice.paymentLinkId) {
-          await stripeClient.prices.update(typedPrice.id, { active: false });
+          await stripeClient.prices.update(typedPrice.id.toString(), { active: false });
           await stripeClient.paymentLinks.update(typedPrice.paymentLinkId, {
             active: false,
           });
@@ -155,3 +154,4 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     };
   }
 };
+

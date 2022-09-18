@@ -1,6 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresConnectionString } from "@party-box/common";
-import { PrismaClient } from "@party-box/prisma";
+import { getPostgresClient } from "@party-box/common";
 
 /**
  * @method GET
@@ -11,11 +10,12 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
   const { stage } = event.requestContext;
 
-  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
-  await prisma.$connect();
+  const sql = await getPostgresClient(stage);
 
   try {
-    const eventServices = await prisma.service.findMany();
+    const eventServices = await sql`
+      SELECT * FROM "eventServices";
+    `;
 
     return { statusCode: 200, body: JSON.stringify(eventServices) };
   } catch (error) {
@@ -23,6 +23,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     return { statusCode: 500, body: JSON.stringify(error) };
   } finally {
-    await prisma.$disconnect();
+    await sql.end();
   }
 };

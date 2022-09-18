@@ -1,13 +1,28 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import { SNS } from "@aws-sdk/client-sns";
 import {
-  PartyBoxCreateEventInput,
   getStripeClient,
   decodeJwt,
   getPostgresClient,
   verifyHostRoles,
   PartyBoxEvent,
+  EventNotificationModel,
 } from "@party-box/common";
+import zod from "zod";
+
+const bodySchema = zod.object({
+  name: zod.string(),
+  description: zod.string(),
+  startTime: zod.string(),
+  endTime: zod.string(),
+  prices: zod.array(zod.object({ name: zod.string(), price: zod.number() })),
+  maxTickets: zod.number(),
+  location: zod.string().default("TBD"),
+  hostId: zod.number(),
+  published: zod.boolean().default(false),
+  hashtags: zod.array(zod.string()).default([]),
+  notifications: zod.array(EventNotificationModel).default([]),
+});
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -31,7 +46,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     notifications = [],
     hostId,
     published,
-  } = JSON.parse(event.body ?? "{}") as PartyBoxCreateEventInput;
+  } = bodySchema.parse(event.body);
   const { websiteUrl } = event.stageVariables as StageVariables;
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
@@ -83,7 +98,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     });
 
     // Upload price data
-    const newPrices = [];
     for (const price of prices) {
       if (price.price > 0.5) {
         const stripePrice = await stripeClient.prices.create({
@@ -118,21 +132,27 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           },
         });
 
-        newPrices.push({
-          id: stripePrice.id,
-          name: "Regular",
-          paymentLink: paymentLink.url,
-          paymentLinkId: paymentLink.id,
-          price: price.price,
-          free: false,
-        });
+        await sql`
+          INSERT INTO "ticketPrices" 
+            ${sql({
+              name: "Regular",
+              paymentLink: paymentLink.url,
+              paymentLinkId: paymentLink.id,
+              stripePriceId: stripePrice.id,
+              price: price.price,
+              free: false,
+            })}
+        `;
       } else {
-        newPrices.push({
-          id: crypto.randomUUID(),
-          name: "Regular",
-          price: price.price,
-          free: true,
-        });
+        await sql`
+          INSERT INTO "ticketPrices" 
+            ${sql({
+              id: crypto.randomUUID(),
+              name: "Regular",
+              price: price.price,
+              free: true,
+            })}
+        `;
       }
     }
 
@@ -151,7 +171,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       UPDATE "events"
       SET ${sql({
         stripeProductId: stripeProduct.id,
-        prices: newPrices,
         snsTopicArn: snsTopic.TopicArn,
       })}
       WHERE "id" = ${eventId}
@@ -175,3 +194,4 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     return { statusCode: 500, body: JSON.stringify(error) };
   }
 };
+

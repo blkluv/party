@@ -25,7 +25,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const eventData = await sql<PartyBoxEvent[]>`
       select * from "events"
-      where "id" in ${eventIds}
+      where "id" in ${sql(eventIds)};
     `;
 
     if (notifications?.length === 0) throw new Error("No notifications to send.");
@@ -34,12 +34,16 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     // Send out notifcations using AWS SNS
     for (const { snsTopicArn, eventId, message, id } of notifications) {
-      const event = eventData.find((e) => e.id === eventId);
+      const e = eventData.find((e) => e.id === eventId);
 
-      if (!event) throw new Error("Event not found.");
+      if (!e) throw new Error("Event not found.");
 
       await sns.publish({
-        Message: formatEventNotification(message, event),
+        Message: formatEventNotification(message, {
+          location: e.location,
+          name: e.name,
+          startTime: e.startTime.toString(),
+        }),
         TopicArn: snsTopicArn,
       });
 
@@ -63,3 +67,4 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     };
   }
 };
+
