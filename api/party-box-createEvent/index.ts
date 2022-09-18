@@ -160,7 +160,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     // Schedule some messages
     await sql`
-      INSERT INTO event_notifications ${sql(
+      INSERT INTO "eventNotifications" ${sql(
         notifications.map((n) => ({
           messageTime: n.messageTime,
           message: n.message,
@@ -173,7 +173,5 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.error(error);
 
     return { statusCode: 500, body: JSON.stringify(error) };
-  } finally {
-    await sql.end();
   }
 };
