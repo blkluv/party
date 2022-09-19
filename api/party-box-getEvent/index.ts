@@ -64,13 +64,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.info(`Found prices: ${JSON.stringify(priceData)}`);
 
     // Validate response
-    const validatedEventData = EventModel.omit({ location: true, published: true }).parse(eventData);
-    const validatedPriceData = TicketPriceModel.parse(eventData);
-    const validatedHostData = HostModel.parse(hostData);
+    // const validatedEventData = EventModel.omit({ location: true, published: true }).parse(eventData);
+    // const validatedPriceData = TicketPriceModel.parse(eventData);
+    // const validatedHostData = HostModel.parse(hostData);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ ...validatedEventData, ticketPrices: validatedPriceData, host: validatedHostData }),
+      body: JSON.stringify({ ...eventData, ticketPrices: priceData, host: hostData }),
     };
   } catch (error) {
     console.error(error);
