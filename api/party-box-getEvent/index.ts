@@ -1,10 +1,13 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import {
+  EventModel,
   getPostgresClient,
+  HostModel,
   PartyBoxEvent,
   PartyBoxEventPrice,
   PartyBoxHost,
   RelatedEventModel,
+  TicketPriceModel,
 } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -61,15 +64,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.info(`Found prices: ${JSON.stringify(priceData)}`);
 
     // Validate response
-    const response = RelatedEventModel.parse({
-      ...eventData,
-      tisketPrices: priceData,
-      host: hostData,
-    });
+    const validatedEventData = EventModel.parse(eventData);
+    const validatedPriceData = TicketPriceModel.parse(eventData);
+    const validatedHostData = HostModel.parse(hostData);
 
     return {
       statusCode: 200,
-      body: JSON.stringify(response),
+      body: JSON.stringify({ ...validatedEventData, ticketPrices: validatedPriceData, host: validatedHostData }),
     };
   } catch (error) {
     console.error(error);
