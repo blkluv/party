@@ -1,13 +1,6 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import { SNS } from "@aws-sdk/client-sns";
-import {
-  getStripeClient,
-  decodeJwt,
-  getPostgresClient,
-  verifyHostRoles,
-  PartyBoxEvent,
-  EventNotificationModel,
-} from "@party-box/common";
+import { getStripeClient, decodeJwt, getPostgresClient, verifyHostRoles, PartyBoxEvent } from "@party-box/common";
 import zod from "zod";
 
 const bodySchema = zod.object({
@@ -37,19 +30,6 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   console.log(event);
-  const {
-    name,
-    description,
-    startTime,
-    endTime,
-    location,
-    maxTickets,
-    prices,
-    hashtags,
-    notifications = [],
-    hostId,
-    published,
-  } = bodySchema.parse(event.body);
   const { websiteUrl } = event.stageVariables as StageVariables;
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
@@ -58,6 +38,21 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sql = await getPostgresClient(stage);
 
   try {
+    if (!event.body) throw new Error("Missing body");
+    const {
+      name,
+      description,
+      startTime,
+      endTime,
+      location,
+      maxTickets,
+      prices,
+      hashtags,
+      notifications = [],
+      hostId,
+      published,
+    } = bodySchema.parse(JSON.parse(event.body));
+
     const { sub } = decodeJwt(Authorization, ["admin"]);
     if (!sub) throw new Error("Missing sub");
 
