@@ -64,7 +64,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.info(`Found prices: ${JSON.stringify(priceData)}`);
 
     // Validate response
-    const validatedEventData = EventModel.parse(eventData);
+    const validatedEventData = EventModel.omit({ location: true, published: true }).parse(eventData);
     const validatedPriceData = TicketPriceModel.parse(eventData);
     const validatedHostData = HostModel.parse(hostData);
 
