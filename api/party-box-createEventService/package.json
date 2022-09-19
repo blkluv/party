@@ -19,8 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@party-box/common": "workspace:^",
-    "@party-box/prisma": "workspace:^"
+    "@party-box/common": "workspace:^"
   },
   "scripts": {
     "build": "rollup -c"
