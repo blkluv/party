@@ -20,8 +20,11 @@ const bodySchema = zod.object({
   location: zod.string().default("TBD"),
   hostId: zod.number(),
   published: zod.boolean().default(false),
-  hashtags: zod.array(zod.string()).default([]),
-  notifications: zod.array(EventNotificationModel).default([]),
+  hashtags: zod.array(zod.string()).optional().default([]),
+  notifications: zod
+    .array(zod.object({ messageTime: zod.string(), message: zod.string() }))
+    .optional()
+    .default([]),
 });
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
@@ -194,4 +197,3 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     return { statusCode: 500, body: JSON.stringify(error) };
   }
 };
-
