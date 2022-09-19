@@ -34,7 +34,7 @@ const Page: NextPage<Props> = ({ eventData }) => {
 
         <h2 className="text-center text-lg font-semibold">Tickets</h2>
         <div className="flex justify-center flex-col gap-4">
-          {eventData.TicketPrice.map((price) => (
+          {eventData.prices.map((price) => (
             <EventPrice key={price.id} {...price} />
           ))}
         </div>
@@ -46,6 +46,8 @@ const Page: NextPage<Props> = ({ eventData }) => {
 export const getServerSideProps = async (context: NextPageContext) => {
   const eventId = context.query.eventId;
   const data = await fetch(`${API_URL}/events/${eventId}`);
+
+  console.log(data);
 
   if (!data.ok) {
     return {

@@ -27,11 +27,9 @@
   },
   "workspaces": [
     "client",
-    "@party-box/*",
     "api/*",
     "function",
-    "packages/*",
-    "apps/*"
+    "packages/*"
   ],
   "license": "ISC",
   "bugs": {
