@@ -2,6 +2,7 @@ import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyRes
 import { SNS } from "@aws-sdk/client-sns";
 import { getStripeClient, decodeJwt, getPostgresClient, verifyHostRoles, PartyBoxEvent, PartyBoxCreateEventInput } from "@party-box/common";
 import zod from "zod";
+import { v4 } from "uuid";
 
 // const bodySchema = zod.object({
 //   name: zod.string(),
@@ -145,7 +146,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         await sql`
           INSERT INTO "ticketPrices" 
             ${sql({
-              id: crypto.randomUUID(),
+              id: v4(),
               name: "Regular",
               price: price.price,
               free: true,
