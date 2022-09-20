@@ -11,7 +11,7 @@ const config = [
       file: "./dist/index.js",
       format: "cjs",
     },
-    plugins: [resolve(), commonjs(), typescript(), json()],
+    plugins: [resolve({ exportConditions: ["node"] }), commonjs(), typescript(), json()],
   },
   {
     input: "./dist/index.d.ts",
@@ -21,4 +21,3 @@ const config = [
 ];
 
 export default config;
-

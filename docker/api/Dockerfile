@@ -11,6 +11,7 @@ COPY ./packages ./packages
 RUN npm install -g pnpm
 
 RUN pnpm install --no-frozen-lockfile
+
 RUN pnpm build
 
 FROM public.ecr.aws/lambda/nodejs:16
