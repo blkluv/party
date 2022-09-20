@@ -12,7 +12,7 @@ const config = [
       format: "cjs",
     },
     plugins: [
-      resolve({ exportConditions: ["node"], preferBuiltins: false }),
+      resolve({ exportConditions: ["node"], preferBuiltins: true }),
       commonjs(),
       typescript(),
       terser(),
