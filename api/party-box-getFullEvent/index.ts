@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { decodeJwt, getPostgresClient, PartyBoxEvent, verifyHostRoles } from "@party-box/common";
+import { decodeJwt, getPostgresClient, PartyBoxEvent, PartyBoxEventPrice, verifyHostRoles } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -35,9 +35,17 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       where "eventId" = ${Number(eventId)}
     `;
 
+    const priceData = await sql<PartyBoxEventPrice[]>`
+      SELECT *
+      FROM "ticketPrices"
+      WHERE "eventId" = ${eventData.id}
+    `;
+
+    console.info(`Found prices: ${JSON.stringify(priceData)}`);
+
     return {
       statusCode: 200,
-      body: JSON.stringify({ ...eventData, notifications: notificationData }),
+      body: JSON.stringify({ ...eventData, notifications: notificationData, prices: priceData }),
     };
   } catch (error) {
     console.error(error);
