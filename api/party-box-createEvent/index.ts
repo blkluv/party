@@ -1,24 +1,24 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import { SNS } from "@aws-sdk/client-sns";
-import { getStripeClient, decodeJwt, getPostgresClient, verifyHostRoles, PartyBoxEvent } from "@party-box/common";
+import { getStripeClient, decodeJwt, getPostgresClient, verifyHostRoles, PartyBoxEvent, PartyBoxCreateEventInput } from "@party-box/common";
 import zod from "zod";
 
-const bodySchema = zod.object({
-  name: zod.string(),
-  description: zod.string(),
-  startTime: zod.string(),
-  endTime: zod.string(),
-  prices: zod.array(zod.object({ name: zod.string(), price: zod.number() })),
-  maxTickets: zod.number(),
-  location: zod.string().default("TBD"),
-  hostId: zod.number(),
-  published: zod.boolean().default(false),
-  hashtags: zod.array(zod.string()).optional().default([]),
-  notifications: zod
-    .array(zod.object({ messageTime: zod.string(), message: zod.string() }))
-    .optional()
-    .default([]),
-});
+// const bodySchema = zod.object({
+//   name: zod.string(),
+//   description: zod.string(),
+//   startTime: zod.string(),
+//   endTime: zod.string(),
+//   prices: zod.array(zod.object({ name: zod.string(), price: zod.number() })),
+//   maxTickets: zod.number(),
+//   location: zod.string().default("TBD"),
+//   hostId: zod.number(),
+//   published: zod.boolean().default(false),
+//   hashtags: zod.array(zod.string()).optional().default([]),
+//   notifications: zod
+//     .array(zod.object({ messageTime: zod.string(), message: zod.string() }))
+//     .optional()
+//     .default([]),
+// });
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -51,7 +51,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       notifications = [],
       hostId,
       published,
-    } = bodySchema.parse(JSON.parse(event.body));
+    } = JSON.parse(event.body) as PartyBoxCreateEventInput;
 
     const { sub } = decodeJwt(Authorization, ["admin"]);
     if (!sub) throw new Error("Missing sub");
