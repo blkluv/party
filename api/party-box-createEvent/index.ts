@@ -147,6 +147,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
               stripePriceId: stripePrice.id,
               price: price.price,
               free: false,
+              eventId,
             })}
         `;
       } else {
