@@ -14,7 +14,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
   try {
     const eventServices = await sql`
-      SELECT * FROM "eventServices";
+      SELECT * FROM "services";
     `;
 
     return { statusCode: 200, body: JSON.stringify(eventServices) };
