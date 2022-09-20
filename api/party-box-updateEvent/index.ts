@@ -4,7 +4,7 @@ import {
   APIGatewayProxyEventStageVariables,
   APIGatewayProxyResult,
 } from "aws-lambda";
-import { v4 as uuid } from "uuid";
+import { v4 as uuid, v4 } from "uuid";
 import {
   decodeJwt,
   getPostgresClient,
@@ -67,7 +67,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     // TODO remove any in place of PartyBoxEventPrice
     // This is a workaround for a bug in postgres's typing
-    const newPrices: any[] = [];
     for (const price of prices) {
       if (!price?.id) {
         if (price.price > 0.5) {
@@ -75,7 +74,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
             product: newEventData.stripeProductId,
             unit_amount: price.price * 100,
             currency: "CAD",
-            nickname: price.name,
+            nickname: "Regular",
           });
           const paymentLink = await stripeClient.paymentLinks.create({
             line_items: [
@@ -91,6 +90,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
             metadata: {
               eventId,
             },
+            allow_promotion_codes: true,
             phone_number_collection: {
               enabled: true,
             },
@@ -102,34 +102,32 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
             },
           });
 
-          newPrices.push({
-            id: stripePrice.id,
-            name: price.name,
-            paymentLink: paymentLink.url,
-            paymentLinkId: paymentLink.id,
-            price: price.price,
-            free: false,
-          });
+          await sql`
+              INSERT INTO "ticketPrices" 
+                ${sql({
+                  name: "Regular",
+                  paymentLink: paymentLink.url,
+                  paymentLinkId: paymentLink.id,
+                  stripePriceId: stripePrice.id,
+                  price: price.price,
+                  free: false,
+                  eventId,
+                })}
+            `;
         } else {
-          newPrices.push({
-            id: uuid(),
-            name: price.name,
-            price: price.price,
-            free: true,
-            paymentLink: null,
-            paymentLinkId: null,
-          });
+          await sql`
+              INSERT INTO "ticketPrices" 
+                ${sql({
+                  id: v4(),
+                  name: "Regular",
+                  price: price.price,
+                  free: true,
+                  eventId,
+                })}
+            `;
         }
-      } else {
-        newPrices.push(price);
       }
     }
-
-    await sql`
-      update "events" 
-      set ${sql({ prices: newPrices })}
-      where "id" = ${Number(eventId)}
-    `;
 
     console.info("Created prices");
 
