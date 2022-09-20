@@ -1,6 +1,6 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import MetaData from "~/components/MetaData";
-import { CompleteEvent, PartyBoxEvent } from "@party-box/common";
+import { CompleteEvent } from "@party-box/common";
 import isUserAdmin from "~/utils/isUserAdmin";
 import dayjs from "dayjs";
 import EventPrice from "~/components/EventPrice";

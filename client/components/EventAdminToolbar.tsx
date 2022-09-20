@@ -10,7 +10,7 @@ interface Props {
 }
 
 const EventAdminToolbar: FC<Props> = ({ eventId }) => {
-  const [loading, setLoading] = useState({ delete: false });
+  // const [loading, setLoading] = useState({ delete: false });
   const router = useRouter();
   const [showDeleteError, setShowDeleteError] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -28,7 +28,7 @@ const EventAdminToolbar: FC<Props> = ({ eventId }) => {
     <>
       <Portal>
         <Toast variant="error" title="Error" open={showDeleteError} onOpenChange={setShowDeleteError} duration={2000}>
-          <p>Error deleting event</p>
+          Error deleting event
         </Toast>
       </Portal>
       <Modal
@@ -39,7 +39,12 @@ const EventAdminToolbar: FC<Props> = ({ eventId }) => {
       >
         <div className="flex justify-center gap-4">
           <Button onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-          <Button onClick={() => !deleteLoading && handleDelete()} variant="filled" color="red" disabled={deleteLoading}>
+          <Button
+            onClick={() => !deleteLoading && handleDelete()}
+            variant="filled"
+            color="red"
+            disabled={deleteLoading}
+          >
             <p>Delete</p>
             {deleteLoading && <LoadingIcon className="animate-spin" size={20} />}
           </Button>
