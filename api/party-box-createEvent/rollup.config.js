@@ -11,13 +11,7 @@ const config = [
       file: "./dist/index.js",
       format: "cjs",
     },
-    plugins: [
-      resolve({ exportConditions: ["node"], preferBuiltins: true }),
-      commonjs(),
-      typescript(),
-      terser(),
-      json(),
-    ],
+    plugins: [resolve({ exportConditions: ["node"] }), commonjs(), typescript(), terser(), json()],
   },
 ];
 

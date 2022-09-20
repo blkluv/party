@@ -30,7 +30,7 @@
     "@aws-sdk/client-secrets-manager": "^3.137.0",
     "jsonwebtoken": "^8.5.1",
     "postgres": "^3.2.4",
-    "stripe": "^9.16.0",
+    "stripe": "^10.10.0",
     "zod": "^3.19.1"
   }
 }

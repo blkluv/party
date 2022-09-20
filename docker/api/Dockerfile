@@ -1,9 +1,6 @@
 FROM public.ecr.aws/lambda/nodejs:16 as build
 
 ARG dir
-ARG DATABASE_URL
-
-ENV DATABASE_URL DATABASE_URL
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml .npmrc package.json turbo.json ./
 

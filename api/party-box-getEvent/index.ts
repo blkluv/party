@@ -25,18 +25,21 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sql = await getPostgresClient(stage);
 
   try {
+    const eventCols = [
+      "id",
+      "name",
+      "description",
+      "startTime",
+      "endTime",
+      "maxTickets",
+      "media",
+      "thumbnail",
+      "hashtags",
+      "hostId",
+    ];
     const [eventData] = await sql<PartyBoxEvent[]>`
       SELECT
-        "id",
-        "name",
-        "description",
-        "startTime",
-        "endTime",
-        "maxTickets",
-        "media",
-        "thumbnail",
-        "hashtags",
-        "hostId"
+        ${sql(eventCols)}
       FROM "events"
       WHERE "id" = ${Number(eventId)}
     `;
@@ -64,7 +67,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.info(`Found prices: ${JSON.stringify(priceData)}`);
 
     // Validate response
-    // const validatedEventData = EventModel.omit({ location: true, published: true }).parse(eventData);
+    const validatedEventData = EventModel.pick(Object.fromEntries(eventCols.map((e) => [e, true]))).parse(eventData);
     // const validatedPriceData = TicketPriceModel.parse(eventData);
     // const validatedHostData = HostModel.parse(hostData);
 

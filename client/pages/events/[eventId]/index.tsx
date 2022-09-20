@@ -47,8 +47,6 @@ export const getServerSideProps = async (context: NextPageContext) => {
   const eventId = context.query.eventId;
   const data = await fetch(`${API_URL}/events/${eventId}`);
 
-  console.log(data);
-
   if (!data.ok) {
     return {
       redirect: {
