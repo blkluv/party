@@ -8,6 +8,7 @@ on:
       - "api/party-box-deleteHost/**"
       - ".github/workflows/dev-party-box-deleteHost.yml"
       - ".github/workflows/cd-lambda-dev.yml"
+      - "docker/api/Dockerfile"
 
 jobs:
   deploy:

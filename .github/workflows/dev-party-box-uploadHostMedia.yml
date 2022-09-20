@@ -8,6 +8,7 @@ on:
       - "api/party-box-uploadHostMedia/**"
       - ".github/workflows/dev-party-box-uploadHostMedia.yml"
       - ".github/workflows/cd-lambda-dev.yml"
+      - "docker/api/Dockerfile"
 
 jobs:
   deploy:

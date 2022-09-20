@@ -2,7 +2,7 @@ import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyRes
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuid } from "uuid";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { decodeJwt, getPostgresClient, getS3Client } from "@party-box/common";
+import { decodeJwt, getS3Client } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   serviceId: string;
@@ -23,10 +23,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { serviceId } = event.pathParameters as PathParameters;
   const { name } = JSON.parse(event.body ?? "{}") as Body;
   const { Authorization } = event.headers;
-  const pg = await getPostgresClient(stage);
 
   try {
-    const { sub: userId } = decodeJwt(Authorization);
+    const { sub: userId } = decodeJwt(Authorization, ["admin"]);
     if (!userId) throw new Error("Missing userId");
 
     const s3 = await getS3Client();
@@ -50,7 +49,5 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   } catch (error) {
     console.error(error);
     throw error;
-  } finally {
-    await pg.destroy();
   }
 };

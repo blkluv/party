@@ -3,4 +3,6 @@
 **/.parcel-cache
 **/dist
 **/.env*
-@party-box/prisma/client
+packages/prisma
+packages/zod
+packages/pg-utils

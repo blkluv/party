@@ -1,6 +1,5 @@
 import { APIGatewayProxyEventPathParameters, APIGatewayProxyHandler } from "aws-lambda";
-import { getPostgresConnectionString, getStripeClient } from "@party-box/common";
-import { PrismaClient } from "@party-box/prisma";
+import { getPostgresClient, getStripeClient, PartyBoxEvent, PartyBoxEventTicket } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   ticketId: string;
@@ -13,31 +12,55 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
 export const handler: APIGatewayProxyHandler = async (event) => {
   console.log(event);
 
-  const { ticketId: stripeSessionId } = event.pathParameters as PathParameters;
+  const { ticketId } = event.pathParameters as PathParameters;
 
   const { stage } = event.requestContext;
-  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
-  await prisma.$connect();
+  const sql = await getPostgresClient(stage);
 
   const stripe = await getStripeClient(stage);
 
   try {
-    const ticketData = await prisma.ticket.findFirstOrThrow({ where: { stripeSessionId } });
-    const eventData = await prisma.event.findFirstOrThrow({
-      where: { id: ticketData.eventId },
-      select: { name: true, description: true, id: true, startTime: true, endTime: true, hashtags: true },
-    });
+    const [ticketData] = await sql<PartyBoxEventTicket[]>`
+      SELECT *
+      FROM "tickets"
+      WHERE "slug" = ${ticketId}
+    `;
+    if (!ticketData) throw new Error("Ticket not found");
 
-    const session = await stripe.checkout.sessions.retrieve(stripeSessionId);
-    const paymentIntent = await stripe.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
+    const [eventData] = await sql<PartyBoxEvent[]>`
+      SELECT ${sql([
+        "id",
+        "name",
+        "description",
+        "startTime",
+        "endTime",
+        "published",
+        "thumbnail",
+        "hashtags",
+        "maxTickets",
+      ])}
+      FROM "events"
+      WHERE "id" = ${ticketData.eventId}
+    `;
+
+    if (!eventData) throw new Error("Event not found");
+
+    const response: PartyBoxEventTicket = {
+      ...ticketData,
+      status: "succeeded",
+      event: eventData,
+    };
+
+    // If the price associated with this event is free
+    if (ticketData.stripeSessionId) {
+      const session = await stripe.checkout.sessions.retrieve(ticketData.stripeSessionId);
+      const paymentIntent = await stripe.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
+      response.status = paymentIntent?.status;
+    }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        ...ticketData,
-        status: paymentIntent?.status ?? "pending",
-        event: eventData,
-      }),
+      body: JSON.stringify(ticketData),
     };
   } catch (error) {
     console.error(error);
@@ -45,7 +68,5 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       statusCode: 500,
       body: JSON.stringify(error),
     };
-  } finally {
-    await prisma.$disconnect();
   }
 };

@@ -1,7 +1,13 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
-import { getStripeClient, formatEventNotification, getPostgresConnectionString } from "@party-box/common";
+import {
+  getStripeClient,
+  formatEventNotification,
+  getPostgresClient,
+  PartyBoxEventTicket,
+  PartyBoxEvent,
+  PartyBoxEventNotification,
+} from "@party-box/common";
 import { SNS } from "@aws-sdk/client-sns";
-import { PrismaClient } from "@party-box/prisma";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -21,8 +27,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   } = JSON.parse(event.body ?? "{}");
 
   const sns = new SNS({});
-  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
-  await prisma.$connect();
+  const sql = await getPostgresClient(stage);
   const stripeClient = await getStripeClient(stage);
 
   try {
@@ -42,8 +47,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const ticketQuantity = Number(session.data[0].line_items?.data[0].quantity);
 
     // Create ticket in Postgres
-    const ticketData = await prisma.ticket.create({
-      data: {
+    const [ticketData] = await sql<PartyBoxEventTicket[]>`
+      INSERT INTO "tickets"
+      ${sql({
         eventId: Number(eventId),
         stripeSessionId: session?.data?.at(0)?.id ?? "",
         stripeChargeId: chargeId,
@@ -54,25 +60,29 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         purchasedAt: new Date().toISOString(),
         ticketQuantity: Number(ticketQuantity),
         used: false,
-      },
-    });
+      })}
+      RETURNING *
+    `;
+    const [eventData] = await sql<PartyBoxEvent[]>`
+      SELECT * FROM "events" WHERE "id" = ${eventId}
+      `;
 
-    const eventData = await prisma.event.findFirstOrThrow({ where: { id: Number(eventId) } });
-    const { _sum: ticketsSold = 0 } = await prisma.ticket.aggregate({
-      where: { eventId: Number(eventId) },
-      _sum: {
-        ticketQuantity: true,
-      },
-    });
+    if (!eventData) throw new Error("Could not find event");
+
+    // Return count of tickets purchased for current event
+    const [{ count: ticketsSold = 0 }] = await sql<{ count: number }[]>`
+      SELECT COUNT("ticketQuantity") FROM "tickets" WHERE "eventId" = ${eventId}
+    `;
+
+    console.info(`Found ticket quantity of: ${ticketsSold}`);
 
     // Once enough stock is sold, disable product on stripe
     if (ticketsSold >= eventData?.maxTickets && eventData.stripeProductId) {
       await stripeClient.products.update(eventData.stripeProductId, {
         active: false,
       });
+      console.info("Disabled product on Stripe");
     }
-
-    if (!eventData) throw new Error("Couldn't find event data");
 
     // Subscribe customerPhoneNumber to the event's SNS topic
     if (eventData.snsTopicArn) {
@@ -110,10 +120,12 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     // Check if this user should be recieving any event notifications
     // If so, get the latest one and send it to them
-    const latestEventNotification = await prisma.eventNotification.findFirst({
-      where: { eventId: Number(eventId), messageTime: { lte: new Date().toISOString() } },
-      orderBy: { messageTime: "desc" },
-    });
+    const [latestEventNotification] = await sql<PartyBoxEventNotification[]>`
+      SELECT * FROM "eventNotifications" 
+      WHERE "eventId" = ${eventId} 
+      AND "messageTime" <= ${new Date().toISOString()}
+      ORDER BY "messageTime" DESC
+    `
 
     if (latestEventNotification) {
       await sns.publish({
@@ -135,6 +147,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.error(error);
     return { statusCode: 500, body: JSON.stringify(error) };
   } finally {
-    await prisma.$disconnect();
+    await sql.end();
   }
 };

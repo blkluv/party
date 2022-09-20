@@ -1,6 +1,6 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import MetaData from "~/components/MetaData";
-import { PartyBoxEvent } from "@party-box/common";
+import { CompleteEvent } from "@party-box/common";
 import isUserAdmin from "~/utils/isUserAdmin";
 import dayjs from "dayjs";
 import EventPrice from "~/components/EventPrice";
@@ -10,7 +10,7 @@ import EventAdminToolbar from "~/components/EventAdminToolbar";
 import MediaCarousel from "~/components/MediaCarousel";
 
 interface Props {
-  eventData: PartyBoxEvent;
+  eventData: CompleteEvent;
 }
 
 const Page: NextPage<Props> = ({ eventData }) => {
@@ -33,7 +33,7 @@ const Page: NextPage<Props> = ({ eventData }) => {
         <p className="text-sm md:text-base">{eventData.description}</p>
 
         <h2 className="text-center text-lg font-semibold">Tickets</h2>
-        <div className="flex justify-center">
+        <div className="flex justify-center flex-col gap-4">
           {eventData.prices.map((price) => (
             <EventPrice key={price.id} {...price} />
           ))}
@@ -65,3 +65,4 @@ export const getServerSideProps = async (context: NextPageContext) => {
 };
 
 export default Page;
+

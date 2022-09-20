@@ -1,6 +1,14 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresConnectionString } from "@party-box/common";
-import { PrismaClient } from "@party-box/prisma";
+import {
+  EventModel,
+  getPostgresClient,
+  HostModel,
+  PartyBoxEvent,
+  PartyBoxEventPrice,
+  PartyBoxHost,
+  RelatedEventModel,
+  TicketPriceModel,
+} from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -14,34 +22,58 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { eventId } = event.pathParameters as PathParameters;
   const { stage } = event.requestContext;
 
-  const prisma = new PrismaClient({ datasources: { db: { url: await getPostgresConnectionString(stage) } } });
-  await prisma.$connect();
+  const sql = await getPostgresClient(stage);
 
   try {
-    const eventData = await prisma.event.findFirstOrThrow({
-      where: { id: Number(eventId) },
-      select: {
-        startTime: true,
-        endTime: true,
-        id: true,
-        name: true,
-        description: true,
-        media: true,
-        prices: true,
-        hostId: true,
-        thumbnail: true,
-        hashtags: true,
-      },
-    });
+    const eventCols = [
+      "id",
+      "name",
+      "description",
+      "startTime",
+      "endTime",
+      "maxTickets",
+      "media",
+      "thumbnail",
+      "hashtags",
+      "hostId",
+    ];
+    const [eventData] = await sql<PartyBoxEvent[]>`
+      SELECT
+        ${sql(eventCols)}
+      FROM "events"
+      WHERE "id" = ${Number(eventId)}
+    `;
 
-    const hostData = await prisma.host.findFirstOrThrow({
-      where: { id: Number(eventData.hostId) },
-      select: { name: true, imageUrl: true, description: true, id: true },
-    });
+    console.info(`Found event: ${JSON.stringify(eventData)}`);
+
+    const [hostData] = await sql<PartyBoxHost[]>`
+      SELECT
+        "id",
+        "name",
+        "description",
+        "imageUrl"
+      FROM "hosts"
+      WHERE "id" = ${eventData.hostId}
+    `;
+
+    console.info(`Found host: ${JSON.stringify(hostData)}`);
+
+    const priceData = await sql<PartyBoxEventPrice[]>`
+      SELECT *
+      FROM "ticketPrices"
+      WHERE "eventId" = ${eventData.id}
+    `;
+
+    console.info(`Found prices: ${JSON.stringify(priceData)}`);
+
+    // Validate response
+    // const validatedEventData = EventModel.pick(Object.fromEntries(eventCols.map((e) => [e, true]))).parse(eventData);
+    // const validatedPriceData = TicketPriceModel.parse(eventData);
+    // const validatedHostData = HostModel.parse(hostData);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ ...eventData, host: hostData }),
+      body: JSON.stringify({ ...eventData, prices: priceData, host: hostData }),
     };
   } catch (error) {
     console.error(error);
@@ -49,7 +81,5 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       statusCode: 500,
       body: JSON.stringify(error),
     };
-  } finally {
-    await prisma.$disconnect();
   }
 };

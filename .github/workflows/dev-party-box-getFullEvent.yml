@@ -8,6 +8,7 @@ on:
       - "api/party-box-getFullEvent/**"
       - ".github/workflows/dev-party-box-getFullEvent.yml"
       - ".github/workflows/cd-lambda-dev.yml"
+      - "docker/api/Dockerfile"
 
 jobs:
   deploy:

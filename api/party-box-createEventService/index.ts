@@ -1,6 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
-import { decodeJwt, PartyBoxCreateServiceInput, getPostgresConnectionString } from "@party-box/common";
-import { PrismaClient } from "@party-box/prisma";
+import { decodeJwt, getPostgresConnectionString, getPostgresClient, PartyBoxCreateServiceInput, } from "@party-box/common";
 
 /**
  * @method POST
@@ -14,14 +13,16 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { Authorization } = event.headers;
 
   const connectionString = await getPostgresConnectionString(stage);
-  const prisma = new PrismaClient({ datasources: { db: { url: connectionString } } });
-  await prisma.$connect();
+  const sql = await getPostgresClient(connectionString);
 
   try {
     const { sub } = decodeJwt(Authorization, ["admin"]);
     if (!sub) throw new Error("Missing sub");
 
-    const newServiceData = await prisma.service.create({ data: { name, description, price, imageUrl } });
+    const [newServiceData] = await sql`
+      INSERT INTO "services" ${sql({ name, description, price, imageUrl })}
+      RETURNING *
+    `;
 
     return { statusCode: 201, body: JSON.stringify(newServiceData) };
   } catch (error) {
@@ -29,6 +30,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     return { statusCode: 500, body: JSON.stringify(error) };
   } finally {
-    await prisma.$disconnect();
+    await sql.end();
   }
 };

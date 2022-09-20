@@ -16,36 +16,33 @@ export const handler = async (
 
     const cognito = new CognitoIdentityProvider({ region: "us-east-1" });
 
-    const pgDev = await getPostgresClient("dev");
-    const pgProd = await getPostgresClient("prod");
+    const devSql = await getPostgresClient("dev");
+    const prodSql = await getPostgresClient("prod");
 
-    try {
-      const userData = {
-        id: event.request.userAttributes.sub,
-        name: event.request.userAttributes.name,
-        email: event.request.userAttributes.email,
-        roles: ["user"],
-      };
+    const userData = {
+      id: event.request.userAttributes.sub,
+      name: event.request.userAttributes.name,
+      email: event.request.userAttributes.email,
+      roles: ["user"],
+    };
 
-      await pgDev("users").insert(userData);
-      console.log("User created in dev database.");
+    await devSql`
+        INSERT INTO "users" ${devSql(userData)}
+        `;
+    await prodSql`
+        INSERT INTO "users" ${devSql(userData)}
+        `;
+    console.log("User created in prod database.");
 
-      await pgProd("users").insert(userData);
-      console.log("User created in prod database.");
+    await cognito.adminAddUserToGroup({
+      GroupName: "user",
+      UserPoolId: userPoolId,
+      Username: userName,
+    });
 
-      await cognito.adminAddUserToGroup({
-        GroupName: "user",
-        UserPoolId: userPoolId,
-        Username: userName,
-      });
+    console.log("Group added in Cognito");
 
-      console.log("Group added in Cognito");
-
-      return callback(null, event);
-    } finally {
-      await pgDev.destroy();
-      await pgProd.destroy();
-    }
+    return callback(null, event);
   } catch (error) {
     console.error(error);
     return callback(error as Error, event);

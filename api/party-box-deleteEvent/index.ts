@@ -1,9 +1,16 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
 import { SNS } from "@aws-sdk/client-sns";
-import { decodeJwt, getPostgresConnectionString, getStripeClient, PartyBoxEventPrice } from "@party-box/common";
+import {
+  decodeJwt,
+  getPostgresClient,
+  getStripeClient,
+  PartyBoxEvent,
+  PartyBoxEventPrice,
+  TicketPriceModel,
+  verifyHostRoles,
+} from "@party-box/common";
 import { DeleteObjectsCommand, ListObjectsCommand, S3Client } from "@aws-sdk/client-s3";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
-import { PrismaClient } from "@party-box/prisma";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -20,17 +27,35 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { Authorization } = event.headers;
   const { eventId } = event.pathParameters as PathParameters;
 
-  const connectionString = await getPostgresConnectionString(stage);
-  const prisma = new PrismaClient({ datasources: { db: { url: connectionString } } });
-  await prisma.$connect();
+  const sql = await getPostgresClient(stage);
 
-  const sns = new SNS({});
-  const secretsManager = new SecretsManager({});
+  const sns = new SNS({ region: "us-east-1" });
+  const secretsManager = new SecretsManager({ region: "us-east-1" });
 
   const stripeClient = await getStripeClient(stage);
 
   try {
-    const _auth = decodeJwt(Authorization, ["admin"]);
+    const { sub: userId } = decodeJwt(Authorization);
+    if (!userId) throw new Error("Missing user id (sub) in JWT");
+
+    // Get event from the Postgres
+    const [{ snsTopicArn, stripeProductId, hostId }] = await sql<PartyBoxEvent[]>`
+      SELECT 
+        "prices",
+        "stripeProductId",
+        "snsTopicArn",
+        "hostId"
+      FROM "events"
+      WHERE "id" = ${Number(eventId)};
+    `;
+
+    const prices = await sql<PartyBoxEventPrice[]>`
+      SELECT * FROM "prices" WHERE "eventId" = ${Number(eventId)};
+    `;
+
+    // Check if the user is an admin of the given host
+    const validRole = await verifyHostRoles(sql, userId, Number(hostId), ["admin", "manager"]);
+    if (!validRole) throw new Error("User does not have permission to delete an event for this host");
 
     // Get access keys for S3 login
     const { SecretString: s3SecretString } = await secretsManager.getSecretValue({ SecretId: "party-box/access-keys" });
@@ -44,26 +69,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       },
     });
 
-    // Get event from the Postgres
-    const { prices, stripeProductId, snsTopicArn } = await prisma.event.findFirstOrThrow({
-      where: { id: Number(eventId) },
-      select: { prices: true, snsTopicArn: true, stripeProductId: true },
-    });
-
     // Delete all stripe prices associated with this event
     // We can't actually delete them, but we can make them inactive
     for (const price of prices) {
       try {
-        if (!price) continue;
-
-        // I don't know how to have price typed by default without creating an entity for it
-        // This works in place of the above approach
-        // I use the `valueOf` function to cast to object so that I can then cast to PartyBoxEventPrice
-        const typedPrice = price.valueOf() as PartyBoxEventPrice;
-
-        if (typedPrice.paymentLinkId) {
-          await stripeClient.prices.update(typedPrice.id, { active: false });
-          await stripeClient.paymentLinks.update(typedPrice.paymentLinkId, {
+        if (price.paymentLinkId) {
+          await stripeClient.prices.update(price.id.toString(), { active: false });
+          await stripeClient.paymentLinks.update(price.paymentLinkId, {
             active: false,
           });
         }
@@ -118,9 +130,22 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     }
 
     // Clean up all the other resources associated with this event
-    await prisma.ticket.deleteMany({ where: { eventId: Number(eventId) } });
-    await prisma.eventNotification.deleteMany({ where: { eventId: Number(eventId) } });
-    await prisma.event.delete({ where: { id: Number(eventId) } });
+    await sql`
+      DELETE FROM "tickets"
+      WHERE "eventId" = ${Number(eventId)};
+    `;
+    await sql`
+      DELETE FROM "ticketPrices"
+      WHERE "eventId" = ${Number(eventId)};
+    `;
+    await sql`
+      DELETE FROM "eventNotifications"
+      WHERE "eventId" = ${Number(eventId)};
+    `;
+    await sql`
+      DELETE FROM "events"
+      WHERE "id" = ${Number(eventId)};
+    `;
 
     return { statusCode: 200, body: JSON.stringify({ message: "Event deleted." }) };
   } catch (error) {
@@ -129,7 +154,5 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       statusCode: 500,
       body: JSON.stringify(error),
     };
-  } finally {
-    await prisma.$disconnect();
   }
 };

@@ -1,4 +1,9 @@
-import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
+import {
+  APIGatewayEvent,
+  APIGatewayProxyEventPathParameters,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+} from "aws-lambda";
 import { getPostgresClient, decodeJwt, PartyBoxHost, verifyHostRoles } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -8,14 +13,14 @@ interface PathParameters extends APIGatewayProxyEventPathParameters {
 /**
  * Update a host entity within Postgres
  */
-export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
+export const handler: APIGatewayProxyHandler = async (event) => {
   console.log(JSON.stringify(event));
 
   const { stage } = event.requestContext;
   const { Authorization } = event.headers;
   const { hostId } = event.pathParameters as PathParameters;
 
-  const pg = await getPostgresClient(stage);
+  const sql = await getPostgresClient(stage);
 
   try {
     if (!event.body) throw new Error("Missing event body");
@@ -26,17 +31,19 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     if (!userId) throw new Error("User ID missing.");
 
     // Check whether the user is an admin/manager of the host.
-    const validRole = await verifyHostRoles(pg, userId, Number(hostId), ["admin", "manager"]);
+    const validRole = await verifyHostRoles(sql, userId, Number(hostId), ["admin", "manager"]);
     if (!validRole) throw new Error("User is not permitted to update this host.");
 
-    const [newHostData] = await pg<PartyBoxHost>("hosts")
-      .where("id", "=", Number(hostId))
-      .update({
+    const [newHostData] = await sql<PartyBoxHost[]>`
+      UPDATE "hosts" SET
+      ${sql({
         name,
         description,
         imageUrl,
-      })
-      .returning("*");
+      })}
+      WHERE "id" = ${Number(hostId)}
+      RETURNING *;
+    `;
 
     return {
       statusCode: 200,
@@ -49,6 +56,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       body: JSON.stringify(error),
     };
   } finally {
-    await pg.destroy();
+    await sql.end();
   }
 };

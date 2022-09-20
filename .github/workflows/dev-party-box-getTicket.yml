@@ -8,6 +8,7 @@ on:
       - "api/party-box-getTicket/**"
       - ".github/workflows/dev-party-box-getTicket.yml"
       - ".github/workflows/cd-lambda-dev.yml"
+      - "docker/api/Dockerfile"
 
 jobs:
   deploy:

@@ -11,6 +11,7 @@ import getHostRoles from "~/utils/getHostRoles";
 import HostRolesModal from "~/components/HostRolesModal";
 import getUserAttributes from "~/utils/getUserAttributes";
 import { Button } from "@conorroberts/beluga";
+import LoadingScreen from "~/components/LoadingScreen";
 
 interface Props {
   host: PartyBoxHost;
@@ -21,7 +22,6 @@ const Page: FC<Props> = ({ host }) => {
   const { data: roles = [], isLoading } = useQuery("hostRoles", async () => await getHostRoles(host.id), {
     enabled: Boolean(user),
   });
-
   const attributes = getUserAttributes(user);
 
   const [showRolesDialog, setShowRolesDialog] = useState(false);
@@ -50,7 +50,7 @@ const Page: FC<Props> = ({ host }) => {
         <div className="md:w-2/3">
           <h3 className="font-bold text-lg">Events</h3>
           <div className="flex flex-col divide-y divide-gray-800">
-            {host.events.map((e) => (
+            {host?.events?.map((e) => (
               <Link key={`event ${e.id}`} passHref href={`/events/${e.id}`}>
                 <a className="flex gap-2 p-2 hover:bg-gray-800 cursor-pointer transition flex-col md:flex-row md:items-center">
                   <div className="relative h-36 md:w-36 rounded-xl overflow-hidden">
@@ -64,7 +64,7 @@ const Page: FC<Props> = ({ host }) => {
               </Link>
             ))}
           </div>
-          {host.events.length === 0 && <p className="text-center text-sm text-gray-300">No events</p>}
+          {host?.events?.length === 0 && <p className="text-center text-sm text-gray-300">No events</p>}
         </div>
       </div>
       {!isLoading && roles?.length > 0 && (
@@ -77,7 +77,7 @@ const Page: FC<Props> = ({ host }) => {
 export const getServerSideProps = async (context: NextPageContext) => {
   const hostId = context.query.hostId;
 
-  const host = await fetch(`${API_URL}/hosts/${hostId}`).then((res) => res.json());
+  const host: PartyBoxHost = await fetch(`${API_URL}/hosts/${hostId}`).then((res) => res.json());
 
   return {
     props: {
