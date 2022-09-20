@@ -1,6 +1,13 @@
 import { APIGatewayEvent, APIGatewayProxyEventStageVariables, APIGatewayProxyResult } from "aws-lambda";
 import { SNS } from "@aws-sdk/client-sns";
-import { getStripeClient, decodeJwt, getPostgresClient, verifyHostRoles, PartyBoxEvent, PartyBoxCreateEventInput } from "@party-box/common";
+import {
+  getStripeClient,
+  decodeJwt,
+  getPostgresClient,
+  verifyHostRoles,
+  PartyBoxEvent,
+  PartyBoxCreateEventInput,
+} from "@party-box/common";
 import zod from "zod";
 import { v4 } from "uuid";
 
@@ -150,6 +157,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
               name: "Regular",
               price: price.price,
               free: true,
+              eventId,
             })}
         `;
       }
