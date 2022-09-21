@@ -41,7 +41,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     // Get event from the Postgres
     const [{ snsTopicArn, stripeProductId, hostId }] = await sql<PartyBoxEvent[]>`
       SELECT 
-        "prices",
         "stripeProductId",
         "snsTopicArn",
         "hostId"
