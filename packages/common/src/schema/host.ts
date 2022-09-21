@@ -1,12 +1,5 @@
 import * as z from "zod";
-import {
-  CompleteEvent,
-  RelatedEventModel,
-  CompleteHostRole,
-  RelatedHostRoleModel,
-  CompleteUser,
-  RelatedUserModel,
-} from "./index";
+import { CompleteEvent, CompleteHostRole, CompleteUser } from "./index";
 
 export const HostModel = z.object({
   id: z.number().int(),
@@ -21,12 +14,4 @@ export interface CompleteHost extends z.infer<typeof HostModel> {
   hostRoles: CompleteHostRole[];
   creator: CompleteUser;
 }
-
-export const RelatedHostModel: z.ZodSchema<CompleteHost> = z.lazy(() =>
-  HostModel.extend({
-    events: RelatedEventModel.array(),
-    hostRoles: RelatedHostRoleModel.array(),
-    creator: RelatedUserModel,
-  })
-);
 

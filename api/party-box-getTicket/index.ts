@@ -51,11 +51,15 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       event: eventData,
     };
 
-    // If the price associated with this event is free
+    // If there is a price associated with this ticket
     if (ticketData.stripeSessionId) {
       const session = await stripe.checkout.sessions.retrieve(ticketData.stripeSessionId);
       const paymentIntent = await stripe.paymentIntents.retrieve(session?.payment_intent?.toString() ?? "");
-      response.status = paymentIntent?.status;
+      if (paymentIntent?.status === "succeeded" || paymentIntent?.status === "processing") {
+        response.status = paymentIntent.status;
+      } else {
+        response.status = "failed";
+      }
     }
 
     return {

@@ -1,14 +1,6 @@
 import * as z from "zod";
-import {
-  CompleteTicket,
-  RelatedTicketModel,
-  CompleteEventNotification,
-  RelatedEventNotificationModel,
-  CompleteHost,
-  RelatedHostModel,
-  CompleteTicketPrice,
-  RelatedTicketPriceModel,
-} from "./index";
+import { PartyBoxEventTicket } from "../types";
+import { CompleteEventNotification, CompleteHost, CompleteTicketPrice } from "./index";
 
 export const EventModel = z.object({
   id: z.number().int(),
@@ -28,18 +20,9 @@ export const EventModel = z.object({
 });
 
 export interface CompleteEvent extends z.infer<typeof EventModel> {
-  tickets: CompleteTicket[];
+  tickets: PartyBoxEventTicket[];
   notifications: CompleteEventNotification[];
   host: CompleteHost;
   prices: CompleteTicketPrice[];
 }
-
-export const RelatedEventModel: z.ZodSchema<CompleteEvent> = z.lazy(() =>
-  EventModel.extend({
-    tickets: RelatedTicketModel.array(),
-    notifications: RelatedEventNotificationModel.array(),
-    host: RelatedHostModel,
-    prices: RelatedTicketPriceModel.array(),
-  })
-);
 

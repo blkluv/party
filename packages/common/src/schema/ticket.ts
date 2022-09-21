@@ -1,5 +1,5 @@
-import * as z from "zod"
-import { CompleteEvent, RelatedEventModel, CompleteUser, RelatedUserModel, CompleteTicketPrice, RelatedTicketPriceModel } from "./index"
+import * as z from "zod";
+import { EventModel, UserModel, TicketPriceModel } from "./index";
 
 export const TicketModel = z.object({
   id: z.number().int(),
@@ -16,21 +16,9 @@ export const TicketModel = z.object({
   purchasedAt: z.string(),
   slug: z.string(),
   ticketPriceId: z.number().int().nullish(),
-})
+  status: z.enum(["failed", "processing", "succeeded"]).nullish(),
+  event: EventModel.nullish(),
+  user: UserModel.nullish(),
+  ticketPrice: TicketPriceModel.nullish(),
+});
 
-export interface CompleteTicket extends z.infer<typeof TicketModel> {
-  event: CompleteEvent
-  user?: CompleteUser | null
-  ticketPriceurn?: CompleteTicketPrice | null
-}
-
-/**
- * RelatedTicketModel contains all relations on your model in addition to the scalars
- *
- * NOTE: Lazy required in case of potential circular dependencies within schema
- */
-export const RelatedTicketModel: z.ZodSchema<CompleteTicket> = z.lazy(() => TicketModel.extend({
-  event: RelatedEventModel,
-  user: RelatedUserModel.nullish(),
-  ticketPriceurn: RelatedTicketPriceModel.nullish(),
-}))

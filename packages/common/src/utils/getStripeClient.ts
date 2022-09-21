@@ -16,7 +16,7 @@ const getStripeClient = async (stage: string) => {
   if (!stripeSecretString) throw new Error("Access keys string was undefined.");
   const { secretKey: stripeSecretKey } = JSON.parse(stripeSecretString);
 
-  const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2020-08-27" });
+  const stripeClient = new stripe(stripeSecretKey, { apiVersion: "2022-08-01" });
 
   return stripeClient;
 };

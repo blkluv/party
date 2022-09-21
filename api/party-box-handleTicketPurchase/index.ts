@@ -8,6 +8,7 @@ import {
   PartyBoxEventNotification,
 } from "@party-box/common";
 import { SNS } from "@aws-sdk/client-sns";
+import { v4 } from "uuid";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -60,6 +61,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         purchasedAt: new Date().toISOString(),
         ticketQuantity: Number(ticketQuantity),
         used: false,
+        slug: v4(),
       })}
       RETURNING *
     `;
@@ -110,7 +112,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const ticketPurchaseMessage = `Thank you for purchasing ${ticketQuantity} ticket${
       ticketQuantity > 1 ? "s" : ""
     } to ${eventData?.name}!\n\nView your ticket at ${websiteUrl}/tickets/${
-      ticketData.stripeSessionId
+      ticketData.slug
     }\n\nReceipt: ${receiptUrl}`;
 
     await sns.publish({
@@ -125,7 +127,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       WHERE "eventId" = ${eventId} 
       AND "messageTime" <= ${new Date().toISOString()}
       ORDER BY "messageTime" DESC
-    `
+    `;
 
     if (latestEventNotification) {
       await sns.publish({
