@@ -17,11 +17,6 @@ export interface CompleteTicketPrice extends z.infer<typeof TicketPriceModel> {
   ticket: CompleteTicket[]
 }
 
-/**
- * RelatedTicketPriceModel contains all relations on your model in addition to the scalars
- *
- * NOTE: Lazy required in case of potential circular dependencies within schema
- */
 export const RelatedTicketPriceModel: z.ZodSchema<CompleteTicketPrice> = z.lazy(() => TicketPriceModel.extend({
   event: RelatedEventModel,
   ticket: RelatedTicketModel.array(),

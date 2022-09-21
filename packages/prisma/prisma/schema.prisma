@@ -25,21 +25,21 @@ generator zod {
 }
 
 model Event {
-  id                 Int                 @id @default(autoincrement())
-  name               String              @default("Unnamed Event")
-  description        String?
-  published          Boolean             @default(false)
-  media              String[]
-  thumbnail          String?
-  hashtags           String[]
-  maxTickets         Int                 @default(0)
-  location           String              @default("TBD")
-  tickets            Ticket[]
-  stripeProductId    String?
-  snsTopicArn        String?
-  startTime          DateTime
-  endTime            DateTime
-  eventNotifications EventNotification[]
+  id              Int                 @id @default(autoincrement())
+  name            String              @default("Unnamed Event")
+  description     String?
+  published       Boolean             @default(false)
+  media           String[]
+  thumbnail       String?
+  hashtags        String[]
+  maxTickets      Int                 @default(0)
+  location        String              @default("TBD")
+  tickets         Ticket[]
+  stripeProductId String?
+  snsTopicArn     String?
+  startTime       DateTime
+  endTime         DateTime
+  notifications   EventNotification[]
 
   hostId Int
   host   Host          @relation(fields: [hostId], references: [id])

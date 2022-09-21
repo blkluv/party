@@ -13,7 +13,7 @@ export const TicketModel = z.object({
   userId: z.string().nullish(),
   ticketQuantity: z.number().int(),
   used: z.boolean(),
-  purchasedAt: z.date(),
+  purchasedAt: z.string(),
   slug: z.string(),
   ticketPriceId: z.number().int().nullish(),
 })

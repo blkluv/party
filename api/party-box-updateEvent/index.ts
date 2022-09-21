@@ -118,7 +118,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           await sql`
               INSERT INTO "ticketPrices" 
                 ${sql({
-                  id: v4(),
                   name: "Regular",
                   price: price.price,
                   free: true,

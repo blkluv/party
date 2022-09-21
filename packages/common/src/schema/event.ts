@@ -1,5 +1,14 @@
-import * as z from "zod"
-import { CompleteTicket, RelatedTicketModel, CompleteEventNotification, RelatedEventNotificationModel, CompleteHost, RelatedHostModel, CompleteTicketPrice, RelatedTicketPriceModel } from "./index"
+import * as z from "zod";
+import {
+  CompleteTicket,
+  RelatedTicketModel,
+  CompleteEventNotification,
+  RelatedEventNotificationModel,
+  CompleteHost,
+  RelatedHostModel,
+  CompleteTicketPrice,
+  RelatedTicketPriceModel,
+} from "./index";
 
 export const EventModel = z.object({
   id: z.number().int(),
@@ -13,26 +22,24 @@ export const EventModel = z.object({
   location: z.string(),
   stripeProductId: z.string().nullish(),
   snsTopicArn: z.string().nullish(),
-  startTime: z.date(),
+  startTime: z.string(),
   endTime: z.date(),
   hostId: z.number().int(),
-})
+});
 
 export interface CompleteEvent extends z.infer<typeof EventModel> {
-  tickets: CompleteTicket[]
-  eventNotifications: CompleteEventNotification[]
-  host: CompleteHost
-  prices: CompleteTicketPrice[]
+  tickets: CompleteTicket[];
+  notifications: CompleteEventNotification[];
+  host: CompleteHost;
+  prices: CompleteTicketPrice[];
 }
 
-/**
- * RelatedEventModel contains all relations on your model in addition to the scalars
- *
- * NOTE: Lazy required in case of potential circular dependencies within schema
- */
-export const RelatedEventModel: z.ZodSchema<CompleteEvent> = z.lazy(() => EventModel.extend({
-  tickets: RelatedTicketModel.array(),
-  eventNotifications: RelatedEventNotificationModel.array(),
-  host: RelatedHostModel,
-  prices: RelatedTicketPriceModel.array(),
-}))
+export const RelatedEventModel: z.ZodSchema<CompleteEvent> = z.lazy(() =>
+  EventModel.extend({
+    tickets: RelatedTicketModel.array(),
+    notifications: RelatedEventNotificationModel.array(),
+    host: RelatedHostModel,
+    prices: RelatedTicketPriceModel.array(),
+  })
+);
+
