@@ -49,7 +49,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     `;
 
     const prices = await sql<PartyBoxEventPrice[]>`
-      SELECT * FROM "prices" WHERE "eventId" = ${Number(eventId)};
+      SELECT * FROM "ticketPrices" WHERE "eventId" = ${Number(eventId)};
     `;
 
     // Check if the user is an admin of the given host
