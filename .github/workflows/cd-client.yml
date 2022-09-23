@@ -8,6 +8,7 @@ on:
       - "client/**"
       - "packages/common/**"
       - ".github/workflows/cd-client.yml"
+      - "aws/party-box-client.json"
 
 env:
   ECS_SERVICE: party-box-client-service
