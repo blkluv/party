@@ -6,6 +6,7 @@ import { FC, useState } from "react";
 import FormGroup from "./form/FormGroup";
 import { OutlinedMinusIcon, OutlinedPlusIcon } from "./Icons";
 import * as Yup from "yup";
+import axios from "axios";
 
 const EventPrice: FC<PartyBoxEventPrice> = ({ price, paymentLink, free, name }) => {
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -25,12 +26,11 @@ const EventPrice: FC<PartyBoxEventPrice> = ({ price, paymentLink, free, name }) 
             phoneNumber: "",
           }}
           onSubmit={async (values) => {
-            await new Promise((resolve) =>
-              setTimeout(() => {
-                console.log(values);
-                resolve(values);
-              }, 1000)
-            );
+            try {
+              await axios.post(`/api/events/get-free-ticket`, values);
+            } catch (error) {
+              console.error(error);
+            }
           }}
           validationSchema={Yup.object().shape({
             name: Yup.string().required("Name is required"),
