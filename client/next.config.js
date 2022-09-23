@@ -1,7 +1,3 @@
-/* eslint-disable require-await */
-/**
- * @type {import('next').NextConfig}
- */
 const pwa = require("next-pwa");
 const prod = process.env.NODE_ENV === "production";
 
@@ -9,6 +5,10 @@ const withPwa = pwa({
   disable: !prod,
 });
 
+/* eslint-disable require-await */
+/**
+ * @type {import('next').NextConfig}
+ */
 const nextConfig = withPwa({
   reactStrictMode: true,
   images: {
