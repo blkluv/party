@@ -2,7 +2,7 @@ import { useAuthenticator } from "@aws-amplify/ui-react";
 import { ErrorMessage, FieldArray, Form, Formik } from "formik";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
-import { CompleteEvent, PartyBoxEvent, PartyBoxHost } from "@party-box/common";
+import { PartyBoxEvent, PartyBoxEventNotification, PartyBoxEventPrice, PartyBoxHost } from "@party-box/common";
 import { CustomErrorMessage, FileUploadField, TextArea } from "./form";
 import FormGroup from "./form/FormGroup";
 import FormPreviewImage from "./FormPreviewImage";
@@ -31,7 +31,7 @@ import { useQueryClient } from "react-query";
 import updateEvent from "~/utils/updateEvent";
 
 interface Props {
-  initialValues?: CompleteEvent;
+  initialValues?: PartyBoxEvent & { notifications: PartyBoxEventNotification[]; prices: PartyBoxEventPrice[] };
 }
 
 const EventForm: FC<Props> = ({ initialValues }) => {

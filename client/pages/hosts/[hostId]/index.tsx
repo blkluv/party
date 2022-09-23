@@ -11,7 +11,6 @@ import getHostRoles from "~/utils/getHostRoles";
 import HostRolesModal from "~/components/HostRolesModal";
 import getUserAttributes from "~/utils/getUserAttributes";
 import { Button } from "@conorroberts/beluga";
-import LoadingScreen from "~/components/LoadingScreen";
 
 interface Props {
   host: PartyBoxHost;

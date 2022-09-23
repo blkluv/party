@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { EventFormData } from "~/types/EventFormInput";
-import { CompleteEvent } from "@party-box/common";
+import { PartyBoxEvent, PartyBoxEventNotification, PartyBoxEventPrice } from "@party-box/common";
 
 const formatNotificationTime = (startTime: string, messageTime: string) => {
   const days = dayjs(startTime).diff(messageTime, "day");
@@ -9,7 +9,9 @@ const formatNotificationTime = (startTime: string, messageTime: string) => {
   return { days: days.toString(), hours: hours.toString(), minutes: minutes.toString() };
 };
 
-const formatEventFormValues = (initialValues: CompleteEvent): EventFormData => {
+const formatEventFormValues = (
+  initialValues: PartyBoxEvent & { notifications: PartyBoxEventNotification[]; prices: PartyBoxEventPrice[] }
+): EventFormData => {
   const {
     name,
     description,

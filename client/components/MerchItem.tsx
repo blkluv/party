@@ -9,7 +9,7 @@ interface Props {
   images: string[];
 }
 
-const MerchItem: FC<Props> = ({ name, price, images }) => {
+const MerchItem: FC<Props> = ({ name, images }) => {
   const [index, setIndex] = useState(0);
 
   const showLeftMediaButton = index > 0;
@@ -28,7 +28,7 @@ const MerchItem: FC<Props> = ({ name, price, images }) => {
         )}
         <AnimatePresence initial={false}>
           <motion.div className="relative min-w-[150px] md:min-w-[250px] h-64 overflow-hidden">
-            <Image src={images[index]} layout="fill" objectFit="cover" />
+            <Image src={images[index]} layout="fill" objectFit="cover" alt="Some merch picture" />
           </motion.div>
         </AnimatePresence>
         {showRightMediaButton && (

@@ -9,7 +9,7 @@ const Page: NextPage = () => {
       <MetaData title="Store" />
       <div className="flex flex-col gap-2 items-center">
         <h1 className="font-bold text-xl text-center sm:text-2xl md:text-3xl">Merch</h1>
-        <a href="https://buy.stripe.com/00g5kZ1dw02A8ak6oq" target="_blank">
+        <a href="https://buy.stripe.com/00g5kZ1dw02A8ak6oq" target="_blank" rel="noreferrer">
           <Button variant="filled" color="gray" rounded>
             Buy Merch
           </Button>
@@ -53,7 +53,10 @@ const Page: NextPage = () => {
           price={40}
         />
         <MerchItem
-          images={["/images/merch/hoco_male_animal_spirit_shirt_front.jpg", "/images/merch/hoco_male_animal_spirit_shirt_back.jpg"]}
+          images={[
+            "/images/merch/hoco_male_animal_spirit_shirt_front.jpg",
+            "/images/merch/hoco_male_animal_spirit_shirt_back.jpg",
+          ]}
           name="2022 Guelph Hoco Spirit Tie Dye Shirt (Male)"
           price={40}
         />
