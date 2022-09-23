@@ -1,4 +1,4 @@
-name: cd-lambda-default
+name: cd-lambda-dev
 
 on:
   workflow_call:
