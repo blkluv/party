@@ -36,9 +36,12 @@ jobs:
         run: |
           echo "::set-output name=image::${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ inputs.function-name }}"
 
-      - name: Build and push to AWS ECR
+      - name: Build image
         run: |
           docker compose build ${{ inputs.function-name }}
+
+      - name: Push image to ECR
+        run: |
           docker compose push ${{ inputs.function-name }}
 
       - name: Deploy code to Lambda
