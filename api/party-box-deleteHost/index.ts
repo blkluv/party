@@ -1,5 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import { getPostgresClient, decodeJwt, getS3Client, PartyBoxHostRole } from "@party-box/common";
+import { getPostgresClient, decodeJwt, getS3Client, PartyBoxHostRole, verifyHostRoles } from "@party-box/common";
 import { DeleteObjectsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
@@ -17,7 +17,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { hostId } = event.pathParameters as PathParameters;
 
   const sql = await getPostgresClient(stage);
-
   const s3 = await getS3Client();
 
   try {
@@ -25,15 +24,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     if (!userId) throw new Error("User ID missing.");
 
     // Check whether the user is an admin of the host.
-    const [{ role: userRoleOfHost }] = await sql<PartyBoxHostRole[]>`
-      SELECT "role" FROM "hostsRoles" 
-      WHERE "hostId" = ${Number(hostId)}
-      AND "userId" = ${Number(userId)};
-    `;
-
-    if (userRoleOfHost !== "manager" && userRoleOfHost !== "admin") {
-      throw new Error(`Invalid role to update host. User has role: "${userRoleOfHost}"`);
-    }
+    const validRole = await verifyHostRoles(sql, userId, Number(hostId), ["admin", "manager"]);
+    if (!validRole) throw new Error(`Invalid role to update host.`);
 
     await sql`
       DELETE FROM "hostRoles" WHERE "hostId" = ${Number(hostId)};

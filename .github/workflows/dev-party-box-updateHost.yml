@@ -9,6 +9,8 @@ on:
       - ".github/workflows/dev-party-box-updateHost.yml"
       - ".github/workflows/cd-lambda-dev.yml"
       - "docker/api/Dockerfile"
+      - "compose.yml"
+      - "packages/common/**"
 
 jobs:
   deploy:

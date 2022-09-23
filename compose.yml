@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   party-box-createEvent:
     build:
@@ -6,6 +8,11 @@ services:
       args:
         dir: ./api/party-box-createEvent
     image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-createEvent
+  party-box-client:
+    build:
+      context: .
+      dockerfile: ./docker/client/Dockerfile
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-client
   party-box-getUpcomingEvents:
     build:
       context: .
@@ -55,7 +62,7 @@ services:
       args:
         dir: ./api/party-box-deleteHost
     image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-deleteHost
-    
+
   party-box-getEvent:
     build:
       context: .
@@ -98,7 +105,7 @@ services:
       args:
         dir: ./api/party-box-getTicket
     image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getTicket
-    
+
   party-box-getUserHosts:
     build:
       context: .
@@ -106,7 +113,7 @@ services:
       args:
         dir: ./api/party-box-getUserHosts
     image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getUserHosts
-    
+
   party-box-handleTicketPurchase:
     build:
       context: .
@@ -114,7 +121,7 @@ services:
       args:
         dir: ./api/party-box-handleTicketPurchase
     image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-handleTicketPurchase
-    
+
   party-box-postSignUp:
     build:
       context: .
@@ -178,4 +185,3 @@ services:
       args:
         dir: ./api/party-box-uploadServiceMedia
     image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-uploadServiceMedia
-    

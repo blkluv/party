@@ -1,6 +1,6 @@
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import MetaData from "~/components/MetaData";
-import { CompleteEvent } from "@party-box/common";
+import { PartyBoxEvent, PartyBoxEventNotification, PartyBoxEventPrice } from "@party-box/common";
 import isUserAdmin from "~/utils/isUserAdmin";
 import dayjs from "dayjs";
 import EventPrice from "~/components/EventPrice";
@@ -10,7 +10,7 @@ import EventAdminToolbar from "~/components/EventAdminToolbar";
 import MediaCarousel from "~/components/MediaCarousel";
 
 interface Props {
-  eventData: CompleteEvent;
+  eventData: PartyBoxEvent & { notifications: PartyBoxEventNotification[]; prices: PartyBoxEventPrice[] };
 }
 
 const Page: NextPage<Props> = ({ eventData }) => {
@@ -65,4 +65,3 @@ export const getServerSideProps = async (context: NextPageContext) => {
 };
 
 export default Page;
-

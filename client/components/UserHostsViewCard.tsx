@@ -1,4 +1,3 @@
-import { useAuthenticator } from "@aws-amplify/ui-react";
 import { Button, Modal, Toast, Portal } from "@conorroberts/beluga";
 import Image from "next/image";
 import Link from "next/link";

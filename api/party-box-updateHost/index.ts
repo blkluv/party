@@ -1,9 +1,4 @@
-import {
-  APIGatewayEvent,
-  APIGatewayProxyEventPathParameters,
-  APIGatewayProxyHandler,
-  APIGatewayProxyResult,
-} from "aws-lambda";
+import { APIGatewayProxyEventPathParameters, APIGatewayProxyHandler } from "aws-lambda";
 import { getPostgresClient, decodeJwt, PartyBoxHost, verifyHostRoles } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {

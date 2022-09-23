@@ -16,7 +16,12 @@
     "@typescript-eslint/indent": [
       "warn",
       2,
-      { "SwitchCase": 1, "ObjectExpression": "off", "MemberExpression": "off", "CallExpression": "off" }
+      {
+        "SwitchCase": 1,
+        "ObjectExpression": "off",
+        "MemberExpression": "off",
+        "CallExpression": { "arguments": "off", "body": "off" }
+      }
     ],
     "linebreak-style": ["warn", "windows"],
     "quotes": ["warn", "double", { "allowTemplateLiterals": true }],

@@ -4,7 +4,7 @@ import { getPostgresClient } from "@party-box/common";
 
 /**
  * @method POST
- * @description Create event within Postgres and Stripe
+ * @description Get all events with a timestamp greater than the current time
  */
 export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyResult> => {
   const { stage } = event.requestContext;
@@ -20,7 +20,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       order by "startTime" asc 
       limit 10;
     `;
-    
+
     return { statusCode: 200, body: JSON.stringify(records) };
   } catch (error) {
     console.error(error);

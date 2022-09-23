@@ -10,14 +10,14 @@ export interface EventFormData {
   maxTickets: string;
   hashtags: string[];
   notifications: {
-    id?: string;
+    id?: number;
     days: string;
     hours: string;
     minutes: string;
     message: string;
   }[];
   prices: {
-    id?: string;
+    id?: number;
     name: string;
     paymentLink?: string;
     paymentLinkId?: string;
