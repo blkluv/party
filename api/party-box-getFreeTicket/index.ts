@@ -21,7 +21,7 @@ const bodySchema = zod.object({
 });
 
 const pathParametersSchema = zod.object({
-  eventId: zod.number(),
+  eventId: zod.string().transform((e) => Number(e)),
 });
 
 /**
