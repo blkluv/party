@@ -28,7 +28,7 @@ const MerchItem: FC<Props> = ({ name, images }) => {
         )}
         <AnimatePresence initial={false}>
           <motion.div className="relative min-w-[150px] md:min-w-[250px] h-64 overflow-hidden">
-            <Image src={images[index]} layout="fill" objectFit="cover" alt="Some merch picture" />
+            <Image src={images[index]} layout="fill" objectFit="cover" alt="Some merch picture" priority={true}/>
           </motion.div>
         </AnimatePresence>
         {showRightMediaButton && (
