@@ -55,6 +55,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         purchasedAt: new Date().toISOString(),
         used: false,
         slug: randomUUID(),
+        eventId
       })}
       RETURNING *;
     `;
