@@ -1,12 +1,12 @@
-name: Dev/API/party-box-createEvent
+name: Dev/API/party-box-getFreeTicket
 
 on:
   push:
     branches:
       - dev
     paths:
-      - "api/party-box-createEvent/**"
-      - ".github/workflows/dev-party-box-createEvent.yml"
+      - "api/party-box-getFreeTicket/**"
+      - ".github/workflows/dev-party-box-getFreeTicket.yml"
       - ".github/workflows/cd-lambda-dev.yml"
       - "docker/api/Dockerfile"
       - "compose.yml"
@@ -17,5 +17,5 @@ jobs:
     name: Deploy Lambda
     uses: ./.github/workflows/cd-lambda-dev.yml
     with:
-      function-name: party-box-createEvent
+      function-name: party-box-getFreeTicket
     secrets: inherit
