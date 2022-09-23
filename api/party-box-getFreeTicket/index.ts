@@ -15,8 +15,8 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
 }
 
 const bodySchema = zod.object({
-  customerName: zod.string(),
-  customerPhoneNumber: zod.string().min(10).max(12),
+  name: zod.string(),
+  phoneNumber: zod.string().min(10).max(12),
   ticketQuantity: zod.number().min(1).max(10),
 });
 
@@ -40,7 +40,11 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   try {
     if (!event.body) throw new Error("No body");
 
-    const { customerName, ticketQuantity, customerPhoneNumber } = bodySchema.parse(JSON.parse(event.body));
+    const {
+      name: customerName,
+      ticketQuantity,
+      phoneNumber: customerPhoneNumber,
+    } = bodySchema.parse(JSON.parse(event.body));
 
     const [ticketData] = await sql<PartyBoxEventTicket[]>`
       INSERT INTO "tickets"
