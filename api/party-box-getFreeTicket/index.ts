@@ -3,7 +3,6 @@ import { SNS } from "@aws-sdk/client-sns";
 import {
   formatEventNotification,
   getPostgresClient,
-  getStripeClient,
   PartyBoxEvent,
   PartyBoxEventNotification,
   PartyBoxEventTicket,
@@ -31,16 +30,18 @@ const pathParametersSchema = zod.object({
  */
 export const handler: APIGatewayProxyHandler = async (event) => {
   console.log(event);
-  const { customerName, ticketQuantity, customerPhoneNumber } = bodySchema.parse(event.body);
   const { websiteUrl } = event.stageVariables as StageVariables;
   const { eventId } = pathParametersSchema.parse(event.pathParameters);
   const { stage } = event.requestContext;
 
   const sns = new SNS({ region: "us-east-1" });
   const sql = await getPostgresClient(stage);
-  const stripeClient = await getStripeClient(stage);
 
   try {
+    if (!event.body) throw new Error("No body");
+
+    const { customerName, ticketQuantity, customerPhoneNumber } = bodySchema.parse(JSON.parse(event.body));
+
     const [ticketData] = await sql<PartyBoxEventTicket[]>`
       INSERT INTO "tickets"
       ${sql({
@@ -65,14 +66,6 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     `;
 
     console.info(`Found ticket quantity of: ${ticketsSold}`);
-
-    // Once enough stock is sold, disable product on stripe
-    if (ticketsSold >= eventData?.maxTickets && eventData.stripeProductId) {
-      await stripeClient.products.update(eventData.stripeProductId, {
-        active: false,
-      });
-      console.info("Disabled product on Stripe");
-    }
 
     // Subscribe customerPhoneNumber to the event's SNS topic
     if (eventData.snsTopicArn) {
