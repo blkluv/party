@@ -97,7 +97,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     const ticketPurchaseMessage = `Thank you for purchasing ${ticketQuantity} ticket${
       ticketQuantity > 1 ? "s" : ""
-    } to ${eventData?.name}!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.id}`;
+    } to ${eventData?.name}!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.slug}`;
 
     await sns.publish({
       Message: ticketPurchaseMessage,
