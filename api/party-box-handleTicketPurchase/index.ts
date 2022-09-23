@@ -43,7 +43,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       expand: ["data.line_items"],
     });
 
-    const eventId = session?.data[0]?.metadata?.eventId ?? "";
+    const eventId = session?.data[0]?.metadata?.eventId;
+
+    if (!eventId) throw new Error("This purchase is not event-related");
+
     const customerPhoneNumber = session.data[0].customer_details?.phone;
     const ticketQuantity = Number(session.data[0].line_items?.data[0].quantity);
 
@@ -111,9 +114,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     const ticketPurchaseMessage = `Thank you for purchasing ${ticketQuantity} ticket${
       ticketQuantity > 1 ? "s" : ""
-    } to ${eventData?.name}!\n\nView your ticket at ${websiteUrl}/tickets/${
-      ticketData.slug
-    }\n\nReceipt: ${receiptUrl}`;
+    } to ${eventData?.name}!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.slug}\n\nReceipt: ${receiptUrl}`;
 
     await sns.publish({
       Message: ticketPurchaseMessage,
