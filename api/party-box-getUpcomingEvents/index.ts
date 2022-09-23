@@ -14,9 +14,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const lastStartTime = dayjs().add(6, "hour").toISOString();
 
     const records = await sql`
-      select "id","name","description","startTime","endTime","published","thumbnail","hashtags","maxTickets"
+      select "id","name","description","startTime","endTime","thumbnail","hashtags","maxTickets"
       from events 
       where "startTime" > ${lastStartTime} 
+      and "published" = true
       order by "startTime" asc 
       limit 10;
     `;
@@ -26,5 +27,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.error(error);
 
     return { statusCode: 500, body: JSON.stringify(error) };
+  }finally{
+    await sql.end();
   }
 };
