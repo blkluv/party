@@ -1,5 +1,4 @@
 {
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:356466505463:task-definition/party-box-client:4",
   "containerDefinitions": [
     {
       "name": "party-box-client",
@@ -50,12 +49,7 @@
   "executionRoleArn": "arn:aws:iam::356466505463:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
   "volumes": [],
-  "status": "ACTIVE",
   "placementConstraints": [],
-  "compatibilities": [
-    "EC2",
-    "FARGATE"
-  ],
   "requiresCompatibilities": [
     "FARGATE"
   ],
@@ -65,8 +59,6 @@
     "cpuArchitecture": "X86_64",
     "operatingSystemFamily": "LINUX"
   },
-  "registeredAt": "2022-09-21T20:16:52.942Z",
-  "registeredBy": "arn:aws:iam::356466505463:user/conor",
   "tags": [
     {
       "key": "ecs:taskDefinition:createdFrom",
