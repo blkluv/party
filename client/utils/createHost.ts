@@ -15,6 +15,7 @@ const createHost = async (newHostData: PartyBoxCreateHostInput, image: File) => 
     await uploadMedia(uploadUrl, image);
 
     const { data: updatedHost } = await axios.post<PartyBoxHost>(`/api/hosts/${createdHost.id}`, {
+      ...newHostData,
       imageUrl: downloadUrl,
     });
 
