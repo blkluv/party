@@ -11,7 +11,7 @@ const Page: NextPage = () => {
         <h1 className="font-bold text-xl text-center sm:text-2xl md:text-3xl">Merch</h1>
         <a href="https://buy.stripe.com/00g5kZ1dw02A8ak6oq" target="_blank">
           <Button variant="filled" color="gray" rounded>
-            Visit Store
+            Buy Merch
           </Button>
         </a>
       </div>

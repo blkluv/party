@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { CompleteEvent, CompleteHostRole, CompleteUser } from "./index";
 
 export const HostModel = z.object({
   id: z.number().int(),
@@ -8,10 +7,4 @@ export const HostModel = z.object({
   createdBy: z.string(),
   imageUrl: z.string().nullish(),
 });
-
-export interface CompleteHost extends z.infer<typeof HostModel> {
-  events: CompleteEvent[];
-  hostRoles: CompleteHostRole[];
-  creator: CompleteUser;
-}
 

@@ -1,5 +1,4 @@
 import * as z from "zod";
-import { EventModel, UserModel, TicketPriceModel } from "./index";
 
 export const TicketModel = z.object({
   id: z.number().int(),
@@ -17,8 +16,5 @@ export const TicketModel = z.object({
   slug: z.string(),
   ticketPriceId: z.number().int().nullish(),
   status: z.enum(["failed", "processing", "succeeded"]).nullish(),
-  event: EventModel.nullish(),
-  user: UserModel.nullish(),
-  ticketPrice: TicketPriceModel.nullish(),
 });
 

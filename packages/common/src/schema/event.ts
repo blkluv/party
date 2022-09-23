@@ -1,6 +1,4 @@
 import * as z from "zod";
-import { PartyBoxEventTicket } from "../types";
-import { CompleteEventNotification, CompleteHost, CompleteTicketPrice } from "./index";
 
 export const EventModel = z.object({
   id: z.number().int(),
@@ -18,11 +16,4 @@ export const EventModel = z.object({
   endTime: z.date(),
   hostId: z.number().int(),
 });
-
-export interface CompleteEvent extends z.infer<typeof EventModel> {
-  tickets: PartyBoxEventTicket[];
-  notifications: CompleteEventNotification[];
-  host: CompleteHost;
-  prices: CompleteTicketPrice[];
-}
 
