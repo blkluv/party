@@ -4,15 +4,12 @@ import {
   APIGatewayProxyEventStageVariables,
   APIGatewayProxyResult,
 } from "aws-lambda";
-import { v4 as uuid, v4 } from "uuid";
 import {
   decodeJwt,
   getPostgresClient,
   getStripeClient,
-  PartyBoxCreateNotificationInput,
   PartyBoxEvent,
   PartyBoxEventNotification,
-  PartyBoxEventPrice,
   PartyBoxUpdateEventInput,
   verifyHostRoles,
 } from "@party-box/common";
@@ -38,6 +35,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const { websiteUrl } = event.stageVariables as StageVariables;
 
   const sql = await getPostgresClient(stage);
+  
   try {
     const { sub: userId } = decodeJwt(Authorization, ["host"]);
     if (!userId) throw Error("Missing userId");
@@ -63,10 +61,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       images: body.media,
     });
 
-    // Add price to price array and Stirpe if it doesn't have an ID
-
-    // TODO remove any in place of PartyBoxEventPrice
-    // This is a workaround for a bug in postgres's typing
     for (const price of prices) {
       if (!price?.id) {
         if (price.price > 0.5) {
@@ -74,7 +68,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
             product: newEventData.stripeProductId,
             unit_amount: price.price * 100,
             currency: "CAD",
-            nickname: "Regular",
+            nickname: price.name,
           });
           const paymentLink = await stripeClient.paymentLinks.create({
             line_items: [
@@ -105,7 +99,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           await sql`
               INSERT INTO "ticketPrices" 
                 ${sql({
-                  name: "Regular",
+                  name: price.name,
                   paymentLink: paymentLink.url,
                   paymentLinkId: paymentLink.id,
                   stripePriceId: stripePrice.id,
@@ -118,7 +112,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
           await sql`
               INSERT INTO "ticketPrices" 
                 ${sql({
-                  name: "Regular",
+                  name: price.name,
                   price: price.price,
                   free: true,
                   eventId,
