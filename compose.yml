@@ -8,6 +8,13 @@ services:
       args:
         dir: ./api/party-box-createEvent
     image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-createEvent
+  party-box-getFreeTicket:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+      args:
+        dir: ./api/party-box-getFreeTicket
+    image: 356466505463.dkr.ecr.us-east-1.amazonaws.com/conorroberts:party-box-getFreeTicket
   party-box-client:
     build:
       context: .

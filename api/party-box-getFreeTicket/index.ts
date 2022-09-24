@@ -3,7 +3,6 @@ import { SNS } from "@aws-sdk/client-sns";
 import {
   formatEventNotification,
   getPostgresClient,
-  getStripeClient,
   PartyBoxEvent,
   PartyBoxEventNotification,
   PartyBoxEventTicket,
@@ -16,13 +15,13 @@ interface StageVariables extends APIGatewayProxyEventStageVariables {
 }
 
 const bodySchema = zod.object({
-  customerName: zod.string(),
-  customerPhoneNumber: zod.string().min(10).max(12),
+  name: zod.string(),
+  phoneNumber: zod.string().min(10).max(12),
   ticketQuantity: zod.number().min(1).max(10),
 });
 
 const pathParametersSchema = zod.object({
-  eventId: zod.number(),
+  eventId: zod.string().transform((e) => Number(e)),
 });
 
 /**
@@ -31,16 +30,22 @@ const pathParametersSchema = zod.object({
  */
 export const handler: APIGatewayProxyHandler = async (event) => {
   console.log(event);
-  const { customerName, ticketQuantity, customerPhoneNumber } = bodySchema.parse(event.body);
   const { websiteUrl } = event.stageVariables as StageVariables;
   const { eventId } = pathParametersSchema.parse(event.pathParameters);
   const { stage } = event.requestContext;
 
   const sns = new SNS({ region: "us-east-1" });
   const sql = await getPostgresClient(stage);
-  const stripeClient = await getStripeClient(stage);
 
   try {
+    if (!event.body) throw new Error("No body");
+
+    const {
+      name: customerName,
+      ticketQuantity,
+      phoneNumber: customerPhoneNumber,
+    } = bodySchema.parse(JSON.parse(event.body));
+
     const [ticketData] = await sql<PartyBoxEventTicket[]>`
       INSERT INTO "tickets"
       ${sql({
@@ -50,6 +55,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
         purchasedAt: new Date().toISOString(),
         used: false,
         slug: randomUUID(),
+        eventId
       })}
       RETURNING *;
     `;
@@ -65,14 +71,6 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     `;
 
     console.info(`Found ticket quantity of: ${ticketsSold}`);
-
-    // Once enough stock is sold, disable product on stripe
-    if (ticketsSold >= eventData?.maxTickets && eventData.stripeProductId) {
-      await stripeClient.products.update(eventData.stripeProductId, {
-        active: false,
-      });
-      console.info("Disabled product on Stripe");
-    }
 
     // Subscribe customerPhoneNumber to the event's SNS topic
     if (eventData.snsTopicArn) {
@@ -99,7 +97,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     const ticketPurchaseMessage = `Thank you for purchasing ${ticketQuantity} ticket${
       ticketQuantity > 1 ? "s" : ""
-    } to ${eventData?.name}!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.id}`;
+    } to ${eventData?.name}!\n\nView your ticket at ${websiteUrl}/tickets/${ticketData.slug}`;
 
     await sns.publish({
       Message: ticketPurchaseMessage,

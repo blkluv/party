@@ -4,10 +4,11 @@ import { Form, Formik } from "formik";
 import Link from "next/link";
 import { FC, useState } from "react";
 import FormGroup from "./form/FormGroup";
-import { OutlinedMinusIcon, OutlinedPlusIcon } from "./Icons";
+import { LoadingIcon, OutlinedMinusIcon, OutlinedPlusIcon } from "./Icons";
 import * as Yup from "yup";
+import axios from "axios";
 
-const EventPrice: FC<PartyBoxEventPrice> = ({ price, paymentLink, free, name }) => {
+const EventPrice: FC<PartyBoxEventPrice> = ({ price, paymentLink, free, name, eventId }) => {
   const [showTicketModal, setShowTicketModal] = useState(false);
 
   return (
@@ -25,12 +26,14 @@ const EventPrice: FC<PartyBoxEventPrice> = ({ price, paymentLink, free, name }) 
             phoneNumber: "",
           }}
           onSubmit={async (values) => {
-            await new Promise((resolve) =>
-              setTimeout(() => {
-                console.log(values);
-                resolve(values);
-              }, 1000)
-            );
+            try {
+              await axios.post(`/api/events/${eventId}/get-free-ticket`, {
+                ...values,
+                phoneNumber: `+1${values.phoneNumber}`,
+              });
+            } catch (error) {
+              console.error(error);
+            }
           }}
           validationSchema={Yup.object().shape({
             name: Yup.string().required("Name is required"),
@@ -38,18 +41,25 @@ const EventPrice: FC<PartyBoxEventPrice> = ({ price, paymentLink, free, name }) 
             phoneNumber: Yup.string().required("Phone number is required").length(10, "Phone number must be 10 digits"),
           })}
         >
-          {({ handleChange, values, handleSubmit, setFieldValue, errors }) => (
+          {({ handleChange, values, handleSubmit, setFieldValue, errors, isSubmitting }) => (
             <Form onSubmit={handleSubmit} className="flex gap-4 flex-col">
               <FormGroup error={errors.name} label="Name">
-                <Input name="name" onChange={handleChange} value={values.name} />
+                <Input name="name" onChange={handleChange} value={values.name} disabled={isSubmitting} />
               </FormGroup>
               <FormGroup error={errors.phoneNumber} label="Phone Number">
-                <Input name="phoneNumber" onChange={handleChange} type="tel" value={values.phoneNumber} />
+                <Input
+                  name="phoneNumber"
+                  onChange={handleChange}
+                  type="tel"
+                  value={values.phoneNumber}
+                  disabled={isSubmitting}
+                />
               </FormGroup>
               <div>
                 <p>Ticket Quantity</p>
                 <div className="flex items-center gap-8 mt-2">
                   <Button
+                    disabled={isSubmitting}
                     variant="text"
                     type="button"
                     onClick={() =>
@@ -60,6 +70,7 @@ const EventPrice: FC<PartyBoxEventPrice> = ({ price, paymentLink, free, name }) 
                   </Button>
                   <span className="font-bold text-xl">{values.ticketQuantity}</span>
                   <Button
+                    disabled={isSubmitting}
                     type="button"
                     variant="text"
                     onClick={() =>
@@ -70,8 +81,9 @@ const EventPrice: FC<PartyBoxEventPrice> = ({ price, paymentLink, free, name }) 
                   </Button>
                 </div>
                 <div className="flex justify-center">
-                  <Button type="submit" variant="filled" color="gray">
-                    Get Tickets
+                  <Button type="submit" variant="filled" color="gray" disabled={isSubmitting}>
+                    <p>Get Tickets</p>
+                    {isSubmitting && <LoadingIcon className="animate-spin" size={20} />}
                   </Button>
                 </div>
               </div>

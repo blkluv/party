@@ -42,7 +42,7 @@ const createEvent = async ({
 }: CreateEventParameters): Promise<PartyBoxEvent> => {
   let eventId = null;
 
-  setUploadState(mode === "create" ? "Creating event" : "Updating event");
+  setUploadState("Creating event");
 
   const eventData = {
     ...values,
@@ -64,11 +64,7 @@ const createEvent = async ({
   if (mode === "create") {
     const { data: event } = await axios.post("/api/events/create", eventData);
     eventId = event.id;
-  } else {
-    eventId = originalEventId;
-
-    await axios.post(`/api/events/${eventId}/update`, eventData);
-  }
+  } 
 
   const posters = [];
   let mediaUploadCount = 0;
