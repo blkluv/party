@@ -20,7 +20,7 @@
         "SwitchCase": 1,
         "ObjectExpression": "off",
         "MemberExpression": "off",
-        "CallExpression": { "arguments": "off", "body": "off" }
+        "CallExpression": "off"
       }
     ],
     "linebreak-style": ["warn", "windows"],
