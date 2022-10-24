@@ -5,7 +5,6 @@ const withPwa = pwa({
   disable: !prod,
 });
 
-/* eslint-disable require-await */
 /**
  * @type {import('next').NextConfig}
  */
