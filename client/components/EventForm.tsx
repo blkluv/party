@@ -27,7 +27,7 @@ import {
 import createEvent from "~/utils/createEvent";
 import axios from "axios";
 import Image from "next/image";
-import { useQueryClient } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import updateEvent from "~/utils/updateEvent";
 
 interface Props {
@@ -35,16 +35,14 @@ interface Props {
 }
 
 const EventForm: FC<Props> = ({ initialValues }) => {
-  const { user } = useAuthenticator();
   const router = useRouter();
   const mode = initialValues ? "edit" : "create";
   const queryClient = useQueryClient();
 
-  const [media, setMedia] = useState<(File | string)[]>(initialValues?.media ?? []);
-  const [previewUrls, setPreviewUrls] = useState<string[]>(initialValues?.media ?? []);
-  const [thumbnail, setThumbnail] = useState<File | string>(initialValues?.thumbnail ?? null);
-  const [thumbnailPreview, setThumbnailPreview] = useState(initialValues?.thumbnail ?? "");
-  const [availableHosts, setAvailableHosts] = useState<PartyBoxHost[]>([]);
+  const [media, setMedia] = useState<(File | string)[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [thumbnail, setThumbnail] = useState<File | string>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Add a new file to the array of media files
@@ -78,16 +76,10 @@ const EventForm: FC<Props> = ({ initialValues }) => {
     setPreviewUrls(newPreviewUrls);
   };
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await axios.get<PartyBoxHost[]>("/api/user/hosts");
-        setAvailableHosts(data);
-      } catch (error) {
-        console.error(error);
-      }
-    })();
-  }, [user]);
+  const { data: availableHosts = [] } = useQuery(["available-hosts"], async () => {
+    const { data } = await axios.get<PartyBoxHost[]>("/api/user/hosts");
+    return data;
+  });
 
   // Every time media changes, generate preview URLs for all media in the array
   useEffect(() => {
@@ -111,6 +103,14 @@ const EventForm: FC<Props> = ({ initialValues }) => {
       URL.revokeObjectURL(url);
     };
   }, [thumbnail]);
+
+  // Set form values on mount
+  useEffect(() => {
+    setMedia(initialValues?.media ?? []);
+    setPreviewUrls(initialValues?.media ?? []);
+    setThumbnail(initialValues?.thumbnail ?? null);
+    setThumbnailPreview(initialValues?.thumbnail ?? "");
+  }, [initialValues]);
 
   return (
     <Formik
@@ -174,7 +174,7 @@ const EventForm: FC<Props> = ({ initialValues }) => {
             <p>Host</p>
             <Dropdown>
               <DropdownTrigger>
-                <Button variant="filled" color="gray">
+                <Button variant="outlined" size="large">
                   {availableHosts.find(({ id }) => id.toString() === values.hostId) ? (
                     <div className="flex gap-2 items-center py-1">
                       <Image

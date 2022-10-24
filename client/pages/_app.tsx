@@ -1,3 +1,5 @@
+import "@conorroberts/beluga/dist/preflight.css";
+import "@conorroberts/beluga/dist/styles.css";
 import "../styles/preflight.css";
 import "../styles/globals.css";
 import "@aws-amplify/ui-react/styles.css";
