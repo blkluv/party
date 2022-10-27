@@ -11,12 +11,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sql = await getPostgresClient(stage);
 
   try {
-    const lastStartTime = dayjs().add(6, "hour").toISOString();
+    const latestStartTime = dayjs().subtract(6, "hour").toISOString();
+    const now = dayjs().toISOString();
 
     const records = await sql`
       select "id","name","description","startTime","endTime","thumbnail","hashtags","maxTickets"
       from events 
-      where "startTime" > ${lastStartTime} 
+      where "startTime" > ${now} and "startTime" < ${latestStartTime} 
       and "published" = true
       order by "startTime" asc 
       limit 10;
