@@ -15,7 +15,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const records = await sql`
       select "id","name","description","startTime","endTime","thumbnail","hashtags","maxTickets"
       from events 
-      where "startTime" > now() 
+      where "startTime" > ${new Date()}
       and "published" = true
       order by "startTime" asc 
       limit 10;
