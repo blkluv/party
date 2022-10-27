@@ -67,7 +67,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const stripeClient = await getStripeClient(stage);
 
     // Check if the user is an admin of the given host
-    const validRole = verifyHostRoles(sql, sub, hostId, ["admin"]);
+    const validRole = await verifyHostRoles(sql, sub, hostId, ["admin"]);
     if (!validRole) throw new Error("User does not have permission to create an event for this host");
 
     console.info("Role validated");
