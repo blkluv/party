@@ -11,8 +11,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sql = await getPostgresClient(stage);
 
   try {
-    const latestStartTime = dayjs().subtract(6, "hour").toISOString();
-    const now = dayjs().toISOString();
+    const latestStartTime = dayjs().subtract(6, "hour").toDate();
+    const now = dayjs().toDate();
 
     const records = await sql`
       select "id","name","description","startTime","endTime","thumbnail","hashtags","maxTickets"
