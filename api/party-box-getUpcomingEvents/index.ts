@@ -11,13 +11,11 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sql = await getPostgresClient(stage);
 
   try {
-    const latestStartTime = dayjs().subtract(6, "hour").toDate();
-
-    // Get events that have yet to begin or have begun within the past 6 hours
+    // Get events that have yet to begin
     const records = await sql`
       select "id","name","description","startTime","endTime","thumbnail","hashtags","maxTickets"
       from events 
-      where "startTime" < ${latestStartTime} 
+      where "startTime" > now() 
       and "published" = true
       order by "startTime" asc 
       limit 10;
