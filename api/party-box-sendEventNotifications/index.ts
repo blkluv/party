@@ -15,6 +15,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sql = await getPostgresClient(stage);
 
   try {
+    console.info(dayjs().format("YYYY-MM-DD HH:mm:ss"));
     const notifications = await sql`
         select * from "eventNotifications" 
         join "events" 
@@ -23,16 +24,16 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         and "sent" = false
     `;
 
+    if (notifications?.length === 0) {
+      throw new Error("No notifications to send.");
+    }
+
     const eventIds = notifications.map((n) => n.eventId);
 
     const eventData = await sql<PartyBoxEvent[]>`
       select * from "events"
       where "id" in ${sql(eventIds)};
     `;
-
-    if (notifications?.length === 0) {
-      throw new Error("No notifications to send.");
-    }
 
     // Send out notifcations using AWS SNS
     for (const { snsTopicArn, eventId, message, id } of notifications) {
