@@ -16,6 +16,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
   try {
     console.info(dayjs().format("YYYY-MM-DD HH:mm:ss"));
+    
     const notifications = await sql`
         select * from "eventNotifications" 
         join "events" 
@@ -23,6 +24,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         where "messageTime" <= ${dayjs().format("YYYY-MM-DD HH:mm:ss")}
         and "sent" = false
     `;
+
+    console.info(`Found ${notifications.length} notifications`);
 
     if (notifications?.length === 0) {
       throw new Error("No notifications to send.");
@@ -40,7 +43,8 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       const e = eventData.find((e) => e.id === eventId);
 
       if (!e) {
-        throw new Error("Event not found.");
+        console.warn(`Could not find event with id ${eventId} for notification ${id}`);
+        continue;
       }
 
       await sns.publish({
@@ -54,9 +58,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
       // Mark message as sent
       await sql`
-        update "eventNotifications" where "id" = ${id}
-        SET
-          "sent" = true
+        update "eventNotifications" 
+        set "sent" = true
+        where "id" = ${id}
       `;
     }
 
