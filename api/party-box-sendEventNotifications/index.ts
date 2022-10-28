@@ -30,15 +30,17 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       where "id" in ${sql(eventIds)};
     `;
 
-    if (notifications?.length === 0) throw new Error("No notifications to send.");
-
-    const sentNotifications: number[] = [];
+    if (notifications?.length === 0) {
+      throw new Error("No notifications to send.");
+    }
 
     // Send out notifcations using AWS SNS
     for (const { snsTopicArn, eventId, message, id } of notifications) {
       const e = eventData.find((e) => e.id === eventId);
 
-      if (!e) throw new Error("Event not found.");
+      if (!e) {
+        throw new Error("Event not found.");
+      }
 
       await sns.publish({
         Message: formatEventNotification(message, {
@@ -49,7 +51,6 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         TopicArn: snsTopicArn,
       });
 
-      sentNotifications.push(id);
       // Mark message as sent
       await sql`
         update "eventNotifications" where "id" = ${id}
