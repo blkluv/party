@@ -9,6 +9,7 @@ import {
 } from "@party-box/common";
 import { SNS } from "@aws-sdk/client-sns";
 import { v4 } from "uuid";
+import dayjs from "dayjs";
 
 interface StageVariables extends APIGatewayProxyEventStageVariables {
   websiteUrl: string;
@@ -126,7 +127,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const [latestEventNotification] = await sql<PartyBoxEventNotification[]>`
       SELECT * FROM "eventNotifications" 
       WHERE "eventId" = ${eventId} 
-      AND "messageTime" <= ${new Date().toISOString()}
+      AND "messageTime" <= ${dayjs().subtract(4, "hour").format("YYYY-MM-DD HH:mm:ss")}
       ORDER BY "messageTime" DESC
     `;
 
