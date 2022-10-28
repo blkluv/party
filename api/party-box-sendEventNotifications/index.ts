@@ -15,12 +15,29 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sql = await getPostgresClient(stage);
 
   try {
+    console.info(dayjs().format("YYYY-MM-DD HH:mm:ss"));
+
     const notifications = await sql`
-        select * from "eventNotifications" 
+        select 
+          "eventNotifications"."message",
+          "eventNotifications"."id",
+          "eventNotifications"."eventId",
+          "events"."name",
+          "events"."startTime",
+          "events"."location",
+          "events"."snsTopicArn"
+        from "eventNotifications" 
         join "events" 
           on "events"."id" = "eventNotifications"."eventId"
-        where "messageTime" <= ${dayjs().subtract(4, "hour").format("YYYY-MM-DD HH:mm:ss")}
+        where "messageTime" <= ${dayjs().format("YYYY-MM-DD HH:mm:ss")}
+        and "sent" = false
     `;
+
+    console.info(`Found ${notifications.length} notifications`);
+
+    if (notifications?.length === 0) {
+      throw new Error("No notifications to send.");
+    }
 
     const eventIds = notifications.map((n) => n.eventId);
 
@@ -29,15 +46,14 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       where "id" in ${sql(eventIds)};
     `;
 
-    if (notifications?.length === 0) throw new Error("No notifications to send.");
-
-    const sentNotifications: number[] = [];
-
     // Send out notifcations using AWS SNS
     for (const { snsTopicArn, eventId, message, id } of notifications) {
       const e = eventData.find((e) => e.id === eventId);
 
-      if (!e) throw new Error("Event not found.");
+      if (!e) {
+        console.warn(`Could not find event with id ${eventId} for notification ${id}`);
+        continue;
+      }
 
       await sns.publish({
         Message: formatEventNotification(message, {
@@ -48,13 +64,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         TopicArn: snsTopicArn,
       });
 
-      sentNotifications.push(id);
+      // Mark message as sent
+      await sql`
+        update "eventNotifications" 
+        set "sent" = true
+        where "id" = ${id}
+      `;
     }
-
-    // Delete all selected messages
-    await sql`
-      delete from "eventNotifications" where "id" in ${sentNotifications}
-    `;
 
     return {
       statusCode: 200,
