@@ -48,7 +48,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     if (!eventId) throw new Error("This purchase is not event-related");
 
-    const customerPhoneNumber = session.data[0].customer_details?.phone;
+    let customerPhoneNumber = session.data[0].customer_details?.phone;
+
+    // Make sure that all phone numbers contain the country code. Default to US.
+    if (!customerPhoneNumber?.startsWith("+") && !customerPhoneNumber?.startsWith("+1")) {
+      customerPhoneNumber = "+1" + customerPhoneNumber;
+    }
+
     const ticketQuantity = Number(session.data[0].line_items?.data[0].quantity);
 
     // Create ticket in Postgres
