@@ -45,7 +45,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
     if (!eventData) throw new Error("Event not found");
 
-    const response: PartyBoxEventTicket = {
+    const response: PartyBoxEventTicket & { event: PartyBoxEvent } = {
       ...ticketData,
       status: "succeeded",
       event: eventData,
@@ -72,5 +72,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       statusCode: 500,
       body: JSON.stringify(error),
     };
+  } finally {
+    await sql.end();
   }
 };
