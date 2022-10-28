@@ -19,7 +19,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         select * from "eventNotifications" 
         join "events" 
           on "events"."id" = "eventNotifications"."eventId"
-        where "messageTime" <= ${dayjs().subtract(4, "hour").format("YYYY-MM-DD HH:mm:ss")}
+        where "messageTime" <= ${dayjs().format("YYYY-MM-DD HH:mm:ss")}
         and "sent" = false
     `;
 

@@ -127,7 +127,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     const [latestEventNotification] = await sql<PartyBoxEventNotification[]>`
       SELECT * FROM "eventNotifications" 
       WHERE "eventId" = ${eventId} 
-      AND "messageTime" <= ${dayjs().subtract(4, "hour").format("YYYY-MM-DD HH:mm:ss")}
+      AND "messageTime" <= ${dayjs().format("YYYY-MM-DD HH:mm:ss")}
       ORDER BY "messageTime" DESC
     `;
 
