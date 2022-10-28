@@ -11,12 +11,11 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sql = await getPostgresClient(stage);
 
   try {
-    const lastStartTime = dayjs().add(6, "hour").toISOString();
-
+    // Get events that have yet to begin
     const records = await sql`
       select "id","name","description","startTime","endTime","thumbnail","hashtags","maxTickets"
       from events 
-      where "startTime" > ${lastStartTime} 
+      where "startTime" > ${dayjs().subtract(4, "hour").format("YYYY-MM-DD HH:mm:ss")}
       and "published" = true
       order by "startTime" asc 
       limit 10;
@@ -27,7 +26,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
     console.error(error);
 
     return { statusCode: 500, body: JSON.stringify(error) };
-  }finally{
+  } finally {
     await sql.end();
   }
 };

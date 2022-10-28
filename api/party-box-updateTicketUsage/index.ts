@@ -58,5 +58,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   } catch (error) {
     console.error(error);
     return { statusCode: 500, body: JSON.stringify({ error }) };
+  }finally{
+    await sql.end();
   }
 };

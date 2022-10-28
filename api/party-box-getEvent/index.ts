@@ -1,14 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyEventPathParameters, APIGatewayProxyResult } from "aws-lambda";
-import {
-  EventModel,
-  getPostgresClient,
-  HostModel,
-  PartyBoxEvent,
-  PartyBoxEventPrice,
-  PartyBoxHost,
-  RelatedEventModel,
-  TicketPriceModel,
-} from "@party-box/common";
+import { getPostgresClient, PartyBoxEvent, PartyBoxEventPrice, PartyBoxHost } from "@party-box/common";
 
 interface PathParameters extends APIGatewayProxyEventPathParameters {
   eventId: string;
@@ -81,5 +72,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       statusCode: 500,
       body: JSON.stringify(error),
     };
+  } finally {
+    await sql.end();
   }
 };

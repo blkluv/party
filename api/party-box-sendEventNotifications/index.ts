@@ -1,6 +1,7 @@
 import { SNS } from "@aws-sdk/client-sns";
 import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
 import { formatEventNotification, getPostgresClient, PartyBoxEvent } from "@party-box/common";
+import dayjs from "dayjs";
 
 /**
  * @description Send out event notifications to all event ticket holders.
@@ -18,7 +19,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         select * from "eventNotifications" 
         join "events" 
           on "events"."id" = "eventNotifications"."eventId"
-        where "messageTime" <= now()
+        where "messageTime" <= ${dayjs().subtract(4, "hour").format("YYYY-MM-DD HH:mm:ss")}
     `;
 
     const eventIds = notifications.map((n) => n.eventId);
@@ -65,6 +66,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       statusCode: 500,
       body: JSON.stringify({ status: "No notifications to send" }),
     };
+  } finally {
+    await sql.end();
   }
 };
-

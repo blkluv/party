@@ -11,14 +11,13 @@ export const handler = async (
   _context: Context,
   callback: Callback
 ): Promise<void> => {
+  const { userPoolId, userName } = event;
+
+  const cognito = new CognitoIdentityProvider({ region: "us-east-1" });
+
+  const devSql = await getPostgresClient("dev");
+  const prodSql = await getPostgresClient("prod");
   try {
-    const { userPoolId, userName } = event;
-
-    const cognito = new CognitoIdentityProvider({ region: "us-east-1" });
-
-    const devSql = await getPostgresClient("dev");
-    const prodSql = await getPostgresClient("prod");
-
     const userData = {
       id: event.request.userAttributes.sub,
       name: event.request.userAttributes.name,
@@ -46,5 +45,8 @@ export const handler = async (
   } catch (error) {
     console.error(error);
     return callback(error as Error, event);
+  } finally {
+    await devSql.end();
+    await prodSql.end();
   }
 };
