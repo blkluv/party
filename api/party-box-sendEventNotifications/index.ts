@@ -20,6 +20,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         join "events" 
           on "events"."id" = "eventNotifications"."eventId"
         where "messageTime" <= ${dayjs().subtract(4, "hour").format("YYYY-MM-DD HH:mm:ss")}
+        and "sent" = false
     `;
 
     const eventIds = notifications.map((n) => n.eventId);
@@ -49,12 +50,13 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
       });
 
       sentNotifications.push(id);
+      // Mark message as sent
+      await sql`
+        update "eventNotifications" where "id" = ${id}
+        SET
+          "sent" = true
+      `;
     }
-
-    // Delete all selected messages
-    await sql`
-      delete from "eventNotifications" where "id" in ${sentNotifications}
-    `;
 
     return {
       statusCode: 200,
