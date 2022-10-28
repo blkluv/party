@@ -16,9 +16,17 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
   try {
     console.info(dayjs().format("YYYY-MM-DD HH:mm:ss"));
-    
+
     const notifications = await sql`
-        select * from "eventNotifications" 
+        select 
+          "eventNotifications"."message",
+          "eventNotifications"."id",
+          "eventNotifications"."eventId",
+          "events"."name",
+          "events"."startTime",
+          "events"."location",
+          "events"."snsTopicArn"
+        from "eventNotifications" 
         join "events" 
           on "events"."id" = "eventNotifications"."eventId"
         where "messageTime" <= ${dayjs().format("YYYY-MM-DD HH:mm:ss")}
