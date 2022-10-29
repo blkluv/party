@@ -24,8 +24,10 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   const sql = await getPostgresClient(stage);
 
   try {
-    const { sub: userId } = decodeJwt(Authorization, ["admin"]);
-    if (!userId) throw new Error("Missing user id (sub) in JWT");
+    const { sub: userId } = decodeJwt(Authorization);
+    if (!userId) {
+      throw new Error("Missing user id (sub) in JWT");
+    }
 
     // Temporary type to define the data we get back from the query below
     type TicketData = Pick<PartyBoxEventTicket, "used"> & Pick<PartyBoxEvent, "hostId">;
@@ -43,7 +45,9 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
 
     // Check permissions
     const validRole = await verifyHostRoles(sql, userId, hostId, ["admin", "manager"]);
-    if (!validRole) throw new Error("User is not authorized to update ticket usage");
+    if (!validRole) {
+      throw new Error("User is not authorized to update ticket usage");
+    }
 
     // Don't update ticket if we're just going to set it to the same value
     if (used !== value) {
@@ -58,7 +62,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
   } catch (error) {
     console.error(error);
     return { statusCode: 500, body: JSON.stringify({ error }) };
-  }finally{
+  } finally {
     await sql.end();
   }
 };
