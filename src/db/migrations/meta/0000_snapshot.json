@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "6ad85b96-fae6-4330-a337-f06fa4e5b439",
+  "id": "d1ac1f68-fd58-4414-a045-0fda6973c813",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "event_media": {
@@ -32,9 +32,8 @@
           "name": "is_poster",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": false
+          "notNull": true,
+          "autoincrement": false
         },
         "order": {
           "name": "order",
@@ -94,6 +93,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "stripe_product_id": {
           "name": "stripe_product_id",
           "type": "text",
@@ -105,12 +111,26 @@
           "name": "is_public",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": true
+          "notNull": true,
+          "autoincrement": false
+        },
+        "capacity": {
+          "name": "capacity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "event_slug_index": {
+          "name": "event_slug_index",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
@@ -171,9 +191,8 @@
           "name": "is_free",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": false
+          "notNull": true,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -195,9 +214,8 @@
           "name": "quantity",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": 1
+          "notNull": true,
+          "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
@@ -228,7 +246,15 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "ticket_slug_index": {
+          "name": "ticket_slug_index",
+          "columns": [
+            "slug"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}

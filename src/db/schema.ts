@@ -1,17 +1,31 @@
 import { InferModel, relations } from "drizzle-orm";
-import { int, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  int,
+  real,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
-export const events = sqliteTable("events", {
-  id: int("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  startTime: int("start_time", { mode: "timestamp_ms" }).notNull(),
-  location: text("location").notNull(),
-  userId: text("user_id").notNull(),
-  stripeProductId: text("stripe_product_id"),
-  isPublic: int("is_public", { mode: "boolean" }).default(true),
-});
+export const events = sqliteTable(
+  "events",
+  {
+    id: int("id").primaryKey(),
+    name: text("name").notNull(),
+    description: text("description").notNull(),
+    startTime: int("start_time", { mode: "timestamp_ms" }).notNull(),
+    location: text("location").notNull(),
+    userId: text("user_id").notNull(),
+    slug: text("slug").notNull(),
+    stripeProductId: text("stripe_product_id"),
+    isPublic: int("is_public", { mode: "boolean" }).notNull(),
+    capacity: int("capacity").notNull(),
+  },
+  (table) => ({
+    slugIndex: uniqueIndex("event_slug_index").on(table.slug),
+  })
+);
 
 export const eventsRelations = relations(events, ({ many }) => ({
   tickets: many(tickets),
@@ -22,16 +36,27 @@ export const eventsRelations = relations(events, ({ many }) => ({
 export type Event = InferModel<typeof events, "select">;
 export type NewEvent = InferModel<typeof events, "insert">;
 export const selectEventSchema = createSelectSchema(events);
-export const insertEventSchema = createInsertSchema(events);
-
-export const tickets = sqliteTable("tickets", {
-  id: int("id").primaryKey(),
-  quantity: int("quantity").default(1),
-  userId: text("user_id").notNull(),
-  eventId: int("event_id").notNull(),
-  ticketPriceId: int("ticket_price_id").notNull(),
-  slug: text("slug").notNull(),
+export const insertEventSchema = createInsertSchema(events, {
+  capacity: (schema) =>
+    schema.capacity.gt(0, {
+      message: "Capacity must be a number greater than 0",
+    }),
 });
+
+export const tickets = sqliteTable(
+  "tickets",
+  {
+    id: int("id").primaryKey(),
+    quantity: int("quantity").notNull(),
+    userId: text("user_id").notNull(),
+    eventId: int("event_id").notNull(),
+    ticketPriceId: int("ticket_price_id").notNull(),
+    slug: text("slug").notNull(),
+  },
+  (table) => ({
+    slugIndex: uniqueIndex("ticket_slug_index").on(table.slug),
+  })
+);
 
 export const ticketRelations = relations(tickets, ({ one }) => ({
   event: one(events, { fields: [tickets.eventId], references: [events.id] }),
@@ -55,7 +80,7 @@ export const ticketPrices = sqliteTable("ticket_prices", {
   stripePriceId: text("stripe_price_id"),
   stripePaymentLinkId: text("stripe_payment_link_id"),
   stripePaymentLink: text("stripe_payment_link"),
-  isFree: int("is_free", { mode: "boolean" }).default(false),
+  isFree: int("is_free", { mode: "boolean" }).notNull(),
 });
 
 export const ticketPriceRelations = relations(
@@ -72,13 +97,16 @@ export const ticketPriceRelations = relations(
 export type TicketPrice = InferModel<typeof ticketPrices, "select">;
 export type NewTicketPrice = InferModel<typeof ticketPrices, "insert">;
 export const selectTicketPriceSchema = createSelectSchema(ticketPrices);
-export const insertTicketPriceSchema = createInsertSchema(ticketPrices);
+export const insertTicketPriceSchema = createInsertSchema(ticketPrices, {
+  price: (schema) =>
+    schema.price.gt(0.5, { message: "Price must be greater than $0.50" }),
+});
 
 export const eventMedia = sqliteTable("event_media", {
   id: int("id").primaryKey(),
   eventId: int("event_id").notNull(),
   url: text("url").notNull(),
-  isPoster: int("is_poster", { mode: "boolean" }).default(false),
+  isPoster: int("is_poster", { mode: "boolean" }).notNull(),
   order: int("order").notNull(),
 });
 
