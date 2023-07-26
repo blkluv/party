@@ -1,5 +1,5 @@
 import { clerkClient } from "@clerk/nextjs";
-import { privateUserMetadataSchema } from "./userMetadataSchema";
+import { publicUserMetadataSchema } from "./userMetadataSchema";
 
 export const getUser = async (id: string) => {
   const user = await clerkClient.users.getUser(id);
@@ -8,13 +8,13 @@ export const getUser = async (id: string) => {
     return null;
   }
 
-  const privateMetadata = privateUserMetadataSchema.safeParse(
+  const publicMetadata = publicUserMetadataSchema.safeParse(
     user.privateMetadata
   );
 
-  if (!privateMetadata.success) {
+  if (!publicMetadata.success) {
     return null;
   }
 
-  return { ...user, privateMetadata: privateMetadata.data };
+  return { ...user, privateMetadata: publicMetadata.data };
 };

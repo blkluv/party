@@ -1,8 +1,9 @@
 import { and, eq, gt } from "drizzle-orm";
-import { db } from "~/db/client";
+import { getDb } from "~/db/client";
 import { eventMedia, events } from "~/db/schema";
 
 export const getPublicEvents = async () => {
+  const db = getDb();
   const foundEvents = await db.query.events.findMany({
     columns: {
       description: true,

@@ -1,5 +1,5 @@
 import { gt } from "drizzle-orm";
-import { TicketPrice, events, ticketPrices } from "~/db/schema";
+import { NewTicketPrice, TicketPrice, events, ticketPrices } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { generateSlug } from "~/utils/generateSlug";
 import { getStripeClient } from "~/utils/stripe";
@@ -57,47 +57,52 @@ export const eventsRouter = router({
         const createdTicketPrices: TicketPrice[] = [];
 
         for (const price of ticketPricesInput) {
-          const newPrice = await stripe.prices.create({
-            product: product.id,
-            currency: "CAD",
-            nickname: price.name,
-            unit_amount: price.price * 100,
-          });
+          let priceData: NewTicketPrice = {
+            eventId: event.id,
+            name: price.name,
+            price: price.price,
+            isFree: price.isFree,
+          };
 
-          const paymentLink = await stripe.paymentLinks.create({
-            line_items: [
-              {
-                price: newPrice.id,
-                adjustable_quantity: {
-                  enabled: true,
-                  minimum: 1,
+          if (!price.isFree) {
+            const newPrice = await stripe.prices.create({
+              product: product.id,
+              currency: "CAD",
+              nickname: price.name,
+              unit_amount: price.price,
+            });
+
+            const paymentLink = await stripe.paymentLinks.create({
+              line_items: [
+                {
+                  price: newPrice.id,
+                  adjustable_quantity: {
+                    enabled: true,
+                    minimum: 1,
+                  },
+                  quantity: 1,
                 },
-                quantity: 1,
+              ],
+              metadata: {
+                eventSlug,
               },
-            ],
-            metadata: {
-              eventSlug,
-            },
-            allow_promotion_codes: true,
-            phone_number_collection: {
-              enabled: true,
-            },
-            after_completion: {
-              type: "hosted_confirmation",
-            },
-          });
+              allow_promotion_codes: true,
+              phone_number_collection: {
+                enabled: true,
+              },
+              after_completion: {
+                type: "hosted_confirmation",
+              },
+            });
+
+            priceData.stripePaymentLink = paymentLink.url;
+            priceData.stripePaymentLinkId = paymentLink.id;
+            priceData.stripePriceId = newPrice.id;
+          }
 
           const p = await ctx.db
             .insert(ticketPrices)
-            .values({
-              eventId: event.id,
-              name: price.name,
-              price: price.price,
-              isFree: price.isFree,
-              stripePaymentLink: paymentLink.url,
-              stripePaymentLinkId: paymentLink.id,
-              stripePriceId: newPrice.id,
-            })
+            .values(priceData)
             .returning()
             .get();
 
