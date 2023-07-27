@@ -6,6 +6,8 @@ export const createEventSchema = insertEventSchema
     userId: true,
     stripeProductId: true,
     slug: true,
+    updatedAt: true,
+    createdAt: true,
   })
   .extend({
     ticketPrices: insertTicketPriceSchema

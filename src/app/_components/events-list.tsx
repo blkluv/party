@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FC } from "react";
 import { getPublicEvents } from "~/utils/getEvents";
 
@@ -9,7 +10,9 @@ export const EventsList: FC<{
   return (
     <div>
       {props.events.map((e) => (
-        <p key={e.id}>{e.name}</p>
+        <Link key={e.id} href={`/events/${e.slug}`}>
+          {e.name}
+        </Link>
       ))}
     </div>
   );

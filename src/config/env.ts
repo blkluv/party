@@ -8,6 +8,8 @@ export const env = createEnv({
     CLERK_SECRET_KEY: z.string(),
     STRIPE_PUBLIC_KEY: z.string(),
     STRIPE_SECRET_KEY: z.string(),
+    CLOUDFLARE_ACCOUNT_ID: z.string(),
+    CLOUDFLARE_IMAGES_API_KEY: z.string(),
   },
   client: {
     NEXT_PUBLIC_VERCEL_URL: z.string().optional(),
@@ -34,5 +36,7 @@ export const env = createEnv({
     NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
     DATABASE_URL: process.env.DATABASE_URL,
     DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN,
+    CLOUDFLARE_IMAGES_API_KEY: process.env.CLOUDFLARE_IMAGES_API_KEY,
+    CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
   },
 });

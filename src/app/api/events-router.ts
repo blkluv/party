@@ -1,6 +1,15 @@
 import { gt } from "drizzle-orm";
-import { NewTicketPrice, TicketPrice, events, ticketPrices } from "~/db/schema";
+import { z } from "zod";
+import {
+  NewTicketPrice,
+  TicketPrice,
+  eventMedia,
+  events,
+  insertEventMediaSchema,
+  ticketPrices,
+} from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
+import { createUploadUrls } from "~/utils/createUploadUrls";
 import { generateSlug } from "~/utils/generateSlug";
 import { getStripeClient } from "~/utils/stripe";
 import {
@@ -10,9 +19,32 @@ import {
 } from "./trpc/trpc-config";
 
 export const eventMediaRouter = router({
-  createUploadUrl: protectedProcedure.mutation(() => {
-    return;
-  }),
+  createUploadUrls: protectedProcedure
+    .input(z.object({ count: z.number().gt(0) }))
+    .mutation(async ({ input }) => {
+      const urls = await createUploadUrls(input.count);
+      return urls;
+    }),
+  createEventMedia: protectedProcedure
+    .input(
+      insertEventMediaSchema
+        .pick({
+          isPoster: true,
+          eventId: true,
+          order: true,
+          url: true,
+        })
+        .array()
+    )
+    .mutation(async ({ ctx, input }) => {
+      const media = await ctx.db
+        .insert(eventMedia)
+        .values(input)
+        .returning()
+        .get();
+
+      return media;
+    }),
 });
 
 export const eventsRouter = router({
@@ -50,6 +82,8 @@ export const eventsRouter = router({
             ...eventInput,
             userId: ctx.auth.userId,
             slug: eventSlug,
+            updatedAt: new Date(),
+            createdAt: new Date(),
           })
           .returning()
           .get();
@@ -69,7 +103,7 @@ export const eventsRouter = router({
               product: product.id,
               currency: "CAD",
               nickname: price.name,
-              unit_amount: price.price,
+              unit_amount: price.price * 100,
             });
 
             const paymentLink = await stripe.paymentLinks.create({

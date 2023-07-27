@@ -7,6 +7,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export const events = sqliteTable(
   "events",
@@ -21,6 +22,8 @@ export const events = sqliteTable(
     stripeProductId: text("stripe_product_id"),
     isPublic: int("is_public", { mode: "boolean" }).notNull(),
     capacity: int("capacity").notNull(),
+    createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
   (table) => ({
     slugIndex: uniqueIndex("event_slug_index").on(table.slug),
@@ -37,10 +40,9 @@ export type Event = InferModel<typeof events, "select">;
 export type NewEvent = InferModel<typeof events, "insert">;
 export const selectEventSchema = createSelectSchema(events);
 export const insertEventSchema = createInsertSchema(events, {
-  capacity: (schema) =>
-    schema.capacity.gt(0, {
-      message: "Capacity must be a number greater than 0",
-    }),
+  capacity: z.coerce.number().gt(0, {
+    message: "Capacity must be a number greater than 0",
+  }),
 });
 
 export const tickets = sqliteTable(
@@ -50,8 +52,11 @@ export const tickets = sqliteTable(
     quantity: int("quantity").notNull(),
     userId: text("user_id").notNull(),
     eventId: int("event_id").notNull(),
-    ticketPriceId: int("ticket_price_id").notNull(),
+    ticketPriceId: text("ticket_price_id").notNull(),
     slug: text("slug").notNull(),
+    stripeSessionId: text("stripe_session_id"),
+    createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
   },
   (table) => ({
     slugIndex: uniqueIndex("ticket_slug_index").on(table.slug),
@@ -98,8 +103,9 @@ export type TicketPrice = InferModel<typeof ticketPrices, "select">;
 export type NewTicketPrice = InferModel<typeof ticketPrices, "insert">;
 export const selectTicketPriceSchema = createSelectSchema(ticketPrices);
 export const insertTicketPriceSchema = createInsertSchema(ticketPrices, {
-  price: (schema) =>
-    schema.price.gt(0.5, { message: "Price must be greater than $0.50" }),
+  price: z.coerce
+    .number()
+    .gt(0.5, { message: "Price must be greater than $0.50" }),
 });
 
 export const eventMedia = sqliteTable("event_media", {

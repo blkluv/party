@@ -10,6 +10,7 @@ export const getPublicEvents = async () => {
       id: true,
       name: true,
       startTime: true,
+      slug: true,
     },
     with: {
       eventMedia: {
