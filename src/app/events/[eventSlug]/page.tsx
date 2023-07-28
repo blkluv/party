@@ -57,13 +57,18 @@ const Page = async (props: { params: { eventSlug: string } }) => {
       <h1 className="font-bold text-2xl text-center">{eventData.name}</h1>
       <p>{eventData.description}</p>
 
-      {eventData.ticketPrices.map((price) => (
-        <TicketTierListing
-          key={`ticket price ${price.id}`}
-          eventId={eventData.id}
-          data={price}
-        />
-      ))}
+      <p className="text-gray-900 font-semibold text-lg text-center">
+        Ticket Tiers
+      </p>
+      <div className="flex justify-center gap-2 flex-wrap">
+        {eventData.ticketPrices.map((price) => (
+          <TicketTierListing
+            key={`ticket price ${price.id}`}
+            eventId={eventData.id}
+            data={price}
+          />
+        ))}
+      </div>
     </div>
   );
 };
