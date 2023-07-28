@@ -27,8 +27,6 @@ CREATE TABLE `ticket_prices` (
 	`price` real NOT NULL,
 	`event_id` integer NOT NULL,
 	`stripe_price_id` text,
-	`stripe_payment_link_id` text,
-	`stripe_payment_link` text,
 	`is_free` integer NOT NULL
 );
 --> statement-breakpoint
@@ -37,11 +35,12 @@ CREATE TABLE `tickets` (
 	`quantity` integer NOT NULL,
 	`user_id` text NOT NULL,
 	`event_id` integer NOT NULL,
-	`ticket_price_id` text NOT NULL,
+	`ticket_price_id` integer NOT NULL,
 	`slug` text NOT NULL,
 	`stripe_session_id` text,
 	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL
+	`updated_at` integer NOT NULL,
+	`status` text NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `event_slug_index` ON `events` (`slug`);--> statement-breakpoint

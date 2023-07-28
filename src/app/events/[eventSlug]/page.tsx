@@ -1,10 +1,9 @@
 import { asc, eq } from "drizzle-orm";
 import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Button } from "~/app/_components/ui/button";
 import { getDb } from "~/db/client";
 import { eventMedia, events, ticketPrices } from "~/db/schema";
+import { TicketTierListing } from "./TicketTierListing";
 
 export const dynamic = true;
 
@@ -33,7 +32,6 @@ const Page = async (props: { params: { eventSlug: string } }) => {
           name: true,
           price: true,
           id: true,
-          stripePaymentLink: true,
         },
         orderBy: asc(ticketPrices.price),
       },
@@ -49,7 +47,7 @@ const Page = async (props: { params: { eventSlug: string } }) => {
     <div className="mx-auto w-full max-w-3xl space-y-4 p-2">
       <div className="relative h-96 w-full rounded-xl overflow-hidden">
         <Image
-          src={eventData.eventMedia[0].url ?? ""}
+          src={eventData.eventMedia.find((e) => e.isPoster)?.url ?? ""}
           width={1200}
           height={1200}
           alt=""
@@ -60,24 +58,11 @@ const Page = async (props: { params: { eventSlug: string } }) => {
       <p>{eventData.description}</p>
 
       {eventData.ticketPrices.map((price) => (
-        <div
+        <TicketTierListing
           key={`ticket price ${price.id}`}
-          className="border rounded-xl p-4 flex gap-4 items-center"
-        >
-          <div className="flex-1">
-            <p className="font-semibold">{price.name}</p>
-            <p>{price.isFree ? "Free" : `$${price.price.toFixed(2)}`}</p>
-          </div>
-          <div>
-            {price.isFree ? (
-              <Button>Claim Ticket</Button>
-            ) : (
-              <Link href={price.stripePaymentLink ?? ""} target="_blank">
-                <Button>Claim Ticket</Button>
-              </Link>
-            )}
-          </div>
-        </div>
+          eventId={eventData.id}
+          data={price}
+        />
       ))}
     </div>
   );

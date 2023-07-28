@@ -43,6 +43,14 @@ export const insertEventSchema = createInsertSchema(events, {
   capacity: z.coerce.number().gt(0, {
     message: "Capacity must be a number greater than 0",
   }),
+  description: (schema) =>
+    schema.description.min(15, {
+      message: "Description must be longer than 15 characters",
+    }),
+  name: (schema) =>
+    schema.name.min(3, {
+      message: "Name must be longer than 3 characters",
+    }),
 });
 
 export const tickets = sqliteTable(
@@ -52,11 +60,12 @@ export const tickets = sqliteTable(
     quantity: int("quantity").notNull(),
     userId: text("user_id").notNull(),
     eventId: int("event_id").notNull(),
-    ticketPriceId: text("ticket_price_id").notNull(),
+    ticketPriceId: int("ticket_price_id").notNull(),
     slug: text("slug").notNull(),
     stripeSessionId: text("stripe_session_id"),
     createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
+    status: text("status", { enum: ["success", "pending"] }).notNull(),
   },
   (table) => ({
     slugIndex: uniqueIndex("ticket_slug_index").on(table.slug),
@@ -83,8 +92,6 @@ export const ticketPrices = sqliteTable("ticket_prices", {
   price: real("price").notNull(),
   eventId: int("event_id").notNull(),
   stripePriceId: text("stripe_price_id"),
-  stripePaymentLinkId: text("stripe_payment_link_id"),
-  stripePaymentLink: text("stripe_payment_link"),
   isFree: int("is_free", { mode: "boolean" }).notNull(),
 });
 

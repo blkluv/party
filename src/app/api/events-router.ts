@@ -1,5 +1,7 @@
-import { gt } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
+import { env } from "~/config/env";
 import {
   NewTicketPrice,
   TicketPrice,
@@ -7,6 +9,7 @@ import {
   events,
   insertEventMediaSchema,
   ticketPrices,
+  tickets,
 } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { createUploadUrls } from "~/utils/createUploadUrls";
@@ -106,31 +109,6 @@ export const eventsRouter = router({
               unit_amount: price.price * 100,
             });
 
-            const paymentLink = await stripe.paymentLinks.create({
-              line_items: [
-                {
-                  price: newPrice.id,
-                  adjustable_quantity: {
-                    enabled: true,
-                    minimum: 1,
-                  },
-                  quantity: 1,
-                },
-              ],
-              metadata: {
-                eventSlug,
-              },
-              allow_promotion_codes: true,
-              phone_number_collection: {
-                enabled: true,
-              },
-              after_completion: {
-                type: "hosted_confirmation",
-              },
-            });
-
-            priceData.stripePaymentLink = paymentLink.url;
-            priceData.stripePaymentLinkId = paymentLink.id;
             priceData.stripePriceId = newPrice.id;
           }
 
@@ -147,4 +125,78 @@ export const eventsRouter = router({
       }
     ),
   media: eventMediaRouter,
+  createTicketCheckoutSession: protectedProcedure
+    .input(z.object({ ticketPriceId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const ticketPriceData = await ctx.db.query.ticketPrices.findFirst({
+        where: eq(ticketPrices.id, input.ticketPriceId),
+        with: {
+          event: {
+            columns: {
+              slug: true,
+              capacity: true,
+            },
+          },
+        },
+      });
+
+      if (!ticketPriceData || !ticketPriceData?.stripePriceId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Ticket data not found or does not have a Stripe price ID",
+        });
+      }
+
+      const { ticketsSold } = await ctx.db
+        .select({ ticketsSold: sql<number>`count(*)` })
+        .from(tickets)
+        .where(
+          and(
+            eq(tickets.eventId, ticketPriceData.eventId),
+            eq(tickets.status, "success")
+          )
+        )
+        .get();
+
+      if (ticketsSold >= ticketPriceData.event.capacity) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Event is at capacity",
+        });
+      }
+
+      const ticketSlug = generateSlug();
+
+      const checkout = await ctx.stripe.checkout.sessions.create({
+        success_url: `${
+          env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL
+        }/events/${ticketPriceData.event.slug}/tickets/${ticketSlug}`,
+        line_items: [
+          {
+            quantity: 1,
+            adjustable_quantity: { enabled: true, minimum: 1 },
+            price: ticketPriceData?.stripePriceId,
+          },
+        ],
+        mode: "payment",
+      });
+
+      await ctx.db
+        .insert(tickets)
+        .values({
+          createdAt: new Date(),
+          eventId: ticketPriceData.eventId,
+          quantity: 1,
+          slug: ticketSlug,
+          updatedAt: new Date(),
+          ticketPriceId: input.ticketPriceId,
+          userId: ctx.auth.userId,
+          stripeSessionId: checkout.id,
+          status: "pending",
+        })
+        .returning()
+        .get();
+
+      return checkout.url;
+    }),
 });
