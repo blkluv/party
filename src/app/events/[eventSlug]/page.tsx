@@ -5,7 +5,7 @@ import { getDb } from "~/db/client";
 import { eventMedia, events, ticketPrices } from "~/db/schema";
 import { TicketTierListing } from "./TicketTierListing";
 
-export const dynamic = true;
+export const dynamic = "force-dynamic";
 
 const Page = async (props: { params: { eventSlug: string } }) => {
   const db = getDb();

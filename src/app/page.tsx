@@ -1,9 +1,11 @@
+import { ServerRuntime } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { FC } from "react";
 import { getPublicEvents } from "~/utils/getPublicEvents";
 
-export const dynamic = true;
+export const dynamic = "force-dynamic";
+export const runtime: ServerRuntime = "edge";
 
 const Page = async () => {
   const foundEvents = await getPublicEvents();
