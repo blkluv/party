@@ -32,7 +32,7 @@ export const Navigation = () => {
             .exhaustive()}
         </div>
       </div>
-      <div className="bottom-0 border-t w-full px-4 pt-2 pb-4 bg-white/80 backdrop-blur z-50 fixed">
+      <div className="bottom-0 border-t w-full px-4 pt-2 pb-4 bg-white/80 backdrop-blur z-50 fixed sm:hidden">
         <div className="flex justify-evenly items-center">
           <Link href="/" className="w-12 h-12 flex justify-center items-center">
             <CubeIcon className="w-8 h-8" />

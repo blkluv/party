@@ -1,14 +1,22 @@
 import { and, eq, gt } from "drizzle-orm";
+import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { FC } from "react";
 import { getDb } from "~/db/client";
 import { eventMedia, events } from "~/db/schema";
+import { getPageTitle } from "~/utils/getPageTitle";
 import { ClientDate } from "./_components/ClientDate";
 
 export const dynamic = "force-dynamic";
 
-export const getFeaturedEvents = async () => {
+export const metadata: Metadata = {
+  title: getPageTitle("Home"),
+  description:
+    "Party Box is a cutting-edge web platform that aims to revolutionize the way university students discover and share parties and events. Party Box caters to the spontaneous nature of parties and other gatherings, empowering users to stay socially connected.",
+};
+
+const getFeaturedEvents = async () => {
   const db = getDb();
   const foundEvents = await db.query.events.findMany({
     columns: {
@@ -36,7 +44,7 @@ const Page = async () => {
     <div className="flex-1 flex flex-col relative">
       <div className="fixed top-0 left-0 right-0">
         <div className="inset-0 z-10 absolute" />
-        <div className="h-screen z-0 brightness-[40%]">
+        <div className="h-screen sm:h-[50vh] z-0 brightness-[40%]">
           <Image
             src="/images/party-people.jpg"
             width={600}
@@ -46,7 +54,7 @@ const Page = async () => {
           />
         </div>
       </div>
-      <h1 className="rainbow-text font-bold text-6xl sm:text-8xl text-center my-32 whitespace-nowrap relative z-20">
+      <h1 className="text-white font-bold text-6xl sm:text-8xl text-center my-32 whitespace-nowrap relative z-20">
         Party Box
       </h1>
       <div className="flex flex-col gap-4 max-w-2xl m-2 sm:mx-auto relative z-20 pb-16 sm:pb-0">
