@@ -1,5 +1,0 @@
-{
-  "extends": "@party-box/config/tsconfig/lambda.json",
-  "include": ["."],
-  "exclude": ["dist", "build", "node_modules"]
-}
