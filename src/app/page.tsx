@@ -44,12 +44,12 @@ const Page = async () => {
   const foundEvents = await getFeaturedEvents();
 
   return (
-    <div className="flex-1 flex flex-col relative">
+    <div className="flex-1 flex flex-col relative bg-black">
       <div className="fixed top-0 left-0 right-0">
-        <div className="inset-0 z-10 absolute" />
-        <div className="h-screen sm:h-[50vh] z-0 brightness-[40%]">
+        {/* <div className="inset-0 z-10 absolute" /> */}
+        <div className="sm:h-[50vh] h-[600px]">
           <Image
-            src="/images/party-people.jpg"
+            src="/images/partybox-meta.png"
             width={600}
             height={1000}
             alt=""
@@ -57,10 +57,10 @@ const Page = async () => {
           />
         </div>
       </div>
-      <h1 className="text-white font-bold text-6xl sm:text-8xl text-center my-32 whitespace-nowrap relative z-20">
+      {/* <h1 className="text-white font-bold text-6xl sm:text-8xl text-center my-32 whitespace-nowrap relative z-20">
         Party Box
-      </h1>
-      <div className="flex flex-col gap-4 max-w-2xl m-2 sm:mx-auto relative z-20 pb-16 sm:pb-0">
+      </h1> */}
+      <div className="flex flex-col gap-4 max-w-2xl m-2 sm:mx-auto relative z-20 pb-24 sm:pb-0 mt-[500px]">
         <p className="font-semibold text-white text-lg text-center">
           Featured Events
         </p>
