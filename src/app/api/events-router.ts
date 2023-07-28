@@ -70,6 +70,14 @@ export const eventsRouter = router({
         ctx,
         input: { ticketPrices: ticketPricesInput, ...eventInput },
       }) => {
+        // Check if any ticket prices are paid, and block if true
+        // Non-admins aren't allowed to create paid events
+        if (ticketPricesInput.some((p) => !p.isFree)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You are not allowed to create paid events.",
+          });
+        }
         const stripe = getStripeClient();
 
         const eventSlug = generateSlug();

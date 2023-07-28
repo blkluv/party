@@ -5,8 +5,8 @@ import { z } from "zod";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
+import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import { getStripeClient } from "~/utils/stripe";
-import { publicUserMetadataSchema } from "~/utils/userMetadataSchema";
 import { TicketInfoButton } from "./ticket-helpers";
 
 const paymentValidationSchema = z
@@ -24,16 +24,9 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
 
   const user = await clerkClient.users.getUser(userAuth.userId);
 
-  const publicMetadata = publicUserMetadataSchema.safeParse(
-    user.publicMetadata
-  );
-
   // If the user is an admin, they are always allowed to view tickets
   // If not, the user needs to own the ticket
-  let isAdmin = false;
-  if (publicMetadata.success && publicMetadata.data.platformRole === "admin") {
-    isAdmin = true;
-  }
+  const isAdmin = await isUserPlatformAdmin();
 
   const ticketData = await db.query.tickets.findFirst({
     where: and(
