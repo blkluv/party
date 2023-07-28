@@ -72,7 +72,7 @@ export const eventsRouter = router({
       }) => {
         // Check if any ticket prices are paid, and block if true
         // Non-admins aren't allowed to create paid events
-        if (ticketPricesInput.some((p) => !p.isFree)) {
+        if (ticketPricesInput.some((p) => !p.isFree) && !ctx.isPlatformAdmin) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "You are not allowed to create paid events.",

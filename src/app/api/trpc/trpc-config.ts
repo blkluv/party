@@ -1,7 +1,7 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import type { Context } from "./context";
+import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 
 export const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -18,7 +18,8 @@ const isAuthed = t.middleware(async ({ next, ctx }) => {
 
   return next({
     ctx: {
-      auth: { ...ctx.auth, isPlatformAdmin: await isUserPlatformAdmin() },
+      isPlatformAdmin: await isUserPlatformAdmin(),
+      auth: ctx.auth,
     },
   });
 });
