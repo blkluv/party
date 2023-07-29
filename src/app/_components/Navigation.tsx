@@ -44,7 +44,7 @@ export const Navigation = () => {
                 href="/sign-in"
                 className="w-12 h-12 flex justify-center items-center"
               >
-                <ArrowRightOnRectangleIcon className="ml-2 w-4 h-4" />
+                <ArrowRightOnRectangleIcon className="w-8 h-8" />
               </Link>
             ))
             .with(true, () => (
