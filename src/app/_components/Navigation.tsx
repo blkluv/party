@@ -14,7 +14,7 @@ export const Navigation = () => {
 
   return (
     <>
-      <div className="w-full sticky top-0 border-b border-gray-50 px-4 py-2 bg-neutral-900/90 backdrop-blur z-50 sm:block hidden">
+      <div className="w-full sticky top-0 border-b px-4 py-2 bg-neutral-900/90 backdrop-blur z-50 sm:block hidden">
         <div className="flex justify-between items-center">
           <Link href="/">
             <CubeIcon className="w-8 h-8" />

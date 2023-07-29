@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { FC } from "react";
+import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { eventMedia, events, ticketPrices } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
@@ -16,7 +17,11 @@ export const metadata: Metadata = {
   description:
     "Party Box is a cutting-edge web platform that aims to revolutionize the way university students discover and share parties and events. Party Box caters to the spontaneous nature of parties and other gatherings, empowering users to stay socially connected.",
   openGraph: {
+    url: env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL,
     images: [{ url: "/images/partybox-meta.png", width: 1200, height: 630 }],
+    title: getPageTitle("Home"),
+    description:
+      "Party Box is a cutting-edge web platform that aims to revolutionize the way university students discover and share parties and events. Party Box caters to the spontaneous nature of parties and other gatherings, empowering users to stay socially connected.",
   },
 };
 
@@ -93,7 +98,7 @@ const EventsList: FC<{
         <Link
           key={e.id}
           href={`/events/${e.slug}`}
-          className="relative sm:h-48"
+          className="relative sm:h-48 hover:scale-105 transition"
         >
           <div className="absolute rounded-lg overflow-hidden inset-0 w-full brightness-[60%]">
             <div className="absolute -inset-24 backdrop-blur-lg z-10" />
