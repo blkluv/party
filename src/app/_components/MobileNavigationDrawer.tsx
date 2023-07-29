@@ -13,7 +13,7 @@ export const MobileNavigationDrawer = () => {
       </Drawer.Trigger>
       <Drawer.Overlay className="fixed inset-0 bg-black/40" />
       <Drawer.Portal>
-        <Drawer.Content className="bg-white flex flex-col z-50 rounded-t-xl fixed bottom-0 left-0 right-0 border-t border-gray-400">
+        <Drawer.Content className="bg-black flex flex-col z-50 rounded-t-xl fixed bottom-0 left-0 right-0">
           <div className="rounded-full bg-gray-300 mx-auto h-1.5 w-1/6 my-2"></div>
           <div className="p-8 flex flex-col gap-4">
             <Link href="/events/new">

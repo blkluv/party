@@ -1,11 +1,11 @@
 import { CubeIcon } from "@heroicons/react/24/outline";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { FC } from "react";
 import { getDb } from "~/db/client";
-import { eventMedia, events } from "~/db/schema";
+import { eventMedia, events, ticketPrices } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { ClientDate } from "./_components/ClientDate";
 
@@ -22,6 +22,13 @@ export const metadata: Metadata = {
 
 const getFeaturedEvents = async () => {
   const db = getDb();
+
+  const paidEventsQuery = await db
+    .select({ eventId: sql<number>`distinct ${ticketPrices.eventId}` })
+    .from(ticketPrices)
+    .where(eq(ticketPrices.isFree, false))
+    .all();
+
   const foundEvents = await db.query.events.findMany({
     columns: {
       description: true,
@@ -35,7 +42,14 @@ const getFeaturedEvents = async () => {
         where: eq(eventMedia.isPoster, true),
       },
     },
-    where: and(gt(events.startTime, new Date()), eq(events.isPublic, true)),
+    where: and(
+      gt(events.startTime, new Date()),
+      eq(events.isPublic, true),
+      inArray(
+        events.id,
+        paidEventsQuery.map((e) => e.eventId)
+      )
+    ),
   });
 
   return foundEvents;
@@ -45,7 +59,7 @@ const Page = async () => {
   const foundEvents = await getFeaturedEvents();
 
   return (
-    <div className="flex-1 flex flex-col relative bg-black">
+    <div className="flex-1 flex flex-col relative">
       <div className="fixed top-0 left-0 right-0">
         <div className="sm:h-[800px] h-[800px]">
           <div className="relative py-24">
@@ -66,7 +80,7 @@ const Page = async () => {
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-4 max-w-2xl m-2 sm:mx-auto relative z-20 pb-24 sm:pb-0 mt-[500px]">
+      <div className="flex flex-col gap-4 max-w-2xl m-2 sm:mx-auto relative z-20 pb-24 mt-[500px]">
         <p className="font-semibold text-white text-lg text-center">
           Featured Events
         </p>
