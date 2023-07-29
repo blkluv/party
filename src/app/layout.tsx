@@ -24,7 +24,7 @@ export default function RootLayout({
       <html lang="en">
         <body className={cn(inter.className, "dark")}>
           <TrpcProvider>
-            <div className="min-h-screen bg-white dark:bg-neutral-900 text-black dark:text-white flex flex-col">
+            <div className="min-h-screen bg-white dark:bg-neutral-900 text-black dark:text-white flex flex-col pb-16 sm:pb-0">
               <Navigation />
               <div className="flex flex-col flex-1">{children}</div>
             </div>

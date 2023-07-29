@@ -1,5 +1,5 @@
 import { CubeIcon } from "@heroicons/react/24/outline";
-import { and, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -29,6 +29,10 @@ const getFeaturedEvents = async () => {
     .where(eq(ticketPrices.isFree, false))
     .all();
 
+  if (paidEventsQuery.length === 0) {
+    return [];
+  }
+
   const foundEvents = await db.query.events.findMany({
     columns: {
       description: true,
@@ -42,6 +46,7 @@ const getFeaturedEvents = async () => {
         where: eq(eventMedia.isPoster, true),
       },
     },
+    orderBy: asc(events.startTime),
     where: and(
       gt(events.startTime, new Date()),
       eq(events.isPublic, true),
@@ -60,27 +65,16 @@ const Page = async () => {
 
   return (
     <div className="flex-1 flex flex-col relative">
-      <div className="fixed top-0 left-0 right-0">
-        <div className="sm:h-[800px] h-[800px]">
-          <div className="relative py-24">
-            <div className="bg-white/10 blur-[100px] rounded-[100%] absolute w-[600px] h-96 left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2" />
-            <div className="flex flex-col blur-[50px] gap-2 items-center">
-              <div className="w-32 h-32 rounded-full bg-green-500" />
-              <div className="flex gap-2 justify-center">
-                <div className="w-32 h-32 rounded-full bg-blue-500" />
-                <div className="w-32 h-32 rounded-full bg-red-500" />
-              </div>
-            </div>
-            <div className="text-white flex gap-4 items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <CubeIcon className="w-12 h:12 sm:w-16 sm:h-16" />
-              <h1 className="font-bold text-5xl sm:text-6xl whitespace-nowrap">
-                Party Box
-              </h1>
-            </div>
-          </div>
+      <div className="fixed top-36 left-0 right-0">
+        <div className="text-white flex gap-4 items-center justify-center relative">
+          <div className="bg-white/10 blur-[100px] rounded-[100%] absolute w-[600px] h-96 left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2" />
+          <CubeIcon className="w-12 h:12 sm:w-16 sm:h-16" />
+          <h1 className="font-bold text-5xl sm:text-6xl whitespace-nowrap">
+            Party Box
+          </h1>
         </div>
       </div>
-      <div className="flex flex-col gap-4 max-w-2xl m-2 sm:mx-auto relative z-20 pb-24 mt-[500px]">
+      <div className="flex flex-col gap-4 max-w-2xl m-2 sm:mx-auto relative z-20 pb-4 mt-96">
         <p className="font-semibold text-white text-lg text-center">
           Featured Events
         </p>

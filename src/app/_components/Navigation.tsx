@@ -32,28 +32,26 @@ export const Navigation = () => {
             .exhaustive()}
         </div>
       </div>
-      <div className="bottom-0 border-t w-full px-4 pt-2 pb-4 bg-neutral-900/90 backdrop-blur z-50 fixed sm:hidden">
-        <div className="flex justify-evenly items-center">
-          <Link href="/" className="w-12 h-12 flex justify-center items-center">
-            <CubeIcon className="w-8 h-8" />
-          </Link>
-          <MobileNavigationDrawer />
-          {match(Boolean(userAuth.userId))
-            .with(false, () => (
-              <Link
-                href="/sign-in"
-                className="w-12 h-12 flex justify-center items-center"
-              >
-                <ArrowRightOnRectangleIcon className="w-8 h-8" />
-              </Link>
-            ))
-            .with(true, () => (
-              <div className="w-12 h-12 flex justify-center items-center">
-                <UserButton afterSignOutUrl="/" />
-              </div>
-            ))
-            .exhaustive()}
-        </div>
+      <div className="bottom-0 border-t w-full px-4 h-16 bg-neutral-900/90 backdrop-blur z-50 fixed sm:hidden flex justify-evenly items-start">
+        <Link href="/" className="w-12 h-12 flex justify-center items-center">
+          <CubeIcon className="w-8 h-8" />
+        </Link>
+        <MobileNavigationDrawer />
+        {match(Boolean(userAuth.userId))
+          .with(false, () => (
+            <Link
+              href="/sign-in"
+              className="w-12 h-12 flex justify-center items-center"
+            >
+              <ArrowRightOnRectangleIcon className="w-8 h-8" />
+            </Link>
+          ))
+          .with(true, () => (
+            <div className="w-12 h-12 flex justify-center items-center">
+              <UserButton afterSignOutUrl="/" />
+            </div>
+          ))
+          .exhaustive()}
       </div>
     </>
   );

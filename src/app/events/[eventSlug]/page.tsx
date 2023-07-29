@@ -44,7 +44,7 @@ const Page = async (props: { params: { eventSlug: string } }) => {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-4 p-2">
+    <div className="mx-auto w-full max-w-3xl space-y-8 p-2">
       <div className="relative h-96 w-full rounded-xl overflow-hidden">
         <Image
           src={eventData.eventMedia.find((e) => e.isPoster)?.url ?? ""}
@@ -54,20 +54,24 @@ const Page = async (props: { params: { eventSlug: string } }) => {
           className="w-full h-full object-cover"
         />
       </div>
-      <h1 className="font-bold text-2xl text-center">{eventData.name}</h1>
-      <p>{eventData.description}</p>
+      <div className="space-y-2">
+        <h1 className="font-bold text-2xl text-center">{eventData.name}</h1>
+        <p className="text-center">{eventData.description}</p>
+      </div>
 
-      <p className="text-gray-900 font-semibold text-lg text-center">
-        Ticket Tiers
-      </p>
-      <div className="flex justify-center gap-2 flex-wrap">
-        {eventData.ticketPrices.map((price) => (
-          <TicketTierListing
-            key={`ticket price ${price.id}`}
-            eventId={eventData.id}
-            data={price}
-          />
-        ))}
+      <div className="space-y-2">
+        <p className="text-gray-100 font-semibold text-lg text-center">
+          Ticket Tiers
+        </p>
+        <div className="flex justify-center gap-2 flex-wrap">
+          {eventData.ticketPrices.map((price) => (
+            <TicketTierListing
+              key={`ticket price ${price.id}`}
+              eventId={eventData.id}
+              data={price}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
