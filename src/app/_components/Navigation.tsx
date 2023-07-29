@@ -40,14 +40,18 @@ export const Navigation = () => {
           <MobileNavigationDrawer />
           {match(Boolean(userAuth.userId))
             .with(false, () => (
-              <Link href="/sign-in">
-                <Button>
-                  <p>Login</p>
-                  <ArrowRightOnRectangleIcon className="ml-2 w-4 h-4" />
-                </Button>
+              <Link
+                href="/sign-in"
+                className="w-12 h-12 flex justify-center items-center"
+              >
+                <ArrowRightOnRectangleIcon className="ml-2 w-4 h-4" />
               </Link>
             ))
-            .with(true, () => <UserButton afterSignOutUrl="/" />)
+            .with(true, () => (
+              <div className="w-12 h-12 flex justify-center items-center">
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            ))
             .exhaustive()}
         </div>
       </div>
