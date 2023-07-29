@@ -58,8 +58,10 @@ const Page = async () => {
               </div>
             </div>
             <div className="text-white flex gap-4 items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <CubeIcon className="w-16 h-16" />
-              <h1 className="font-bold text-6xl">Party Box</h1>
+              <CubeIcon className="w-12 h:12 sm:w-16 sm:h-16" />
+              <h1 className="font-bold text-5xl sm:text-6xl whitespace-nowrap">
+                Party Box
+              </h1>
             </div>
           </div>
         </div>
