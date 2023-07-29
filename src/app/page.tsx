@@ -1,3 +1,4 @@
+import { CubeIcon } from "@heroicons/react/24/outline";
 import { and, eq, gt } from "drizzle-orm";
 import { Metadata } from "next";
 import Image from "next/image";
@@ -46,20 +47,23 @@ const Page = async () => {
   return (
     <div className="flex-1 flex flex-col relative bg-black">
       <div className="fixed top-0 left-0 right-0">
-        {/* <div className="inset-0 z-10 absolute" /> */}
-        <div className="sm:h-[50vh] h-[600px]">
-          <Image
-            src="/images/partybox-meta.png"
-            width={600}
-            height={1000}
-            alt=""
-            className="h-full w-full object-cover"
-          />
+        <div className="sm:h-[800px] h-[800px]">
+          <div className="relative py-24">
+            <div className="bg-white/10 blur-[100px] rounded-[100%] absolute w-[600px] h-96 left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2" />
+            <div className="flex flex-col blur-[50px] gap-2 items-center">
+              <div className="w-32 h-32 rounded-full bg-green-500" />
+              <div className="flex gap-2 justify-center">
+                <div className="w-32 h-32 rounded-full bg-blue-500" />
+                <div className="w-32 h-32 rounded-full bg-red-500" />
+              </div>
+            </div>
+            <div className="text-white flex gap-4 items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <CubeIcon className="w-16 h-16" />
+              <h1 className="font-bold text-6xl">Party Box</h1>
+            </div>
+          </div>
         </div>
       </div>
-      {/* <h1 className="text-white font-bold text-6xl sm:text-8xl text-center my-32 whitespace-nowrap relative z-20">
-        Party Box
-      </h1> */}
       <div className="flex flex-col gap-4 max-w-2xl m-2 sm:mx-auto relative z-20 pb-24 sm:pb-0 mt-[500px]">
         <p className="font-semibold text-white text-lg text-center">
           Featured Events
