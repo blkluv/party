@@ -6,8 +6,8 @@ import { NextResponse } from "next/server";
 // See https://clerk.com/docs/nextjs/middleware for more information about configuring your middleware
 export default authMiddleware({
   publicRoutes: ["/(.*)"],
-  afterAuth: (auth, _req) => {
-    if (!auth) {
+  afterAuth: (auth, req) => {
+    if (!auth || req.nextUrl.pathname.startsWith("/api")) {
       return NextResponse.next();
     }
   },
