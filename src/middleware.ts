@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 // Please edit this to allow other routes to be public as needed.
 // See https://clerk.com/docs/nextjs/middleware for more information about configuring your middleware
 export default authMiddleware({
-  publicRoutes: ["/", "/events", "/api/(.*)"],
+  publicRoutes: ["/", "/events(.*)", "/api/(.*)"],
   afterAuth: (_, req) => {
     if (req.method === "OPTIONS") {
       return NextResponse.json({}, { status: 200 });
