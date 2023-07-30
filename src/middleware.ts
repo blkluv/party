@@ -1,5 +1,4 @@
 import { authMiddleware } from "@clerk/nextjs";
-import { NextResponse } from "next/server";
 
 // This example protects all routes including api/trpc routes
 // Please edit this to allow other routes to be public as needed.
@@ -8,7 +7,7 @@ export default authMiddleware({
   publicRoutes: ["/", "/events/:eventSlug"],
   beforeAuth: (req) => {
     if (req.method === "OPTIONS") {
-      return NextResponse.json({}, { status: 200 });
+      return false;
     }
   },
 });
