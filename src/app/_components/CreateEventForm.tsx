@@ -84,10 +84,12 @@ export const CreateEventForm = () => {
         .getMinutes()
         .toString()
         .padStart(2, "0")}`,
+      coupons: [],
     },
   });
 
   const [ticketPrices] = form.watch(["ticketPrices"]);
+  const [coupons] = form.watch(["coupons"]);
 
   const { mutateAsync: createEvent } = trpc.events.createEvent.useMutation();
 
@@ -127,12 +129,15 @@ export const CreateEventForm = () => {
     };
   }, [mediaFiles]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async ({
+    startDate,
+    ...values
+  }: z.infer<typeof formSchema>) => {
     const [hour, minute] = values.startTime.split(":").map(Number);
 
     const newEvent = await createEvent({
       ...values,
-      startTime: dayjs(values.startDate).hour(hour).minute(minute).toDate(),
+      startTime: dayjs(startDate).hour(hour).minute(minute).toDate(),
     });
 
     const downloadUrls = await uploadImages(mediaFiles.map((e) => e.file));
@@ -144,7 +149,8 @@ export const CreateEventForm = () => {
         // Default poster to first image
         isPoster: isSomeMediaPoster ? e.isPoster : order === 0,
         eventId: newEvent.id,
-        url: downloadUrls[order],
+        url: downloadUrls[order].url,
+        imageId: downloadUrls[order].id,
       }))
     );
 
@@ -269,7 +275,7 @@ export const CreateEventForm = () => {
           <FormLabel>Upload</FormLabel>
           <div
             {...getRootProps()}
-            className="border p-2 flex justify-center flex-col gap-2 items-center rounded-lg h-24 cursor-pointer hover:bg-gray-50 transition duration-75 text-sm text-gray-600"
+            className="border p-2 flex justify-center flex-col gap-2 items-center rounded-lg h-24 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition duration-75 text-sm text-neutral-600 dark:text-neutral-300"
           >
             <input {...getInputProps()} />
             {isDragActive ? (
@@ -286,82 +292,177 @@ export const CreateEventForm = () => {
           </div>
         </div>
         {isAdmin && (
-          <div className="space-y-2">
-            <Label>Ticket Tiers</Label>
-            {ticketPrices.map((_, i) => (
-              <div
-                key={`ticketPrices.${i}`}
-                className="bg-gray-50 shadow-inner rounded-xl p-4 space-y-2"
-              >
-                <FormField
-                  control={form.control}
-                  name={`ticketPrices.${i}.name`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Regular" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        The name of this ticket tier.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {!ticketPrices[i].isFree && (
+          <>
+            <div className="space-y-2">
+              <Label>Ticket Tiers</Label>
+              {ticketPrices.map((_, i) => (
+                <div
+                  key={`ticketPrices.${i}`}
+                  className="bg-neutral-50 dark:bg-neutral-900 dark:border shadow-inner dark:shadow-none rounded-xl p-4 flex flex-col gap-2"
+                >
                   <FormField
                     control={form.control}
-                    name={`ticketPrices.${i}.price`}
+                    name={`ticketPrices.${i}.name`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Price</FormLabel>
+                        <FormLabel>Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Price" type="number" {...field} />
+                          <Input placeholder="Regular" {...field} />
                         </FormControl>
                         <FormDescription>
-                          The cost of the ticket, in dollars CAD
+                          The name of this ticket tier.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                )}
-                <FormField
-                  control={form.control}
-                  name={`ticketPrices.${i}.isFree`}
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">Free</FormLabel>
-                        <FormDescription>
-                          Is this ticket option free?
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
+                  {!ticketPrices[i].isFree && (
+                    <FormField
+                      control={form.control}
+                      name={`ticketPrices.${i}.price`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Price</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Price"
+                              type="number"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            The cost of the ticket, in dollars CAD
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
-              </div>
-            ))}
-            <Button
-              type="button"
-              onClick={() => {
-                const values = form.getValues();
-                form.setValue("ticketPrices", [
-                  ...values.ticketPrices,
-                  { isFree: false, name: "Ticket", price: 1 },
-                ]);
-              }}
-            >
-              Add Ticket Tier
-            </Button>
-          </div>
+                  <FormField
+                    control={form.control}
+                    name={`ticketPrices.${i}.isFree`}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Free</FormLabel>
+                          <FormDescription>
+                            Is this ticket option free?
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    className="ml-auto"
+                    variant="ghost"
+                    onClick={() => {
+                      form.setValue(
+                        "ticketPrices",
+                        form.getValues().ticketPrices.filter((_, j) => i !== j)
+                      );
+                    }}
+                  >
+                    Remove Ticket Tier
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                className="block"
+                onClick={() => {
+                  const values = form.getValues();
+                  form.setValue("ticketPrices", [
+                    ...values.ticketPrices,
+                    { isFree: false, name: "Ticket", price: 1 },
+                  ]);
+                }}
+              >
+                Add Ticket Tier
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Label>Coupons</Label>
+              {coupons.map((_, i) => (
+                <div
+                  key={`coupons.${i}`}
+                  className="bg-neutral-50 dark:bg-neutral-900 dark:border shadow-inner dark:shadow-none rounded-xl p-4 flex flex-col gap-2"
+                >
+                  <FormField
+                    control={form.control}
+                    name={`coupons.${i}.name`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Regular" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          The name of this coupon.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`coupons.${i}.percentageDiscount`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Percentage Discount</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Percentage discount"
+                            type="number"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          This percentage amount will be deduced from the sale
+                          price of the tickets.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    className="ml-auto"
+                    variant="ghost"
+                    onClick={() => {
+                      form.setValue(
+                        "coupons",
+                        form.getValues().coupons.filter((_, j) => i !== j)
+                      );
+                    }}
+                  >
+                    Remove Coupon
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                className="block"
+                onClick={() => {
+                  const values = form.getValues();
+                  form.setValue("coupons", [
+                    ...values.coupons,
+                    { name: "Coupon", percentageDiscount: 10 },
+                  ]);
+                }}
+              >
+                Add Coupon
+              </Button>
+            </div>
+          </>
         )}
 
         <div className="grid grid-cols-2 gap-4">
@@ -411,7 +512,7 @@ export const CreateEventForm = () => {
             )}
           />
         </div>
-        <Button type="submit">
+        <Button type="submit" disabled={mediaFiles.length === 0}>
           <p>Create Event</p>
           {form.formState.isSubmitting && (
             <ArrowPathIcon className="ml-2 animate-spin w-4 h-4" />
@@ -441,7 +542,7 @@ const MediaPreviewItem: FC<{
           {props.order > 0 && (
             <button
               type="button"
-              className="hover:text-gray-200 transition duration-75 h-full px-2 flex justify-center items-center"
+              className="hover:text-neutral-200 transition duration-75 h-full px-2 flex justify-center items-center"
               onClick={() => props.onMove("left")}
             >
               <ChevronLeftIcon className="w-4 h-4" />
@@ -450,7 +551,7 @@ const MediaPreviewItem: FC<{
           {props.order < props.maxIndex && (
             <button
               type="button"
-              className="hover:text-gray-200 transition duration-75 h-full px-2 flex justify-center items-center"
+              className="hover:text-neutral-200 transition duration-75 h-full px-2 flex justify-center items-center"
               onClick={() => props.onMove("right")}
             >
               <ChevronRightIcon className="w-4 h-4" />
@@ -478,7 +579,7 @@ const MediaPreviewItem: FC<{
           "absolute bottom-0 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm rounded-t-xl text-sm py-1 px-2 items-center justify-center gap-2",
           props.data.isPoster
             ? "flex"
-            : "group-hover:flex hover:text-gray-200 transition duration-75 hidden animate-fade-in"
+            : "group-hover:flex hover:text-neutral-200 transition duration-75 hidden animate-fade-in"
         )}
         type="button"
         onClick={() => props.onPosterToggle()}

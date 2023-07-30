@@ -3,19 +3,23 @@ import { and, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "~/config/env";
 import {
+  Coupon,
   NewTicketPrice,
   TicketPrice,
+  coupons,
   eventMedia,
   events,
   insertEventMediaSchema,
+  insertPromotionCodeSchema,
+  promotionCodes,
   ticketPrices,
   tickets,
 } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
-import { createUploadUrls } from "~/utils/createUploadUrls";
 import { generateSlug } from "~/utils/generateSlug";
-import { getStripeClient } from "~/utils/stripe";
+import { createUploadUrls, deleteImage } from "~/utils/images";
 import {
+  protectedEventProcedure,
   protectedProcedure,
   publicProcedure,
   router,
@@ -33,16 +37,17 @@ export const eventMediaRouter = router({
       insertEventMediaSchema
         .pick({
           isPoster: true,
-          eventId: true,
           order: true,
+          eventId: true,
           url: true,
+          imageId: true,
         })
         .array()
     )
     .mutation(async ({ ctx, input }) => {
       const media = await ctx.db
         .insert(eventMedia)
-        .values(input)
+        .values(input.map((e) => ({ ...e, userId: ctx.auth.userId })))
         .returning()
         .get();
 
@@ -68,20 +73,27 @@ export const eventsRouter = router({
     .mutation(
       async ({
         ctx,
-        input: { ticketPrices: ticketPricesInput, ...eventInput },
+        input: {
+          ticketPrices: ticketPricesInput,
+          coupons: couponsInput,
+          ...eventInput
+        },
       }) => {
         // Check if any ticket prices are paid, and block if true
         // Non-admins aren't allowed to create paid events
-        if (ticketPricesInput.some((p) => !p.isFree) && !ctx.isPlatformAdmin) {
+        if (
+          (ticketPricesInput.some((p) => !p.isFree) ||
+            couponsInput.length > 0) &&
+          !ctx.isPlatformAdmin
+        ) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "You are not allowed to create paid events.",
           });
         }
-        const stripe = getStripeClient();
 
         const eventSlug = generateSlug();
-        const product = await stripe.products.create({
+        const product = await ctx.stripe.products.create({
           name: eventInput.name,
           description: eventInput.description,
           metadata: { eventSlug },
@@ -95,6 +107,7 @@ export const eventsRouter = router({
             slug: eventSlug,
             updatedAt: new Date(),
             createdAt: new Date(),
+            stripeProductId: product.id,
           })
           .returning()
           .get();
@@ -107,10 +120,12 @@ export const eventsRouter = router({
             name: price.name,
             price: price.price,
             isFree: price.isFree,
+            userId: ctx.auth.userId,
           };
 
+          // Not free, must create a Stripe price to accept payment
           if (!price.isFree) {
-            const newPrice = await stripe.prices.create({
+            const newPrice = await ctx.stripe.prices.create({
               product: product.id,
               currency: "CAD",
               nickname: price.name,
@@ -129,7 +144,39 @@ export const eventsRouter = router({
           createdTicketPrices.push(p);
         }
 
-        return { ...event, ticketPrices: createdTicketPrices };
+        const createdCoupons: Coupon[] = [];
+        for (const c of couponsInput) {
+          const stripeCoupon = await ctx.stripe.coupons.create({
+            currency: "CAD",
+            name: c.name,
+            percent_off: c.percentageDiscount,
+            applies_to: {
+              products: [product.id],
+            },
+          });
+
+          const coupon = await ctx.db
+            .insert(coupons)
+            .values({
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              eventId: event.id,
+              name: c.name,
+              percentageDiscount: c.percentageDiscount,
+              stripeCouponId: stripeCoupon.id,
+              userId: ctx.auth.userId,
+            })
+            .returning()
+            .get();
+
+          createdCoupons.push(coupon);
+        }
+
+        return {
+          ...event,
+          ticketPrices: createdTicketPrices,
+          coupons: createdCoupons,
+        };
       }
     ),
   media: eventMediaRouter,
@@ -187,6 +234,10 @@ export const eventsRouter = router({
           },
         ],
         mode: "payment",
+        allow_promotion_codes: true,
+        automatic_tax: {
+          enabled: process.env.NODE_ENV === "production",
+        },
       });
 
       await ctx.db
@@ -206,5 +257,133 @@ export const eventsRouter = router({
         .get();
 
       return checkout.url;
+    }),
+  deleteEvent: protectedProcedure
+    .input(z.object({ eventId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      // Delete promo codes
+      const event = await ctx.db.query.events.findFirst({
+        where: and(
+          eq(events.id, input.eventId),
+          eq(events.userId, ctx.auth.userId)
+        ),
+        with: {
+          coupons: {
+            with: {
+              promotionCodes: true,
+            },
+          },
+          eventMedia: true,
+          ticketPrices: true,
+          tickets: true,
+        },
+      });
+
+      if (!event) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Event does not exist",
+        });
+      }
+
+      await ctx.db
+        .delete(promotionCodes)
+        .where(eq(promotionCodes.eventId, input.eventId))
+        .run();
+
+      await ctx.db
+        .delete(coupons)
+        .where(eq(coupons.eventId, input.eventId))
+        .run();
+
+      const media = await ctx.db
+        .delete(eventMedia)
+        .where(eq(eventMedia.eventId, input.eventId))
+        .returning({ imageId: eventMedia.imageId })
+        .all();
+
+      await Promise.all(media.map((e) => deleteImage(e.imageId)));
+
+      await ctx.db
+        .delete(tickets)
+        .where(eq(tickets.eventId, input.eventId))
+        .run();
+
+      const deletedEvent = await ctx.db
+        .delete(events)
+        .where(eq(events.id, input.eventId))
+        .returning()
+        .get();
+
+      // Disable buying new tickets
+      if (deletedEvent) {
+        await ctx.stripe.products.update(deletedEvent?.stripeProductId, {
+          active: false,
+        });
+      }
+
+      return event;
+    }),
+  getAllCoupons: protectedEventProcedure.query(async ({ ctx, input }) => {
+    return await ctx.db.query.coupons.findMany({
+      where: eq(coupons.eventId, input.eventId),
+      columns: {
+        id: true,
+        name: true,
+        percentageDiscount: true,
+        updatedAt: true,
+      },
+    });
+  }),
+  getAllPromotionCodes: protectedEventProcedure.query(
+    async ({ ctx, input }) => {
+      return await ctx.db.query.promotionCodes.findMany({
+        where: and(
+          eq(promotionCodes.eventId, input.eventId),
+          eq(promotionCodes.userId, ctx.auth.userId)
+        ),
+        columns: {
+          id: true,
+          name: true,
+          updatedAt: true,
+        },
+      });
+    }
+  ),
+  createPromotionCode: protectedEventProcedure
+    .input(insertPromotionCodeSchema.pick({ name: true, couponId: true }))
+    .query(async ({ ctx, input }) => {
+      const foundCoupon = await ctx.db.query.coupons.findFirst({
+        where: and(
+          eq(coupons.id, input.couponId),
+          eq(coupons.userId, ctx.auth.userId)
+        ),
+      });
+
+      if (!foundCoupon) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Coupon does not exist",
+        });
+      }
+
+      const newPromotionCode = await ctx.stripe.promotionCodes.create({
+        coupon: foundCoupon?.stripeCouponId,
+      });
+
+      return await ctx.db
+        .insert(promotionCodes)
+        .values({
+          code: newPromotionCode.code,
+          couponId: input.couponId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          userId: ctx.auth.userId,
+          eventId: input.eventId,
+          name: input.name,
+          stripePromotionCodeId: newPromotionCode.id,
+        })
+        .returning()
+        .get();
     }),
 });

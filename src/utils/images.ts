@@ -24,6 +24,7 @@ export const createUploadUrls = async (count: number) => {
   const urls = await Promise.all(
     Array.from({ length: count }).map(async () => {
       const form = new FormData();
+      const id = nanoid();
       form.append("id", nanoid());
       form.append("expiry", dayjs().add(5, "minute").toISOString());
 
@@ -38,9 +39,24 @@ export const createUploadUrls = async (count: number) => {
         throw new Error(res.error.message);
       }
 
-      return res.data.result.uploadURL;
+      return { url: res.data.result.uploadURL, id };
     })
   );
 
   return urls;
+};
+
+export const deleteImage = async (id: string) => {
+  try {
+    const headers = new Headers();
+    headers.set("Authorization", `Bearer ${env.CLOUDFLARE_IMAGES_API_KEY}`);
+
+    await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/images/v1/${id}`,
+      { method: "POST", headers }
+    ).then((res) => res.json());
+    return { success: true };
+  } catch (e) {
+    return { success: false };
+  }
 };

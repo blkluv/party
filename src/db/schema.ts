@@ -19,7 +19,7 @@ export const events = sqliteTable(
     location: text("location").notNull(),
     userId: text("user_id").notNull(),
     slug: text("slug").notNull(),
-    stripeProductId: text("stripe_product_id"),
+    stripeProductId: text("stripe_product_id").notNull(),
     isPublic: int("is_public", { mode: "boolean" }).notNull(),
     capacity: int("capacity").notNull(),
     createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
@@ -34,6 +34,7 @@ export const eventsRelations = relations(events, ({ many }) => ({
   tickets: many(tickets),
   ticketPrices: many(ticketPrices),
   eventMedia: many(eventMedia),
+  coupons: many(coupons),
 }));
 
 export type Event = InferModel<typeof events, "select">;
@@ -52,6 +53,56 @@ export const insertEventSchema = createInsertSchema(events, {
       message: "Name must be longer than 3 characters",
     }),
 });
+
+export const coupons = sqliteTable("coupons", {
+  id: int("id").primaryKey(),
+  name: text("name").notNull(),
+  stripeCouponId: text("stripe_coupon_id").notNull(),
+  eventId: int("event_id").notNull(),
+  userId: text("user_id").notNull(),
+  createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
+  percentageDiscount: int("percentage_discount").notNull(),
+});
+
+export const couponRelations = relations(coupons, ({ one, many }) => ({
+  event: one(events, {
+    fields: [coupons.eventId],
+    references: [events.id],
+  }),
+  promotionCodes: many(promotionCodes),
+}));
+
+export type Coupon = InferModel<typeof coupons, "select">;
+export type NewCoupon = InferModel<typeof coupons, "insert">;
+export const selectCouponSchema = createSelectSchema(coupons);
+export const insertCouponSchema = createInsertSchema(coupons, {
+  percentageDiscount: z.coerce.number(),
+});
+
+export const promotionCodes = sqliteTable("promotion_codes", {
+  id: int("id").primaryKey(),
+  name: text("name").notNull(),
+  stripePromotionCodeId: text("stripe_promotion_code_id").notNull(),
+  couponId: int("coupon_id").notNull(),
+  code: text("code").notNull(),
+  eventId: int("event_id").notNull(),
+  userId: text("user_id").notNull(),
+  createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const promotionCodeRelations = relations(promotionCodes, ({ one }) => ({
+  coupon: one(coupons, {
+    fields: [promotionCodes.couponId],
+    references: [coupons.id],
+  }),
+}));
+
+export type PromotionCode = InferModel<typeof promotionCodes, "select">;
+export type NewPromotionCode = InferModel<typeof promotionCodes, "insert">;
+export const selectPromotionCodeSchema = createSelectSchema(promotionCodes);
+export const insertPromotionCodeSchema = createInsertSchema(promotionCodes);
 
 export const tickets = sqliteTable(
   "tickets",
@@ -92,6 +143,7 @@ export const ticketPrices = sqliteTable("ticket_prices", {
   price: real("price").notNull(),
   eventId: int("event_id").notNull(),
   stripePriceId: text("stripe_price_id"),
+  userId: text("user_id").notNull(),
   isFree: int("is_free", { mode: "boolean" }).notNull(),
 });
 
@@ -121,6 +173,10 @@ export const eventMedia = sqliteTable("event_media", {
   url: text("url").notNull(),
   isPoster: int("is_poster", { mode: "boolean" }).notNull(),
   order: int("order").notNull(),
+  userId: text("user_id").notNull(),
+  // The ID within Cloudflare Images
+  // Need this to delete
+  imageId: text("image_id").notNull(),
 });
 
 export const eventMediaRelations = relations(eventMedia, ({ one }) => ({

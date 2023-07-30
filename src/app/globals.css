@@ -67,6 +67,10 @@
     --ring: 0 0% 14.9%;
   }
 
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    @apply dark:bg-white dark:rounded dark:hover:bg-neutral-100 dark:transition dark:duration-75;
+  }
+
   * {
     @apply border-border;
   }

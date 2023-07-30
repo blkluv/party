@@ -1,4 +1,8 @@
-import { insertEventSchema, insertTicketPriceSchema } from "~/db/schema";
+import {
+  insertCouponSchema,
+  insertEventSchema,
+  insertTicketPriceSchema,
+} from "~/db/schema";
 
 export const createEventSchema = insertEventSchema
   .omit({
@@ -17,6 +21,10 @@ export const createEventSchema = insertEventSchema
         stripePaymentLink: true,
         stripePaymentLinkId: true,
         stripePriceId: true,
+        userId: true,
       })
+      .array(),
+    coupons: insertCouponSchema
+      .pick({ name: true, percentageDiscount: true })
       .array(),
   });

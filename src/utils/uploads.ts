@@ -27,18 +27,23 @@ export const useUploadImages = () => {
         files.map(async (f, i) => {
           const formData = new FormData();
           formData.append("file", f);
-          const uploadImageResponse = uploadResponseSchema.safeParse(
-            await fetch(urls[i], {
-              method: "POST",
-              body: formData,
-            }).then((res) => res.json())
-          );
+
+          const fetchResponse = await fetch(urls[i].url, {
+            method: "POST",
+            body: formData,
+          }).then((res) => res.json());
+
+          const uploadImageResponse =
+            uploadResponseSchema.safeParse(fetchResponse);
 
           if (!uploadImageResponse.success) {
             throw new Error("Failed to upload image");
           }
 
-          return uploadImageResponse.data.result.variants[0];
+          return {
+            url: uploadImageResponse.data.result.variants[0],
+            id: urls[i].id,
+          };
         })
       );
     },

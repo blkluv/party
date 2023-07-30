@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import {
   ArrowRightOnRectangleIcon,
   CubeIcon,
+  PlusIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { match } from "ts-pattern";
@@ -22,13 +23,23 @@ export const Navigation = () => {
           {match(Boolean(userAuth.userId))
             .with(false, () => (
               <Link href="/sign-in">
-                <Button>
+                <Button variant="ghost">
                   <p>Login</p>
                   <ArrowRightOnRectangleIcon className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
             ))
-            .with(true, () => <UserButton afterSignOutUrl="/" />)
+            .with(true, () => (
+              <div className="flex items-center gap-4">
+                <Link href="/events/new">
+                  <Button size="sm">
+                    <p>Create Event</p>
+                    <PlusIcon className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            ))
             .exhaustive()}
         </div>
       </div>

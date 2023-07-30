@@ -9,6 +9,8 @@ import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import { getStripeClient } from "~/utils/stripe";
 import { TicketInfoButton } from "./ticket-helpers";
 
+export const dynamic = "force-dynamic";
+
 const paymentValidationSchema = z
   .object({ status: z.literal("succeeded") })
   .strip();
@@ -23,14 +25,13 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
   }
 
   const user = await clerkClient.users.getUser(userAuth.userId);
-
-  // If the user is an admin, they are always allowed to view tickets
-  // If not, the user needs to own the ticket
   const isAdmin = await isUserPlatformAdmin();
 
   const ticketData = await db.query.tickets.findFirst({
     where: and(
       eq(tickets.slug, props.params.ticketSlug),
+      // If the user is an admin, they are always allowed to view tickets
+      // If not, the user needs to own the ticket
       isAdmin ? undefined : eq(tickets.userId, userAuth.userId)
     ),
     with: {
@@ -43,20 +44,28 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
     return <div>Could not find ticket</div>;
   }
 
-  const session = await stripe.checkout.sessions.retrieve(
-    ticketData.stripeSessionId,
-    {
-      expand: ["payment_intent"],
-    }
-  );
-
   // Update status of ticket if pending
   if (ticketData.status === "pending" && ticketData.price.isFree === false) {
+    const session = await stripe.checkout.sessions.retrieve(
+      ticketData.stripeSessionId,
+      {
+        expand: ["payment_intent"],
+      }
+    );
+
     const paymentIntentStatus = paymentValidationSchema.safeParse(
       session.payment_intent
     );
-    if (paymentIntentStatus.success) {
-      await db.update(tickets).set({ status: "success" }).run();
+
+    const ticketLineItem = session.line_items?.data[0];
+
+    if (paymentIntentStatus.success && ticketLineItem?.quantity) {
+      await db
+        .update(tickets)
+        .set({ status: "success", quantity: ticketLineItem.quantity })
+        .run();
+
+      ticketData.quantity = ticketLineItem.quantity;
       ticketData.status = "success";
     }
   }
