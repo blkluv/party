@@ -68,7 +68,7 @@ export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
     title: getPageTitle(eventData.name),
     description: eventData.description,
     openGraph: {
-      url: env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL,
+      url: env.NEXT_PUBLIC_WEBSITE_URL,
       images,
       title: getPageTitle(eventData.name),
       description: eventData.description,

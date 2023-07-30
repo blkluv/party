@@ -88,9 +88,7 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
             Event #{ticketData.eventId}
           </p>
           <QRCode
-            value={`${
-              env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL
-            }/events/${ticketData.event.slug}/tickets/${ticketData.slug}`}
+            value={`${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketData.event.slug}/tickets/${ticketData.slug}`}
             className="shadow-md border border-gray-300"
           />
           <h1 className="font-bold text-center text-lg">

@@ -231,9 +231,7 @@ export const eventsRouter = router({
 
       if (!ticketPriceData.isFree && ticketPriceData.stripePriceId) {
         const checkout = await ctx.stripe.checkout.sessions.create({
-          success_url: `${
-            env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL
-          }/events/${ticketPriceData.event.slug}/tickets/${ticketSlug}`,
+          success_url: `${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketPriceData.event.slug}/tickets/${ticketSlug}`,
           line_items: [
             {
               quantity: 1,
