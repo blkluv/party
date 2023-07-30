@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs";
 import { asc, eq } from "drizzle-orm";
-import { Metadata, ResolvingMetadata } from "next";
+import { Metadata } from "next";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { cache } from "react";
@@ -49,10 +49,7 @@ const getEventData = cache(async (slug: string) => {
   });
 });
 
-export const generateMetadata = async (
-  props: PageProps,
-  _parent?: ResolvingMetadata
-): Promise<Metadata> => {
+export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
   const eventData = await getEventData(props.params.eventSlug);
 
   if (!eventData) {
