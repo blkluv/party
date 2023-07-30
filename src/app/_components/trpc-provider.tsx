@@ -32,9 +32,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
             const fetch = getFetch();
             return fetch(input, {
               ...init,
-              headers: {
-                "Access-Control-Allow-Origin": "*",
-              },
+              mode: "no-cors",
               cache: "no-store",
               credentials: "include",
             });
