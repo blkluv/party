@@ -6,15 +6,14 @@ import { NextResponse } from "next/server";
 // See https://clerk.com/docs/nextjs/middleware for more information about configuring your middleware
 export default authMiddleware({
   publicRoutes: ["/(.*)"],
-  beforeAuth: (req) => {
-    if (req.method === "OPTIONS") {
-      return false;
-    }
-
+  beforeAuth: () => {
     const response = NextResponse.next();
 
     response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set("Access-Control-Allow-Methods", "*");
+    response.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET,PUT,POST,DELETE,OPTIONS"
+    );
     response.headers.set(
       "Access-Control-Allow-Headers",
       "Content-Type, Authorization"
