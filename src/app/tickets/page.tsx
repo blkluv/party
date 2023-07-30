@@ -1,9 +1,15 @@
 import { auth } from "@clerk/nextjs";
 import { eq } from "drizzle-orm";
+import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
+import { getPageTitle } from "~/utils/getPageTitle";
+
+export const metadata: Metadata = {
+  title: getPageTitle("My Tickets"),
+};
 
 const Page = async () => {
   const userAuth = auth();

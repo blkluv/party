@@ -1,4 +1,10 @@
+import { Metadata } from "next";
 import { CreateEventForm } from "~/app/_components/CreateEventForm";
+import { getPageTitle } from "~/utils/getPageTitle";
+
+export const metadata: Metadata = {
+  title: getPageTitle("New Event"),
+};
 
 const Page = () => {
   return (
