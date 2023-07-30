@@ -185,7 +185,7 @@ export const CreateEventForm = () => {
                 <Input placeholder="New event" {...field} />
               </FormControl>
               <FormDescription>
-                This is the name of your new event
+                This is the name of your new event.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -200,7 +200,23 @@ export const CreateEventForm = () => {
               <FormControl>
                 <Textarea placeholder="Description" {...field} />
               </FormControl>
-              <FormDescription>Describe your new event</FormDescription>
+              <FormDescription>Describe your new event.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="location"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Location" {...field} />
+              </FormControl>
+              <FormDescription>
+                The location where this event will take place.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -214,7 +230,9 @@ export const CreateEventForm = () => {
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Public</FormLabel>
                 <FormDescription>
-                  Whether this event is open to the public or not
+                  Public events are searchable on the home page, while
+                  non-public events can still be accessed via a direct link to
+                  their event page.
                 </FormDescription>
               </div>
               <FormControl>
@@ -236,7 +254,8 @@ export const CreateEventForm = () => {
                 <Input placeholder="Capacity" type="number" {...field} />
               </FormControl>
               <FormDescription>
-                The maximum number of tickets sold
+                Maximum ticket limit prevents further purchases after reaching
+                the specified number.
               </FormDescription>
               <FormMessage />
             </FormItem>

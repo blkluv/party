@@ -351,7 +351,13 @@ export const eventsRouter = router({
     }
   ),
   createPromotionCode: protectedEventProcedure
-    .input(insertPromotionCodeSchema.pick({ name: true, couponId: true }))
+    .input(
+      insertPromotionCodeSchema.pick({
+        name: true,
+        couponId: true,
+        code: true,
+      })
+    )
     .query(async ({ ctx, input }) => {
       const foundCoupon = await ctx.db.query.coupons.findFirst({
         where: and(
@@ -369,6 +375,7 @@ export const eventsRouter = router({
 
       const newPromotionCode = await ctx.stripe.promotionCodes.create({
         coupon: foundCoupon?.stripeCouponId,
+        code: input.code,
       });
 
       return await ctx.db

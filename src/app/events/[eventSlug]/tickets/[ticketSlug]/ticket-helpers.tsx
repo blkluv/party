@@ -1,6 +1,7 @@
 "use client";
 
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { FC } from "react";
 import { Button } from "~/app/_components/ui/button";
 import {
   Dialog,
@@ -9,6 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/app/_components/ui/dialog";
+import { SHOW_LOCATION_HOURS_THRESHOLD } from "~/config/constants";
 
 export const TicketInfoButton = () => {
   return (
@@ -24,8 +26,15 @@ export const TicketInfoButton = () => {
         <DialogDescription>
           Here&apos;s what you need to know about your ticket.
         </DialogDescription>
-        <p>The event location will be released 1h before the event begins</p>
+        <p>
+          The event location will be released {SHOW_LOCATION_HOURS_THRESHOLD}h
+          before the event begins
+        </p>
       </DialogContent>
     </Dialog>
   );
+};
+
+export const LocationView: FC<{ location: string }> = (props) => {
+  return <div></div>;
 };

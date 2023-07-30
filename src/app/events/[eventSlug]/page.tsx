@@ -49,22 +49,6 @@ const getEventData = cache(async (slug: string) => {
   });
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(
-    env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL
-  ),
-  title: getPageTitle("Home"),
-  description:
-    "Party Box is a cutting-edge web platform that aims to revolutionize the way university students discover and share parties and events. Party Box caters to the spontaneous nature of parties and other gatherings, empowering users to stay socially connected.",
-  openGraph: {
-    url: env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL,
-    images: [{ url: "/images/partybox-meta.png", width: 1200, height: 630 }],
-    title: getPageTitle("Home"),
-    description:
-      "Party Box is a cutting-edge web platform that aims to revolutionize the way university students discover and share parties and events. Party Box caters to the spontaneous nature of parties and other gatherings, empowering users to stay socially connected.",
-  },
-};
-
 export const generateMetadata = async (
   props: PageProps,
   _parent?: ResolvingMetadata
