@@ -31,8 +31,9 @@ export const TicketInfoButton = () => {
           Here&apos;s what you need to know about your ticket.
         </DialogDescription>
         <p>
-          The event location will be released {SHOW_LOCATION_HOURS_THRESHOLD}h
-          before the event begins
+          Your ticket will display the event location{" "}
+          {SHOW_LOCATION_HOURS_THRESHOLD} hours before the designated event
+          start time.
         </p>
       </DialogContent>
     </Dialog>

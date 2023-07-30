@@ -212,7 +212,7 @@ export const CreateEventForm = () => {
             <FormItem>
               <FormLabel>Location</FormLabel>
               <FormControl>
-                <Textarea placeholder="Location" {...field} />
+                <Input placeholder="Location" {...field} />
               </FormControl>
               <FormDescription>
                 The location where this event will take place.

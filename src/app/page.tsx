@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL
+    `https://${env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL}`
   ),
   title: getPageTitle("Home"),
   description:

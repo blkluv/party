@@ -18,7 +18,7 @@ export const TicketTierListing: FC<{
   eventId: number;
 }> = (props) => {
   const { mutateAsync: createTicketCheckoutSession } =
-    trpc.events.createTicketCheckoutSession.useMutation();
+    trpc.events.createTicketPurchaseUrl.useMutation();
 
   const { push } = useRouter();
   const user = useUser();

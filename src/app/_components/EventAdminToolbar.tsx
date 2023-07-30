@@ -33,7 +33,7 @@ export const EventAdminToolbar: FC<{ eventId: number }> = (props) => {
   return (
     <div>
       <Dialog>
-        <DialogTrigger>
+        <DialogTrigger asChild>
           <Button variant="ghost">
             <TrashIcon className="w-4 h-4" />
           </Button>
@@ -67,7 +67,7 @@ export const EventAdminToolbar: FC<{ eventId: number }> = (props) => {
 const ManageEventDialog: FC<{ eventId: number }> = (props) => {
   return (
     <Dialog>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button variant="ghost">
           <Cog8ToothIcon className="w-4 h-4" />
         </Button>

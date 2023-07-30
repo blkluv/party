@@ -91,12 +91,13 @@ const Page = async (props: PageProps) => {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-8 p-2">
       <div className="relative h-96 w-full rounded-xl overflow-hidden">
+        <div className="bg-neutral-800 animate-pulse inset-0 absolute z-0" />
         <Image
           src={eventData.eventMedia.find((e) => e.isPoster)?.url ?? ""}
           width={1200}
           height={1200}
           alt=""
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover relative z-10"
         />
       </div>
       {isEventAdmin && (

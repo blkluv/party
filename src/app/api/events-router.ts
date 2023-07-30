@@ -180,7 +180,7 @@ export const eventsRouter = router({
       }
     ),
   media: eventMediaRouter,
-  createTicketCheckoutSession: protectedProcedure
+  createTicketPurchaseUrl: protectedProcedure
     .input(z.object({ ticketPriceId: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const ticketPriceData = await ctx.db.query.ticketPrices.findFirst({
@@ -195,10 +195,10 @@ export const eventsRouter = router({
         },
       });
 
-      if (!ticketPriceData || !ticketPriceData?.stripePriceId) {
+      if (!ticketPriceData) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Ticket data not found or does not have a Stripe price ID",
+          message: "Ticket price not found",
         });
       }
 
@@ -222,23 +222,39 @@ export const eventsRouter = router({
 
       const ticketSlug = generateSlug();
 
-      const checkout = await ctx.stripe.checkout.sessions.create({
-        success_url: `${
-          env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL
-        }/events/${ticketPriceData.event.slug}/tickets/${ticketSlug}`,
-        line_items: [
-          {
-            quantity: 1,
-            adjustable_quantity: { enabled: true, minimum: 1 },
-            price: ticketPriceData?.stripePriceId,
+      let stripeSessionId: string | null = null;
+
+      // The URL the user will be redirected to for next steps
+      // If the ticket price is free, this will be their ticket URL
+      // If the ticket is paid, this will be a checkout URL
+      let url = `/events/${ticketPriceData.event.slug}/tickets/${ticketSlug}`;
+
+      if (!ticketPriceData.isFree && ticketPriceData.stripePriceId) {
+        const checkout = await ctx.stripe.checkout.sessions.create({
+          success_url: `${
+            env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL
+          }/events/${ticketPriceData.event.slug}/tickets/${ticketSlug}`,
+          line_items: [
+            {
+              quantity: 1,
+              adjustable_quantity: { enabled: true, minimum: 1 },
+              price: ticketPriceData?.stripePriceId,
+            },
+          ],
+          mode: "payment",
+          allow_promotion_codes: true,
+          automatic_tax: {
+            enabled: process.env.NODE_ENV === "production",
           },
-        ],
-        mode: "payment",
-        allow_promotion_codes: true,
-        automatic_tax: {
-          enabled: process.env.NODE_ENV === "production",
-        },
-      });
+        });
+
+        stripeSessionId = checkout.id;
+
+        // If checkout.url is ever null, we have a problem
+        if (checkout.url) {
+          url = checkout.url;
+        }
+      }
 
       await ctx.db
         .insert(tickets)
@@ -250,13 +266,13 @@ export const eventsRouter = router({
           updatedAt: new Date(),
           ticketPriceId: input.ticketPriceId,
           userId: ctx.auth.userId,
-          stripeSessionId: checkout.id,
+          stripeSessionId,
           status: "pending",
         })
         .returning()
         .get();
 
-      return checkout.url;
+      return url;
     }),
   deleteEvent: protectedProcedure
     .input(z.object({ eventId: z.number() }))

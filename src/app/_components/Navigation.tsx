@@ -17,9 +17,14 @@ export const Navigation = () => {
     <>
       <div className="w-full sticky top-0 border-b px-4 py-2 bg-neutral-900/90 backdrop-blur z-50 sm:block hidden">
         <div className="flex justify-between items-center">
-          <Link href="/">
-            <CubeIcon className="w-8 h-8" />
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <CubeIcon className="w-8 h-8" />
+            </Link>
+            <Link href="/tickets">
+              <Button variant="ghost">Tickets</Button>
+            </Link>
+          </div>
           {match(Boolean(userAuth.userId))
             .with(false, () => (
               <Link href="/sign-in">

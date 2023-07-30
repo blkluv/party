@@ -84,6 +84,9 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
         <div className="w-48 h-48 z-0 bg-red-500 blur-[100px] rounded-full absolute top-1/2 left-1/2 -translate-x-[25%%] -translate-y-1/2" />
         <div className="w-48 h-48 z-0 bg-blue-500 blur-[100px] rounded-full absolute top-1/2 left-1/2 -translate-x-[75%] -translate-y-1/2" />
         <div className="border rounded-lg bg-neutral-900/50 relative z-10 px-8 pt-8 flex flex-col gap-4">
+          <p className="text-sm text-center font-medium">
+            Event #{ticketData.eventId}
+          </p>
           <QRCode
             value={`${
               env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL
@@ -100,7 +103,7 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
           </p>
           <div className="flex justify-evenly gap-2 border-t border-neutral-800">
             <TicketInfoButton />
-            {showLocation && (
+            {!showLocation && (
               <LocationDialog location={ticketData.event.location} />
             )}
           </div>
