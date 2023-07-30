@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { getFetch, httpLink, loggerLink } from "@trpc/client";
+import { httpBatchLink, loggerLink } from "@trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
 import { env } from "~/config/env";
@@ -26,13 +26,11 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
         loggerLink({
           enabled: () => process.env.NODE_ENV === "development",
         }),
-        httpLink({
+        httpBatchLink({
           url,
-          fetch: async (input, init?) => {
-            const fetch = getFetch();
-            return fetch(input, {
-              ...init,
-              mode: "no-cors",
+          fetch: (url, options) => {
+            return fetch(url, {
+              ...options,
               cache: "no-store",
               credentials: "include",
             });
