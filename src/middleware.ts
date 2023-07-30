@@ -6,8 +6,10 @@ import { NextResponse } from "next/server";
 // See https://clerk.com/docs/nextjs/middleware for more information about configuring your middleware
 export default authMiddleware({
   publicRoutes: ["/", "/events/:eventSlug", "/api/(.*)"],
-  afterAuth: () => {
-    return NextResponse.json({}, { status: 200 });
+  afterAuth: (_, req) => {
+    if (req.method === "OPTIONS") {
+      return NextResponse.json({}, { status: 200 });
+    }
   },
 });
 
