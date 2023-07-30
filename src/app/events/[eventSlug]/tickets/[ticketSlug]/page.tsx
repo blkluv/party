@@ -1,4 +1,4 @@
-import { auth, clerkClient } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs";
 import dayjs from "dayjs";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -21,13 +21,13 @@ const paymentValidationSchema = z
 const Page = async (props: { params: { ticketSlug: string } }) => {
   const db = getDb();
   const stripe = getStripeClient();
-  const userAuth = auth();
 
-  if (!userAuth.userId) {
+  const user = await currentUser();
+
+  if (!user) {
     redirect("/sign-in");
   }
 
-  const user = await clerkClient.users.getUser(userAuth.userId);
   const isAdmin = await isUserPlatformAdmin();
 
   const ticketData = await db.query.tickets.findFirst({
@@ -35,7 +35,7 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
       eq(tickets.slug, props.params.ticketSlug),
       // If the user is an admin, they are always allowed to view tickets
       // If not, the user needs to own the ticket
-      isAdmin ? undefined : eq(tickets.userId, userAuth.userId)
+      isAdmin ? undefined : eq(tickets.userId, user.id)
     ),
     with: {
       price: true,

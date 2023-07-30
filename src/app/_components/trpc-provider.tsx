@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, loggerLink } from "@trpc/client";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import superjson from "superjson";
 import { env } from "~/config/env";
 import { trpc } from "~/utils/trpc";
@@ -10,12 +10,11 @@ import { trpc } from "~/utils/trpc";
 export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const queryClient = useMemo(
+  const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: { queries: { staleTime: 5000 } },
-      }),
-    []
+      })
   );
 
   // Use Vercel URL if present
@@ -29,13 +28,6 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
         }),
         httpBatchLink({
           url,
-          fetch: async (input, init?) => {
-            return fetch(input, {
-              ...init,
-              cache: "no-store",
-              credentials: "include",
-            });
-          },
         }),
       ],
       transformer: superjson,
