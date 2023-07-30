@@ -1,6 +1,10 @@
 "use client";
 
-import { Cog8ToothIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  Cog8ToothIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
 import { FC } from "react";
@@ -92,6 +96,10 @@ const ManagePromotionCodes: FC<{ eventId: number }> = (props) => {
 
   return (
     <div>
+      <Button>
+        <p>Create Promotion Code</p>
+        <PlusIcon className="w-4 h-4 ml-2" />
+      </Button>
       {codes.map((e) => (
         <div key={`code ${e.id}`}>{e.name}</div>
       ))}
