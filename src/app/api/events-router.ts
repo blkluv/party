@@ -220,6 +220,16 @@ export const eventsRouter = router({
         });
       }
 
+      // Does the user already have a ticket for this event?
+      const existingTicket = await ctx.db.query.tickets.findFirst({
+        where: eq(tickets.userId, ctx.auth.userId),
+      });
+
+      // Send the user to their existing ticket
+      if (existingTicket) {
+        return `/events/${ticketPriceData.event.slug}/tickets/${existingTicket.slug}`;
+      }
+
       const ticketSlug = generateSlug();
 
       let stripeSessionId: string | null = null;
