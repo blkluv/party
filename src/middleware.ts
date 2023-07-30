@@ -1,4 +1,5 @@
 import { authMiddleware } from "@clerk/nextjs";
+import { NextResponse } from "next/server";
 
 // This example protects all routes including api/trpc routes
 // Please edit this to allow other routes to be public as needed.
@@ -9,6 +10,17 @@ export default authMiddleware({
     if (req.method === "OPTIONS") {
       return false;
     }
+
+    const response = NextResponse.next();
+
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set("Access-Control-Allow-Methods", "*");
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+
+    return response;
   },
 });
 
