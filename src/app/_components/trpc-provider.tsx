@@ -18,7 +18,12 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
     []
   );
 
-  const url = `${env.NEXT_PUBLIC_WEBSITE_URL}/api/trpc`;
+  // Use Vercel URL if present
+  const url = `${
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : env.NEXT_PUBLIC_WEBSITE_URL
+  }/api/trpc`;
 
   const [trpcClient] = useState(() =>
     trpc.createClient({
