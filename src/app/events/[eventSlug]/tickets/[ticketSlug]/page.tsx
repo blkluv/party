@@ -1,6 +1,7 @@
 import { auth, clerkClient } from "@clerk/nextjs";
 import dayjs from "dayjs";
 import { and, eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import QRCode from "react-qr-code";
 import { z } from "zod";
 import { SHOW_LOCATION_HOURS_THRESHOLD } from "~/config/constants";
@@ -9,7 +10,7 @@ import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
 import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import { getStripeClient } from "~/utils/stripe";
-import { TicketInfoButton } from "./ticket-helpers";
+import { LocationDialog, TicketInfoButton } from "./ticket-helpers";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
   const userAuth = auth();
 
   if (!userAuth.userId) {
-    return <div>User not logged in</div>;
+    redirect("/sign-in");
   }
 
   const user = await clerkClient.users.getUser(userAuth.userId);
@@ -43,7 +44,7 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
   });
 
   if (!ticketData || !ticketData.stripeSessionId) {
-    return <div>Could not find ticket</div>;
+    redirect("/");
   }
 
   // Update status of ticket if pending
@@ -82,7 +83,7 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
         <div className="w-48 h-48 z-0 bg-green-500 blur-[100px] rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full" />
         <div className="w-48 h-48 z-0 bg-red-500 blur-[100px] rounded-full absolute top-1/2 left-1/2 -translate-x-[25%%] -translate-y-1/2" />
         <div className="w-48 h-48 z-0 bg-blue-500 blur-[100px] rounded-full absolute top-1/2 left-1/2 -translate-x-[75%] -translate-y-1/2" />
-        <div className="border rounded-lg bg-neutral-900/50  relative z-10 px-8 pt-8 space-y-4">
+        <div className="border rounded-lg bg-neutral-900/50 relative z-10 px-8 pt-8 flex flex-col gap-4">
           <QRCode
             value={`${
               env.NEXT_PUBLIC_VERCEL_URL ?? env.NEXT_PUBLIC_WEBSITE_URL
@@ -93,11 +94,15 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
             {user.firstName} {user.lastName}
           </h1>
           <p className="text-center font-medium">
-            x{ticketData.quantity} Ticket
-            {ticketData.quantity > 1 ? "s" : ""} for {ticketData.event.name}
+            {`${ticketData.quantity} ticket${
+              ticketData.quantity > 1 ? "s" : ""
+            } for ${ticketData.event.name}`}
           </p>
-          <div className="flex justify-center border-t border-neutral-800">
+          <div className="flex justify-evenly gap-2 border-t border-neutral-800">
             <TicketInfoButton />
+            {showLocation && (
+              <LocationDialog location={ticketData.event.location} />
+            )}
           </div>
         </div>
       </div>

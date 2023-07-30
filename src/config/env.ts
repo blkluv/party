@@ -19,6 +19,7 @@ export const env = createEnv({
     NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: z.string(),
     NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: z.string(),
     NEXT_PUBLIC_WEBSITE_URL: z.string(),
+    NEXT_PUBLIC_MAPBOX_TOKEN: z.string(),
   },
   runtimeEnv: {
     NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL:
@@ -36,6 +37,7 @@ export const env = createEnv({
     NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
     DATABASE_URL: process.env.DATABASE_URL,
     DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN,
+    NEXT_PUBLIC_MAPBOX_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
     CLOUDFLARE_IMAGES_API_KEY: process.env.CLOUDFLARE_IMAGES_API_KEY,
     CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
   },
