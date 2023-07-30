@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { createContext } from "../context";
 import { appRouter } from "../trpc-router";
 
+export const dynamic = "force-dynamic";
+
 const handler = (request: Request) => {
   if (request.method === "OPTIONS") {
     return NextResponse.json({}, { status: 200 });
