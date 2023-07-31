@@ -83,7 +83,7 @@ const Page = async (props: PageProps) => {
   return (
     <div className="mx-auto w-full max-w-3xl p-2 flex flex-col gap-8">
       <Suspense
-        fallback={<LoadingSpinner size={55} className="mt-16 mx-auto" />}
+        fallback={<LoadingSpinner size={75} className="mt-24 mx-auto" />}
       >
         <EventView eventSlug={props.params.eventSlug} />
       </Suspense>
