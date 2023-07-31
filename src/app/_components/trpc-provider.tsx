@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, loggerLink } from "@trpc/client";
 import { useState } from "react";
 import superjson from "superjson";
-import { env } from "~/config/env";
 import { trpc } from "~/utils/trpc";
 
 export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -18,7 +17,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   // Use Vercel URL if present
-  const url = `${env.NEXT_PUBLIC_WEBSITE_URL}/api/trpc`;
+  const url = "/api/trpc";
 
   const [trpcClient] = useState(() =>
     trpc.createClient({

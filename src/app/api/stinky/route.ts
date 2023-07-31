@@ -1,5 +1,7 @@
+import { auth } from "@clerk/nextjs";
 import { NextResponse } from "next/server";
 
 export const GET = () => {
-  return NextResponse.json({ something: "gabungus" }, { status: 200 });
+  const userAuth = auth();
+  return NextResponse.json({ auth: userAuth }, { status: 200 });
 };
