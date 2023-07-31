@@ -56,7 +56,7 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
     const session = await stripe.checkout.sessions.retrieve(
       ticketData.stripeSessionId,
       {
-        expand: ["payment_intent"],
+        expand: ["payment_intent", "line_items"],
       }
     );
 
