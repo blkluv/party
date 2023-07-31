@@ -51,7 +51,7 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
   if (ticketData.status === "pending") {
     if (ticketData.price.isFree === false) {
       if (!ticketData.stripeSessionId) {
-        redirect("/");
+        redirect(`/events/${ticketData.event.slug}`);
       }
 
       const session = await stripe.checkout.sessions.retrieve(
@@ -75,6 +75,8 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
 
         ticketData.quantity = ticketLineItem.quantity;
         ticketData.status = "success";
+      } else {
+        redirect(`/events/${ticketData.event.slug}`);
       }
     } else {
       await db.update(tickets).set({ status: "success" }).run();
