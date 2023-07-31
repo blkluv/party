@@ -3,9 +3,10 @@ import { asc, eq } from "drizzle-orm";
 import { Metadata } from "next";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { cache } from "react";
+import { Suspense, cache } from "react";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { EventAdminToolbar } from "~/app/_components/EventAdminToolbar";
+import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { eventMedia, events, ticketPrices } from "~/db/schema";
@@ -79,7 +80,19 @@ export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
 };
 
 const Page = async (props: PageProps) => {
-  const eventData = await getEventData(props.params.eventSlug);
+  return (
+    <div className="mx-auto w-full max-w-3xl p-2 flex flex-col gap-8">
+      <Suspense
+        fallback={<LoadingSpinner size={55} className="mt-16 mx-auto" />}
+      >
+        <EventView eventSlug={props.params.eventSlug} />
+      </Suspense>
+    </div>
+  );
+};
+
+const EventView = async (props: { eventSlug: string }) => {
+  const eventData = await getEventData(props.eventSlug);
 
   if (!eventData) {
     redirect("/");
@@ -91,7 +104,7 @@ const Page = async (props: PageProps) => {
     userAuth.userId === eventData.userId || (await isUserPlatformAdmin());
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-8 p-2">
+    <>
       <div className="relative h-96 w-full rounded-xl overflow-hidden">
         <div className="bg-neutral-800 animate-pulse inset-0 absolute z-0" />
         <Image
@@ -132,7 +145,7 @@ const Page = async (props: PageProps) => {
           ))}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

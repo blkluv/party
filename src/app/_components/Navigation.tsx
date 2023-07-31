@@ -10,7 +10,7 @@ import { match } from "ts-pattern";
 import { MobileNavigationDrawer } from "./MobileNavigationDrawer";
 import { Button } from "./ui/button";
 
-export const Navigation = async () => {
+export const Navigation = () => {
   const userAuth = auth();
 
   return (
