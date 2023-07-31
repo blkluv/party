@@ -60,6 +60,7 @@ const getCouponString = (
   return `${coupon.name} - %${coupon.percentageDiscount}`;
 };
 export const ManagePromotionCodes: FC<{ eventId: number }> = (props) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data: codes = [], refetch: refetchCodes } =
     trpc.events.getAllPromotionCodes.useQuery({
       eventId: props.eventId,
@@ -71,9 +72,9 @@ export const ManagePromotionCodes: FC<{ eventId: number }> = (props) => {
     trpc.events.createPromotionCode.useMutation({
       onSuccess: () => {
         refetchCodes();
+        setIsDialogOpen(false);
       },
     });
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),

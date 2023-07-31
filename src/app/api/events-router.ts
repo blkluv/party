@@ -224,7 +224,8 @@ export const eventsRouter = router({
       const existingTicket = await ctx.db.query.tickets.findFirst({
         where: and(
           eq(tickets.eventId, ticketPriceData.eventId),
-          eq(tickets.userId, ctx.auth.userId)
+          eq(tickets.userId, ctx.auth.userId),
+          eq(tickets.status, "success")
         ),
       });
 
