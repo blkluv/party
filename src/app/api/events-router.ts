@@ -254,9 +254,6 @@ export const eventsRouter = router({
           ],
           mode: "payment",
           allow_promotion_codes: true,
-          automatic_tax: {
-            enabled: process.env.NODE_ENV === "production",
-          },
         });
 
         stripeSessionId = checkout.id;
