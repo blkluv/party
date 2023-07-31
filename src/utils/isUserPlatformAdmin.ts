@@ -1,17 +1,15 @@
-import { auth, clerkClient } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs";
 import { publicUserMetadataSchema } from "./userMetadataSchema";
 
 /**
  * SERVER ONLY
  */
 export const isUserPlatformAdmin = async () => {
-  const userAuth = auth();
+  const user = await currentUser();
 
-  if (!userAuth.userId) {
+  if (!user) {
     return false;
   }
-
-  const user = await clerkClient.users.getUser(userAuth.userId);
 
   const publicMetadata = publicUserMetadataSchema.safeParse(
     user.publicMetadata

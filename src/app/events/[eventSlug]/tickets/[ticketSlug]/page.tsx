@@ -46,10 +46,7 @@ const Page = async (props: {
   );
 };
 
-export const TicketView = async (props: {
-  eventSlug: string;
-  ticketSlug: string;
-}) => {
+const TicketView = async (props: { eventSlug: string; ticketSlug: string }) => {
   const db = getDb();
   const stripe = getStripeClient();
 
