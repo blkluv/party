@@ -16,9 +16,6 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
       })
   );
 
-  // Use Vercel URL if present
-  const url = "/api/trpc";
-
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
@@ -26,7 +23,7 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
           enabled: () => process.env.NODE_ENV === "development",
         }),
         httpBatchLink({
-          url,
+          url: "/api/trpc",
         }),
       ],
       transformer: superjson,
