@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { ClientDate } from "~/app/_components/ClientDate";
 import { EventAdminToolbar } from "~/app/_components/EventAdminToolbar";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
@@ -111,6 +112,9 @@ const Page = async (props: PageProps) => {
       )}
       <div className="space-y-2">
         <h1 className="font-bold text-2xl text-center">{eventData.name}</h1>
+        <p className="text-sm text-center text-gray-200">
+          <ClientDate date={eventData.startTime} />
+        </p>
         <p className="text-center">{eventData.description}</p>
       </div>
 
