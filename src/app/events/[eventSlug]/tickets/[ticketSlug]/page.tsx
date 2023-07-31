@@ -48,37 +48,31 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
   }
 
   // Update status of ticket if pending
-  if (ticketData.status === "pending") {
-    if (ticketData.price.isFree === false) {
-      if (!ticketData.stripeSessionId) {
-        redirect(`/events/${ticketData.event.slug}`);
+  if (ticketData.status === "pending" && ticketData.price.isFree === false) {
+    if (!ticketData.stripeSessionId) {
+      redirect(`/events/${ticketData.event.slug}`);
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(
+      ticketData.stripeSessionId,
+      {
+        expand: ["payment_intent"],
       }
+    );
 
-      const session = await stripe.checkout.sessions.retrieve(
-        ticketData.stripeSessionId,
-        {
-          expand: ["payment_intent"],
-        }
-      );
+    const paymentIntentStatus = paymentValidationSchema.safeParse(
+      session.payment_intent
+    );
 
-      const paymentIntentStatus = paymentValidationSchema.safeParse(
-        session.payment_intent
-      );
+    const ticketLineItem = session.line_items?.data[0];
 
-      const ticketLineItem = session.line_items?.data[0];
+    if (paymentIntentStatus.success && ticketLineItem?.quantity) {
+      await db
+        .update(tickets)
+        .set({ status: "success", quantity: ticketLineItem.quantity })
+        .run();
 
-      if (paymentIntentStatus.success && ticketLineItem?.quantity) {
-        await db
-          .update(tickets)
-          .set({ status: "success", quantity: ticketLineItem.quantity })
-          .run();
-
-        ticketData.quantity = ticketLineItem.quantity;
-        ticketData.status = "success";
-      }
-    } else {
-      await db.update(tickets).set({ status: "success" }).run();
-
+      ticketData.quantity = ticketLineItem.quantity;
       ticketData.status = "success";
     }
   }

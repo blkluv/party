@@ -276,7 +276,7 @@ export const eventsRouter = router({
           ticketPriceId: input.ticketPriceId,
           userId: ctx.auth.userId,
           stripeSessionId,
-          status: "pending",
+          status: ticketPriceData.isFree ? "success" : "pending",
         })
         .returning()
         .get();
