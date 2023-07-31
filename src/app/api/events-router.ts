@@ -222,7 +222,10 @@ export const eventsRouter = router({
 
       // Does the user already have a ticket for this event?
       const existingTicket = await ctx.db.query.tickets.findFirst({
-        where: eq(tickets.userId, ctx.auth.userId),
+        where: and(
+          eq(tickets.eventId, ticketPriceData.eventId),
+          eq(tickets.userId, ctx.auth.userId)
+        ),
       });
 
       // Send the user to their existing ticket
