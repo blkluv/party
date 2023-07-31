@@ -6,6 +6,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { DialogClose } from "@radix-ui/react-dialog";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FC } from "react";
 import { trpc } from "~/utils/trpc";
@@ -20,7 +21,9 @@ import {
 } from "./ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
-export const EventAdminToolbar: FC<{ eventId: number }> = (props) => {
+export const EventAdminToolbar: FC<{ eventId: number; eventSlug: string }> = (
+  props
+) => {
   const { push, refresh } = useRouter();
   const { mutate: deleteEvent, isLoading: isEventDeleting } =
     trpc.events.deleteEvent.useMutation({
@@ -59,12 +62,16 @@ export const EventAdminToolbar: FC<{ eventId: number }> = (props) => {
           </div>
         </DialogContent>
       </Dialog>
-      <ManageEventDialog eventId={props.eventId} />
+      <Link href={`/events/${props.eventSlug}/manage`}>
+        <Button variant="ghost">
+          <Cog8ToothIcon className="w-4 h-4" />
+        </Button>
+      </Link>
     </div>
   );
 };
 
-const ManageEventDialog: FC<{ eventId: number }> = (props) => {
+const _ManageEventDialog: FC<{ eventId: number }> = (props) => {
   return (
     <Dialog>
       <DialogTrigger asChild>

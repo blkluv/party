@@ -24,6 +24,7 @@ const getEventData = cache(async (slug: string) => {
       startTime: true,
       id: true,
       userId: true,
+      slug: true,
     },
     with: {
       eventMedia: {
@@ -102,7 +103,10 @@ const Page = async (props: PageProps) => {
       </div>
       {isEventAdmin && (
         <div className="flex justify-center">
-          <EventAdminToolbar eventId={eventData.id} />
+          <EventAdminToolbar
+            eventId={eventData.id}
+            eventSlug={eventData.slug}
+          />
         </div>
       )}
       <div className="space-y-2">

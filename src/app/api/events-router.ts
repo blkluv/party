@@ -368,8 +368,19 @@ export const eventsRouter = router({
         ),
         columns: {
           id: true,
-          name: true,
-          updatedAt: true,
+          code: true,
+          couponId: true,
+          createdAt: true,
+        },
+        with: {
+          coupon: {
+            columns: {
+              percentageDiscount: true,
+              id: true,
+              name: true,
+              createdAt: true,
+            },
+          },
         },
       });
     }
@@ -377,12 +388,11 @@ export const eventsRouter = router({
   createPromotionCode: protectedEventProcedure
     .input(
       insertPromotionCodeSchema.pick({
-        name: true,
         couponId: true,
         code: true,
       })
     )
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       const foundCoupon = await ctx.db.query.coupons.findFirst({
         where: and(
           eq(coupons.id, input.couponId),
@@ -411,7 +421,7 @@ export const eventsRouter = router({
           updatedAt: new Date(),
           userId: ctx.auth.userId,
           eventId: input.eventId,
-          name: input.name,
+          name: "Promotion Code",
           stripePromotionCodeId: newPromotionCode.id,
         })
         .returning()

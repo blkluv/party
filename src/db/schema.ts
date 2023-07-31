@@ -106,7 +106,17 @@ export const promotionCodeRelations = relations(promotionCodes, ({ one }) => ({
 export type PromotionCode = InferModel<typeof promotionCodes, "select">;
 export type NewPromotionCode = InferModel<typeof promotionCodes, "insert">;
 export const selectPromotionCodeSchema = createSelectSchema(promotionCodes);
-export const insertPromotionCodeSchema = createInsertSchema(promotionCodes);
+export const insertPromotionCodeSchema = createInsertSchema(promotionCodes, {
+  code: () =>
+    z
+      .string()
+      .min(3, {
+        message: "Promotion code must be at least 3 characters long.",
+      })
+      .refine((val) => new RegExp(/[A-z0-9]+/).test(val), {
+        message: "Promotion code does not match expected format. (ex. FALL20)",
+      }),
+});
 
 export const tickets = sqliteTable(
   "tickets",

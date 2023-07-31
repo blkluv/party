@@ -135,10 +135,6 @@ export const CreateEventForm = () => {
   }: z.infer<typeof formSchema>) => {
     const [hour, minute] = values.startTime.split(":").map(Number);
 
-    const res = await fetch("/api/stinky", { method: "GET" }).then((r) =>
-      r.json()
-    );
-    console.log(res);
     const newEvent = await createEvent({
       ...values,
       startTime: dayjs(startDate).hour(hour).minute(minute).toDate(),

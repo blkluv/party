@@ -3,13 +3,16 @@ import { and, eq } from "drizzle-orm";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getDb } from "~/db/client";
-import { events, promotionCodes } from "~/db/schema";
+import { events } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
+import { ManagementContainer } from "./event-management-helpers";
 
 type PageProps = { params: { eventSlug: string } };
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: getPageTitle("Promotion Codes"),
+  title: getPageTitle("Manage Event"),
 };
 
 const Page = async (props: PageProps) => {
@@ -31,11 +34,11 @@ const Page = async (props: PageProps) => {
     redirect("/");
   }
 
-  const codes = await db.query.promotionCodes.findMany({
-    where: eq(promotionCodes.eventId, event.id),
-  });
-
-  return <div></div>;
+  return (
+    <div className="mx-auto max-w-2xl w-full my-8">
+      <ManagementContainer eventId={event.id} />
+    </div>
+  );
 };
 
 export default Page;
