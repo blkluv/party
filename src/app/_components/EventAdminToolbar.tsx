@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Cog8ToothIcon,
-  PlusIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { Cog8ToothIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { DialogClose } from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,7 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
 export const EventAdminToolbar: FC<{ eventId: number; eventSlug: string }> = (
   props
@@ -67,49 +62,6 @@ export const EventAdminToolbar: FC<{ eventId: number; eventSlug: string }> = (
           <Cog8ToothIcon className="w-4 h-4" />
         </Button>
       </Link>
-    </div>
-  );
-};
-
-const _ManageEventDialog: FC<{ eventId: number }> = (props) => {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost">
-          <Cog8ToothIcon className="w-4 h-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogTitle>Manage Event</DialogTitle>
-        <Tabs defaultValue="promotion-codes">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="promotion-codes">Promotion Codes</TabsTrigger>
-            <TabsTrigger value="tickets">Tickets</TabsTrigger>
-          </TabsList>
-          <TabsContent value="promotion-codes">
-            <ManagePromotionCodes eventId={props.eventId} />
-          </TabsContent>
-          <TabsContent value="tickets"></TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-const ManagePromotionCodes: FC<{ eventId: number }> = (props) => {
-  const { data: codes = [] } = trpc.events.getAllPromotionCodes.useQuery({
-    eventId: props.eventId,
-  });
-
-  return (
-    <div>
-      <Button>
-        <p>Create Promotion Code</p>
-        <PlusIcon className="w-4 h-4 ml-2" />
-      </Button>
-      {codes.map((e) => (
-        <div key={`code ${e.id}`}>{e.name}</div>
-      ))}
     </div>
   );
 };
