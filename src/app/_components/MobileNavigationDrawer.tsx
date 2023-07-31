@@ -1,6 +1,7 @@
 "use client";
 
 import { Bars3Icon, PlusIcon, TicketIcon } from "@heroicons/react/24/outline";
+import { DialogClose } from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { Drawer } from "vaul";
 import { Button } from "./ui/button";
@@ -17,22 +18,26 @@ export const MobileNavigationDrawer = () => {
           <div className="rounded-full bg-gray-300 mx-auto h-1.5 w-1/6 my-2"></div>
           <div className="p-8 flex flex-col gap-4">
             <Link href="/events/new">
-              <Button
-                variant="ghost"
-                className="flex gap-8 justify-start w-full"
-              >
-                <PlusIcon className="w-8 h-8" />
-                <p className="font-medium text-lg">Create Event</p>
-              </Button>
+              <DialogClose asChild>
+                <Button
+                  variant="ghost"
+                  className="flex gap-8 justify-start w-full"
+                >
+                  <PlusIcon className="w-8 h-8" />
+                  <p className="font-medium text-lg">Create Event</p>
+                </Button>
+              </DialogClose>
             </Link>
             <Link href="/tickets">
-              <Button
-                variant="ghost"
-                className="flex gap-8 w-full justify-start"
-              >
-                <TicketIcon className="w-8 h-8" />
-                <p className="font-medium text-lg">Tickets</p>
-              </Button>
+              <DialogClose asChild>
+                <Button
+                  variant="ghost"
+                  className="flex gap-8 w-full justify-start"
+                >
+                  <TicketIcon className="w-8 h-8" />
+                  <p className="font-medium text-lg">Tickets</p>
+                </Button>
+              </DialogClose>
             </Link>
           </div>
         </Drawer.Content>

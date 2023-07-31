@@ -43,13 +43,13 @@ const Page = async () => {
   });
 
   return (
-    <div>
+    <div className="w-full max-w-lg mx-auto flex flex-col gap-2 p-4 sm:p-0">
       {foundTickets.map((e) => (
         <Link
           href={`/events/${e.event.slug}/tickets/${e.slug}`}
           key={`ticket ${e.id}`}
         >
-          <p>
+          <p className="bg-gray-800 rounded-lg p-4 font-medium">
             {e.quantity} tickets for {e.event.name}
           </p>
         </Link>
