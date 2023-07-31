@@ -10,7 +10,7 @@ import { match } from "ts-pattern";
 import { MobileNavigationDrawer } from "./MobileNavigationDrawer";
 import { Button } from "./ui/button";
 
-export const Navigation = () => {
+export const Navigation = async () => {
   const userAuth = auth();
 
   return (
@@ -21,9 +21,11 @@ export const Navigation = () => {
             <Link href="/">
               <CubeIcon className="w-8 h-8" />
             </Link>
-            <Link href="/tickets">
-              <Button variant="ghost">Tickets</Button>
-            </Link>
+            {userAuth.userId && (
+              <Link href="/tickets">
+                <Button variant="ghost">Tickets</Button>
+              </Link>
+            )}
           </div>
           {match(Boolean(userAuth.userId))
             .with(false, () => (
@@ -52,7 +54,6 @@ export const Navigation = () => {
         <Link href="/" className="w-12 h-12 flex justify-center items-center">
           <CubeIcon className="w-8 h-8" />
         </Link>
-        <MobileNavigationDrawer />
         {match(Boolean(userAuth.userId))
           .with(false, () => (
             <Link
@@ -63,9 +64,13 @@ export const Navigation = () => {
             </Link>
           ))
           .with(true, () => (
-            <div className="w-12 h-12 flex justify-center items-center">
-              <UserButton afterSignOutUrl="/" />
-            </div>
+            <>
+              <MobileNavigationDrawer />
+
+              <div className="w-12 h-12 flex justify-center items-center">
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            </>
           ))
           .exhaustive()}
       </div>
