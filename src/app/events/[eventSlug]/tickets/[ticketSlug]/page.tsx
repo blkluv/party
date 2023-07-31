@@ -75,14 +75,17 @@ const Page = async (props: { params: { ticketSlug: string } }) => {
 
         ticketData.quantity = ticketLineItem.quantity;
         ticketData.status = "success";
-      } else {
-        redirect(`/events/${ticketData.event.slug}`);
       }
     } else {
       await db.update(tickets).set({ status: "success" }).run();
 
       ticketData.status = "success";
     }
+  }
+
+  // Still not success, go back to event page
+  if (ticketData.status !== "success") {
+    redirect(`/events/${ticketData.event.slug}`);
   }
 
   const showLocation =
