@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -20,7 +20,10 @@ const Page = async () => {
   }
 
   const foundTickets = await db.query.tickets.findMany({
-    where: eq(tickets.userId, userAuth.userId),
+    where: and(
+      eq(tickets.userId, userAuth.userId),
+      eq(tickets.status, "success")
+    ),
     columns: {
       quantity: true,
       slug: true,
