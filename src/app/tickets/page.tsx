@@ -49,7 +49,7 @@ const Page = async () => {
           href={`/events/${e.event.slug}/tickets/${e.slug}`}
           key={`ticket ${e.id}`}
         >
-          <p className="bg-gray-800 rounded-lg p-4 font-medium">
+          <p className="bg-neutral-800 rounded-lg p-4 font-medium">
             {e.quantity} tickets for {e.event.name}
           </p>
         </Link>
