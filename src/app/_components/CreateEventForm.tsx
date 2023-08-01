@@ -31,6 +31,7 @@ import {
   FormMessage,
 } from "~/app/_components/ui/form";
 import { Input } from "~/app/_components/ui/input";
+import { DEFAULT_EVENT_IMAGE } from "~/config/default-image";
 import type { EventMedia } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { cn } from "~/utils/shadcn-ui";
@@ -141,19 +142,31 @@ export const CreateEventForm = () => {
       startTime: dayjs(startDate).hour(hour).minute(minute).toDate(),
     });
 
-    const downloadUrls = await uploadImages(mediaFiles.map((e) => e.file));
-    const isSomeMediaPoster = mediaFiles.some((e) => e.isPoster);
-
-    await createEventMedia(
-      mediaFiles.map((e, order) => ({
-        order,
-        // Default poster to first image
-        isPoster: isSomeMediaPoster ? e.isPoster : order === 0,
-        eventId: newEvent.id,
-        url: downloadUrls[order].url,
-        imageId: downloadUrls[order].id,
-      }))
-    );
+    if (mediaFiles.length === 0) {
+      // No media files. Set default
+      await createEventMedia([
+        {
+          order: 0,
+          isPoster: true,
+          eventId: newEvent.id,
+          url: DEFAULT_EVENT_IMAGE.url,
+          imageId: DEFAULT_EVENT_IMAGE.id,
+        },
+      ]);
+    } else {
+      const downloadUrls = await uploadImages(mediaFiles.map((e) => e.file));
+      const isSomeMediaPoster = mediaFiles.some((e) => e.isPoster);
+      await createEventMedia(
+        mediaFiles.map((e, order) => ({
+          order,
+          // Default poster to first image
+          isPoster: isSomeMediaPoster ? e.isPoster : order === 0,
+          eventId: newEvent.id,
+          url: downloadUrls[order].url,
+          imageId: downloadUrls[order].id,
+        }))
+      );
+    }
 
     push(`/events/${newEvent.slug}`);
   };
@@ -532,7 +545,7 @@ export const CreateEventForm = () => {
             )}
           />
         </div>
-        <Button type="submit" disabled={mediaFiles.length === 0}>
+        <Button type="submit">
           <p>Create Event</p>
           {form.formState.isSubmitting && (
             <ArrowPathIcon className="ml-2 animate-spin w-4 h-4" />

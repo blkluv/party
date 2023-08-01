@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import { nanoid } from "nanoid";
 import { z } from "zod";
+import { DEFAULT_EVENT_IMAGE } from "~/config/default-image";
 import { env } from "~/config/env";
 
 const createImageUrlResponseSchema = z.object({
@@ -47,6 +48,10 @@ export const createUploadUrls = async (count: number) => {
 };
 
 export const deleteImage = async (id: string) => {
+  if (id === DEFAULT_EVENT_IMAGE.id) {
+    return { success: true };
+  }
+
   try {
     const headers = new Headers();
     headers.set("Authorization", `Bearer ${env.CLOUDFLARE_IMAGES_API_KEY}`);
