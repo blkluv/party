@@ -13,7 +13,7 @@ export const events = sqliteTable("events", {
   userId: text("user_id").notNull(),
   stripeProductId: text("stripe_product_id").notNull(),
   isPublic: int("is_public", { mode: "boolean" }).notNull(),
-  isFeatured: int("is_public", { mode: "boolean" }).notNull(),
+  isFeatured: int("is_featured", { mode: "boolean" }).notNull(),
   capacity: int("capacity").notNull(),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),

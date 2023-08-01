@@ -108,6 +108,7 @@ export const eventsRouter = router({
             updatedAt: new Date(),
             createdAt: new Date(),
             stripeProductId: product.id,
+            isFeatured: ctx.isPlatformAdmin ? eventInput.isFeatured : false,
           })
           .returning()
           .get();

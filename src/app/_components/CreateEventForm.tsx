@@ -57,9 +57,10 @@ const formSchema = createEventSchema
 export const CreateEventForm = () => {
   const user = useUser();
   const { push } = useRouter();
-  const isAdmin =
+  const isAdmin = Boolean(
     user.user &&
-    (user.user.publicMetadata as PublicUserMetadata).platformRole === "admin";
+      (user.user.publicMetadata as PublicUserMetadata).platformRole === "admin"
+  );
 
   const [mediaPreviewUrls, setMediaPreviewUrls] = useState<PreviewUrl[]>([]);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
@@ -74,6 +75,7 @@ export const CreateEventForm = () => {
       description: "",
       startDate: new Date(),
       isPublic: true,
+      isFeatured: isAdmin,
       capacity: 100,
       location: "",
       // Ticket price is in dollars CAD
@@ -258,6 +260,29 @@ export const CreateEventForm = () => {
             </FormItem>
           )}
         />
+        {isAdmin && (
+          <FormField
+            control={form.control}
+            name="isFeatured"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base">Featured</FormLabel>
+                  <FormDescription>
+                    Featured events are shown at the top of the home page and
+                    are generally promoted better than regular events.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="capacity"

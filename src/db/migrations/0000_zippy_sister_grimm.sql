@@ -28,6 +28,7 @@ CREATE TABLE `events` (
 	`user_id` text NOT NULL,
 	`stripe_product_id` text NOT NULL,
 	`is_public` integer NOT NULL,
+	`is_featured` integer NOT NULL,
 	`capacity` integer NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL

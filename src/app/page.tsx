@@ -1,11 +1,11 @@
 import { CubeIcon } from "@heroicons/react/24/outline";
-import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, gt } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { getDb } from "~/db/client";
-import { eventMedia, events, ticketPrices } from "~/db/schema";
+import { eventMedia, events } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { ClientDate } from "./_components/ClientDate";
 
@@ -17,16 +17,6 @@ export const metadata: Metadata = {
 
 const getFeaturedEvents = async () => {
   const db = getDb();
-
-  const paidEventsQuery = await db
-    .select({ eventId: sql<string>`distinct ${ticketPrices.eventId}` })
-    .from(ticketPrices)
-    .where(eq(ticketPrices.isFree, false))
-    .all();
-
-  if (paidEventsQuery.length === 0) {
-    return [];
-  }
 
   const foundEvents = await db.query.events.findMany({
     columns: {
@@ -44,10 +34,7 @@ const getFeaturedEvents = async () => {
     where: and(
       gt(events.startTime, new Date()),
       eq(events.isPublic, true),
-      inArray(
-        events.id,
-        paidEventsQuery.map((e) => e.eventId)
-      )
+      eq(events.isFeatured, true)
     ),
   });
 

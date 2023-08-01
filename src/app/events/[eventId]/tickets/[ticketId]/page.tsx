@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import QRCode from "react-qr-code";
 import { z } from "zod";
+import { ClientDate } from "~/app/_components/ClientDate";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { SHOW_LOCATION_HOURS_THRESHOLD } from "~/config/constants";
 import { env } from "~/config/env";
@@ -27,7 +28,7 @@ const paymentValidationSchema = z
   .strip();
 
 const Page = async (props: {
-  params: { ticketSlug: string; eventId: string };
+  params: { ticketId: string; eventId: string };
 }) => {
   return (
     <div className="flex justify-center items-center flex-1 p-2">
@@ -38,7 +39,7 @@ const Page = async (props: {
         <Suspense fallback={<LoadingSpinner size={55} />}>
           <TicketView
             eventId={props.params.eventId}
-            ticketId={props.params.ticketSlug}
+            ticketId={props.params.ticketId}
           />
         </Suspense>
       </div>
@@ -116,9 +117,17 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
 
   return (
     <div className="border rounded-lg bg-neutral-900/50 relative z-10 px-8 pt-8 flex flex-col gap-4">
-      <p className="text-sm text-center font-medium">
-        Event #{ticketData.eventId}
-      </p>
+      <div>
+        <p className="text-sm text-center font-medium">
+          {ticketData.event.name}
+        </p>
+        <p className="text-sm text-center font-medium text-gray-300">
+          <ClientDate
+            date={ticketData.event.startTime}
+            format="D/M/YYYY [at] hh:mm a"
+          />
+        </p>
+      </div>
       <QRCode
         value={`${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketData.event.id}/tickets/${ticketData.id}`}
         className="shadow-md border border-gray-300"
@@ -127,9 +136,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
         {user.firstName} {user.lastName}
       </h1>
       <p className="text-center font-medium">
-        {`${ticketData.quantity} ticket${
-          ticketData.quantity > 1 ? "s" : ""
-        } for ${ticketData.event.name}`}
+        {`${ticketData.quantity} ticket${ticketData.quantity > 1 ? "s" : ""}`}
       </p>
       <div className="flex justify-evenly gap-2 border-t border-neutral-800">
         <TicketInfoButton />
