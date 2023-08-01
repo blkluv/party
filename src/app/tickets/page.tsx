@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   title: getPageTitle("My Tickets"),
 };
 
+export const dynamic = "force-dynamic";
+
 const Page = async () => {
   return (
     <div className="w-full max-w-lg mx-auto my-8">
