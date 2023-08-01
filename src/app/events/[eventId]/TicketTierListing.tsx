@@ -4,6 +4,7 @@ import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import type { FC } from "react";
 import { useState } from "react";
+import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { Button } from "~/app/_components/ui/button";
 import {
   Dialog,
@@ -18,7 +19,7 @@ export const TicketTierListing: FC<{
   data: Pick<TicketPrice, "name" | "price" | "isFree" | "id">;
   eventId: string;
 }> = (props) => {
-  const { mutateAsync: createTicketCheckoutSession } =
+  const { mutateAsync: createTicketCheckoutSession, isLoading } =
     trpc.events.createTicketPurchaseUrl.useMutation();
 
   const { push } = useRouter();
@@ -52,7 +53,8 @@ export const TicketTierListing: FC<{
           handleClaimTicket();
         }}
       >
-        Claim Ticket
+        <p>Claim Ticket</p>
+        {isLoading && <LoadingSpinner className="ml-2" />}
       </Button>
       {showLoginPrompt && <LoginPrompt onOpenChange={setShowLoginPrompt} />}
     </div>
