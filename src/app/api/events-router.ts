@@ -1,7 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { env } from "~/config/env";
 import type { Coupon, NewTicketPrice, TicketPrice } from "~/db/schema";
@@ -284,8 +283,6 @@ export const eventsRouter = router({
         })
         .returning()
         .get();
-
-      revalidatePath("/tickets");
 
       return url;
     }),

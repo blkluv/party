@@ -22,7 +22,7 @@ export const TicketTierListing: FC<{
   const { mutateAsync: createTicketCheckoutSession, isLoading } =
     trpc.events.createTicketPurchaseUrl.useMutation();
 
-  const { push } = useRouter();
+  const { push, refresh } = useRouter();
   const user = useUser();
 
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -38,6 +38,7 @@ export const TicketTierListing: FC<{
     });
 
     if (data) {
+      refresh();
       push(data);
     }
   };
