@@ -332,6 +332,11 @@ export const eventsRouter = router({
         .where(eq(tickets.eventId, input.eventId))
         .run();
 
+      await ctx.db
+        .delete(ticketPrices)
+        .where(eq(ticketPrices.eventId, ticketPrices.eventId))
+        .run();
+
       const deletedEvent = await ctx.db
         .delete(events)
         .where(eq(events.id, input.eventId))
