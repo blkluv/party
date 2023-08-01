@@ -271,7 +271,7 @@ export const eventsRouter = router({
       await ctx.db
         .insert(tickets)
         .values({
-          id: createId(),
+          id: ticketId,
           createdAt: new Date(),
           eventId: ticketPriceData.eventId,
           quantity: 1,
