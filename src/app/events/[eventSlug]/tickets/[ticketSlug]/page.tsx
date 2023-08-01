@@ -1,7 +1,7 @@
 import { currentUser } from "@clerk/nextjs";
 import dayjs from "dayjs";
 import { and, eq } from "drizzle-orm";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import QRCode from "react-qr-code";

@@ -1,4 +1,5 @@
-import { InferModel, relations } from "drizzle-orm";
+import type { InferModel } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import {
   int,
   real,

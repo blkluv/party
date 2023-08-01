@@ -1,6 +1,6 @@
 import { CubeIcon } from "@heroicons/react/24/outline";
 import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -10,6 +10,7 @@ import { getPageTitle } from "~/utils/getPageTitle";
 import { ClientDate } from "./_components/ClientDate";
 
 export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
 export const metadata: Metadata = {
   title: getPageTitle("Home"),

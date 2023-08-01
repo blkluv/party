@@ -1,7 +1,8 @@
 "use client";
 
 import dayjs from "dayjs";
-import { FC, useMemo } from "react";
+import type { FC } from "react";
+import { useMemo } from "react";
 
 export const ClientDate: FC<{ date: Date }> = (props) => {
   const str = useMemo(() => {

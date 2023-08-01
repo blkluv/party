@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { CreateEventForm } from "~/app/_components/CreateEventForm";
 import { getPageTitle } from "~/utils/getPageTitle";

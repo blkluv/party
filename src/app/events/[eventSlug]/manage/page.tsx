@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs";
 import { and, eq } from "drizzle-orm";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getDb } from "~/db/client";
 import { events } from "~/db/schema";
