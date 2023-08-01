@@ -4,7 +4,6 @@ import { createContext } from "../context";
 import { appRouter } from "../trpc-router";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
 
 const handler = (request: Request) => {
   if (request.method === "OPTIONS") {

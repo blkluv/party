@@ -4,7 +4,7 @@ import { Cog8ToothIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { DialogClose } from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FC } from "react";
+import type { FC } from "react";
 import { trpc } from "~/utils/trpc";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { Button } from "./ui/button";

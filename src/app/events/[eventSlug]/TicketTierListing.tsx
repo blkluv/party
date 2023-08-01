@@ -2,7 +2,8 @@
 
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { FC, useState } from "react";
+import type { FC } from "react";
+import { useState } from "react";
 import { Button } from "~/app/_components/ui/button";
 import {
   Dialog,
@@ -10,7 +11,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "~/app/_components/ui/dialog";
-import { TicketPrice } from "~/db/schema";
+import type { TicketPrice } from "~/db/schema";
 import { trpc } from "~/utils/trpc";
 
 export const TicketTierListing: FC<{

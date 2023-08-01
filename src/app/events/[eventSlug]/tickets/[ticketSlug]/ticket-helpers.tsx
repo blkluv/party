@@ -3,7 +3,8 @@
 import { InformationCircleIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { FC, useEffect, useRef, useState } from "react";
+import type { FC } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "~/app/_components/ui/button";
 import {
   Dialog,

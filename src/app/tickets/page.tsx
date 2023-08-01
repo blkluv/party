@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs";
 import { and, eq } from "drizzle-orm";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 const Page = async () => {
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <div className="w-full max-w-lg mx-auto my-8">
       <Suspense fallback={<TicketsLoadingSkeleton />}>
         <TicketsList />
       </Suspense>
@@ -90,7 +90,7 @@ const TicketsList = async () => {
       {foundTickets.map((e) => (
         <Link
           key={e.id}
-          href={`/events/${e.event.slug}/ticket/${e.slug}`}
+          href={`/events/${e.event.slug}/tickets/${e.slug}`}
           className="relative hover:scale-105 transition"
         >
           <div className="absolute rounded-lg overflow-hidden inset-0 w-full brightness-[60%] dark:bg-neutral-900">

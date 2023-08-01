@@ -15,7 +15,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FC, useCallback, useEffect, useState } from "react";
+import type { FC } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -30,12 +31,12 @@ import {
   FormMessage,
 } from "~/app/_components/ui/form";
 import { Input } from "~/app/_components/ui/input";
-import { EventMedia } from "~/db/schema";
+import type { EventMedia } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { cn } from "~/utils/shadcn-ui";
 import { trpc } from "~/utils/trpc";
 import { useUploadImages } from "~/utils/uploads";
-import { PublicUserMetadata } from "~/utils/userMetadataSchema";
+import type { PublicUserMetadata } from "~/utils/userMetadataSchema";
 import { Calendar } from "./ui/calendar";
 import { Label } from "./ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";

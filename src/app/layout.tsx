@@ -31,18 +31,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <TrpcProvider>
-        <html lang="en">
-          <body className={cn(inter.className, "dark")}>
+    <html lang="en">
+      <body className={cn(inter.className, "dark")}>
+        <ClerkProvider>
+          <TrpcProvider>
             <div className="min-h-screen bg-white dark:bg-neutral-900 text-black dark:text-white flex flex-col pb-16 sm:pb-0">
               <Navigation />
               <div className="flex flex-col flex-1">{children}</div>
             </div>
-            <Analytics />
-          </body>
-        </html>
-      </TrpcProvider>
-    </ClerkProvider>
+          </TrpcProvider>
+        </ClerkProvider>
+        <Analytics />
+      </body>
+    </html>
   );
 }

@@ -2,11 +2,12 @@
 
 import { ArrowPathIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { inferProcedureOutput } from "@trpc/server";
+import type { inferProcedureOutput } from "@trpc/server";
 import dayjs from "dayjs";
-import { FC, useState } from "react";
+import type { FC } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import type { z } from "zod";
 import { Button } from "~/app/_components/ui/button";
 import {
   Dialog,
@@ -41,7 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/app/_components/ui/table";
-import { AppRouter } from "~/app/api/trpc/trpc-router";
+import type { AppRouter } from "~/app/api/trpc/trpc-router";
 import { insertPromotionCodeSchema } from "~/db/schema";
 import { trpc } from "~/utils/trpc";
 

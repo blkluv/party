@@ -1,4 +1,4 @@
-import { FC } from "react";
+import type { FC } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import { cn } from "~/utils/shadcn-ui";
 

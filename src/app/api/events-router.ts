@@ -2,10 +2,8 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "~/config/env";
+import type { Coupon, NewTicketPrice, TicketPrice } from "~/db/schema";
 import {
-  Coupon,
-  NewTicketPrice,
-  TicketPrice,
   coupons,
   eventMedia,
   events,
@@ -115,7 +113,7 @@ export const eventsRouter = router({
         const createdTicketPrices: TicketPrice[] = [];
 
         for (const price of ticketPricesInput) {
-          let priceData: NewTicketPrice = {
+          const priceData: NewTicketPrice = {
             eventId: event.id,
             name: price.name,
             price: price.price,

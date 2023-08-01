@@ -10,7 +10,6 @@ import { getPageTitle } from "~/utils/getPageTitle";
 import { ClientDate } from "./_components/ClientDate";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
 
 export const metadata: Metadata = {
   title: getPageTitle("Home"),
