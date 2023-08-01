@@ -15,9 +15,9 @@ import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import { TicketTierListing } from "./TicketTierListing";
 
 export const dynamic = "force-dynamic";
-type PageProps = { params: { eventSlug: string } };
+type PageProps = { params: { eventId: string } };
 
-const getEventData = cache(async (slug: string) => {
+const getEventData = cache(async (id: string) => {
   const db = getDb();
   return await db.query.events.findFirst({
     columns: {
@@ -26,7 +26,6 @@ const getEventData = cache(async (slug: string) => {
       startTime: true,
       id: true,
       userId: true,
-      slug: true,
     },
     with: {
       eventMedia: {
@@ -48,12 +47,12 @@ const getEventData = cache(async (slug: string) => {
         orderBy: asc(ticketPrices.price),
       },
     },
-    where: eq(events.slug, slug),
+    where: eq(events.id, id),
   });
 });
 
 export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
-  const eventData = await getEventData(props.params.eventSlug);
+  const eventData = await getEventData(props.params.eventId);
 
   if (!eventData) {
     return {};
@@ -85,14 +84,14 @@ const Page = async (props: PageProps) => {
       <Suspense
         fallback={<LoadingSpinner size={75} className="mt-24 mx-auto" />}
       >
-        <EventView eventSlug={props.params.eventSlug} />
+        <EventView eventId={props.params.eventId} />
       </Suspense>
     </div>
   );
 };
 
-const EventView = async (props: { eventSlug: string }) => {
-  const eventData = await getEventData(props.eventSlug);
+const EventView = async (props: { eventId: string }) => {
+  const eventData = await getEventData(props.eventId);
 
   if (!eventData) {
     redirect("/");
@@ -117,10 +116,7 @@ const EventView = async (props: { eventSlug: string }) => {
       </div>
       {isEventAdmin && (
         <div className="flex justify-center">
-          <EventAdminToolbar
-            eventId={eventData.id}
-            eventSlug={eventData.slug}
-          />
+          <EventAdminToolbar eventId={eventData.id} />
         </div>
       )}
       <div className="space-y-2">

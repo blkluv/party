@@ -19,7 +19,7 @@ const getFeaturedEvents = async () => {
   const db = getDb();
 
   const paidEventsQuery = await db
-    .select({ eventId: sql<number>`distinct ${ticketPrices.eventId}` })
+    .select({ eventId: sql<string>`distinct ${ticketPrices.eventId}` })
     .from(ticketPrices)
     .where(eq(ticketPrices.isFree, false))
     .all();
@@ -34,7 +34,6 @@ const getFeaturedEvents = async () => {
       id: true,
       name: true,
       startTime: true,
-      slug: true,
     },
     with: {
       eventMedia: {
@@ -105,7 +104,7 @@ const EventsList = async () => {
       {foundEvents.map((e) => (
         <Link
           key={e.id}
-          href={`/events/${e.slug}`}
+          href={`/events/${e.id}`}
           className="relative hover:scale-105 transition"
         >
           <div className="absolute rounded-lg overflow-hidden inset-0 w-full brightness-[60%] dark:bg-neutral-900">

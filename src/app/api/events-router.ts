@@ -1,3 +1,4 @@
+import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -14,7 +15,6 @@ import {
   tickets,
 } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
-import { generateSlug } from "~/utils/generateSlug";
 import { createUploadUrls, deleteImage } from "~/utils/images";
 import {
   protectedEventProcedure,
@@ -45,7 +45,9 @@ export const eventMediaRouter = router({
     .mutation(async ({ ctx, input }) => {
       const media = await ctx.db
         .insert(eventMedia)
-        .values(input.map((e) => ({ ...e, userId: ctx.auth.userId })))
+        .values(
+          input.map((e) => ({ ...e, userId: ctx.auth.userId, id: createId() }))
+        )
         .returning()
         .get();
 
@@ -90,19 +92,19 @@ export const eventsRouter = router({
           });
         }
 
-        const eventSlug = generateSlug();
+        const eventId = createId();
         const product = await ctx.stripe.products.create({
           name: eventInput.name,
           description: eventInput.description,
-          metadata: { eventSlug },
+          metadata: { eventId },
         });
 
         const event = await ctx.db
           .insert(events)
           .values({
             ...eventInput,
+            id: eventId,
             userId: ctx.auth.userId,
-            slug: eventSlug,
             updatedAt: new Date(),
             createdAt: new Date(),
             stripeProductId: product.id,
@@ -114,6 +116,7 @@ export const eventsRouter = router({
 
         for (const price of ticketPricesInput) {
           const priceData: NewTicketPrice = {
+            id: createId(),
             eventId: event.id,
             name: price.name,
             price: price.price,
@@ -156,6 +159,7 @@ export const eventsRouter = router({
           const coupon = await ctx.db
             .insert(coupons)
             .values({
+              id: createId(),
               createdAt: new Date(),
               updatedAt: new Date(),
               eventId: event.id,
@@ -179,14 +183,14 @@ export const eventsRouter = router({
     ),
   media: eventMediaRouter,
   createTicketPurchaseUrl: protectedProcedure
-    .input(z.object({ ticketPriceId: z.number() }))
+    .input(z.object({ ticketPriceId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const ticketPriceData = await ctx.db.query.ticketPrices.findFirst({
         where: eq(ticketPrices.id, input.ticketPriceId),
         with: {
           event: {
             columns: {
-              slug: true,
+              id: true,
               capacity: true,
             },
           },
@@ -229,21 +233,21 @@ export const eventsRouter = router({
 
       // Send the user to their existing ticket
       if (existingTicket) {
-        return `/events/${ticketPriceData.event.slug}/tickets/${existingTicket.slug}`;
+        return `/events/${ticketPriceData.event.id}/tickets/${existingTicket.id}`;
       }
 
-      const ticketSlug = generateSlug();
+      const ticketId = createId();
 
       let stripeSessionId: string | null = null;
 
       // The URL the user will be redirected to for next steps
       // If the ticket price is free, this will be their ticket URL
       // If the ticket is paid, this will be a checkout URL
-      let url = `/events/${ticketPriceData.event.slug}/tickets/${ticketSlug}`;
+      let url = `/events/${ticketPriceData.event.id}/tickets/${ticketId}`;
 
       if (!ticketPriceData.isFree && ticketPriceData.stripePriceId) {
         const checkout = await ctx.stripe.checkout.sessions.create({
-          success_url: `${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketPriceData.event.slug}/tickets/${ticketSlug}`,
+          success_url: `${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketPriceData.event.id}/tickets/${ticketId}`,
           line_items: [
             {
               quantity: 1,
@@ -266,10 +270,10 @@ export const eventsRouter = router({
       await ctx.db
         .insert(tickets)
         .values({
+          id: createId(),
           createdAt: new Date(),
           eventId: ticketPriceData.eventId,
           quantity: 1,
-          slug: ticketSlug,
           updatedAt: new Date(),
           ticketPriceId: input.ticketPriceId,
           userId: ctx.auth.userId,
@@ -282,7 +286,7 @@ export const eventsRouter = router({
       return url;
     }),
   deleteEvent: protectedProcedure
-    .input(z.object({ eventId: z.number() }))
+    .input(z.object({ eventId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       // Delete promo codes
       const event = await ctx.db.query.events.findFirst({
@@ -419,6 +423,7 @@ export const eventsRouter = router({
       return await ctx.db
         .insert(promotionCodes)
         .values({
+          id: createId(),
           code: newPromotionCode.code,
           couponId: input.couponId,
           createdAt: new Date(),

@@ -52,14 +52,12 @@ const TicketsList = async () => {
     ),
     columns: {
       quantity: true,
-      slug: true,
       id: true,
     },
     with: {
       event: {
         columns: {
           id: true,
-          slug: true,
           name: true,
           description: true,
           startTime: true,
@@ -90,7 +88,7 @@ const TicketsList = async () => {
       {foundTickets.map((e) => (
         <Link
           key={e.id}
-          href={`/events/${e.event.slug}/tickets/${e.slug}`}
+          href={`/events/${e.event.id}/tickets/${e.id}`}
           className="relative hover:scale-105 transition"
         >
           <div className="absolute rounded-lg overflow-hidden inset-0 w-full brightness-[60%] dark:bg-neutral-900">

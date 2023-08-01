@@ -16,7 +16,7 @@ import { trpc } from "~/utils/trpc";
 
 export const TicketTierListing: FC<{
   data: Pick<TicketPrice, "name" | "price" | "isFree" | "id">;
-  eventId: number;
+  eventId: string;
 }> = (props) => {
   const { mutateAsync: createTicketCheckoutSession } =
     trpc.events.createTicketPurchaseUrl.useMutation();

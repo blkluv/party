@@ -1,35 +1,23 @@
 import type { InferModel } from "drizzle-orm";
 import { relations } from "drizzle-orm";
-import {
-  int,
-  real,
-  sqliteTable,
-  text,
-  uniqueIndex,
-} from "drizzle-orm/sqlite-core";
+import { int, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const events = sqliteTable(
-  "events",
-  {
-    id: int("id").primaryKey(),
-    name: text("name").notNull(),
-    description: text("description").notNull(),
-    startTime: int("start_time", { mode: "timestamp_ms" }).notNull(),
-    location: text("location").notNull(),
-    userId: text("user_id").notNull(),
-    slug: text("slug").notNull(),
-    stripeProductId: text("stripe_product_id").notNull(),
-    isPublic: int("is_public", { mode: "boolean" }).notNull(),
-    capacity: int("capacity").notNull(),
-    createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
-    updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
-  },
-  (table) => ({
-    slugIndex: uniqueIndex("event_slug_index").on(table.slug),
-  })
-);
+export const events = sqliteTable("events", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  startTime: int("start_time", { mode: "timestamp_ms" }).notNull(),
+  location: text("location").notNull(),
+  userId: text("user_id").notNull(),
+  stripeProductId: text("stripe_product_id").notNull(),
+  isPublic: int("is_public", { mode: "boolean" }).notNull(),
+  isFeatured: int("is_public", { mode: "boolean" }).notNull(),
+  capacity: int("capacity").notNull(),
+  createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
 
 export const eventsRelations = relations(events, ({ many }) => ({
   tickets: many(tickets),
@@ -60,10 +48,10 @@ export const insertEventSchema = createInsertSchema(events, {
 });
 
 export const coupons = sqliteTable("coupons", {
-  id: int("id").primaryKey(),
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   stripeCouponId: text("stripe_coupon_id").notNull(),
-  eventId: int("event_id").notNull(),
+  eventId: text("event_id").notNull(),
   userId: text("user_id").notNull(),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
@@ -86,12 +74,12 @@ export const insertCouponSchema = createInsertSchema(coupons, {
 });
 
 export const promotionCodes = sqliteTable("promotion_codes", {
-  id: int("id").primaryKey(),
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   stripePromotionCodeId: text("stripe_promotion_code_id").notNull(),
-  couponId: int("coupon_id").notNull(),
+  couponId: text("coupon_id").notNull(),
   code: text("code").notNull(),
-  eventId: int("event_id").notNull(),
+  eventId: text("event_id").notNull(),
   userId: text("user_id").notNull(),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
@@ -119,24 +107,17 @@ export const insertPromotionCodeSchema = createInsertSchema(promotionCodes, {
       }),
 });
 
-export const tickets = sqliteTable(
-  "tickets",
-  {
-    id: int("id").primaryKey(),
-    quantity: int("quantity").notNull(),
-    userId: text("user_id").notNull(),
-    eventId: int("event_id").notNull(),
-    ticketPriceId: int("ticket_price_id").notNull(),
-    slug: text("slug").notNull(),
-    stripeSessionId: text("stripe_session_id"),
-    createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
-    updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
-    status: text("status", { enum: ["success", "pending"] }).notNull(),
-  },
-  (table) => ({
-    slugIndex: uniqueIndex("ticket_slug_index").on(table.slug),
-  })
-);
+export const tickets = sqliteTable("tickets", {
+  id: text("id").primaryKey(),
+  quantity: int("quantity").notNull(),
+  userId: text("user_id").notNull(),
+  eventId: text("event_id").notNull(),
+  ticketPriceId: text("ticket_price_id").notNull(),
+  stripeSessionId: text("stripe_session_id"),
+  createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
+  status: text("status", { enum: ["success", "pending"] }).notNull(),
+});
 
 export const ticketRelations = relations(tickets, ({ one }) => ({
   event: one(events, { fields: [tickets.eventId], references: [events.id] }),
@@ -152,11 +133,11 @@ export const selectTicketSchema = createSelectSchema(tickets);
 export const insertTicketSchema = createInsertSchema(tickets);
 
 export const ticketPrices = sqliteTable("ticket_prices", {
-  id: int("id").primaryKey(),
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
   // Cost of ticket in cents CAD
   price: real("price").notNull(),
-  eventId: int("event_id").notNull(),
+  eventId: text("event_id").notNull(),
   stripePriceId: text("stripe_price_id"),
   userId: text("user_id").notNull(),
   isFree: int("is_free", { mode: "boolean" }).notNull(),
@@ -183,8 +164,8 @@ export const insertTicketPriceSchema = createInsertSchema(ticketPrices, {
 });
 
 export const eventMedia = sqliteTable("event_media", {
-  id: int("id").primaryKey(),
-  eventId: int("event_id").notNull(),
+  id: text("id").primaryKey(),
+  eventId: text("event_id").notNull(),
   url: text("url").notNull(),
   isPoster: int("is_poster", { mode: "boolean" }).notNull(),
   order: int("order").notNull(),

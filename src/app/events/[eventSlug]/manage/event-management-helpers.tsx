@@ -60,7 +60,7 @@ const getCouponString = (
   }
   return `${coupon.name} - %${coupon.percentageDiscount}`;
 };
-export const ManagePromotionCodes: FC<{ eventId: number }> = (props) => {
+export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data: codes = [], refetch: refetchCodes } =
     trpc.events.getAllPromotionCodes.useQuery({
@@ -81,12 +81,12 @@ export const ManagePromotionCodes: FC<{ eventId: number }> = (props) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
-      couponId: -1,
+      couponId: "",
     },
   });
 
   const onSubmit = async (values: FormData) => {
-    if (values.couponId === -1) {
+    if (values.couponId === "") {
       return;
     }
 
@@ -135,7 +135,7 @@ export const ManagePromotionCodes: FC<{ eventId: number }> = (props) => {
                     <FormControl>
                       <Select
                         onValueChange={(val) => {
-                          form.setValue("couponId", Number(val));
+                          form.setValue("couponId", val);
                         }}
                         value={field.value.toString()}
                       >
@@ -203,7 +203,7 @@ export const ManagePromotionCodes: FC<{ eventId: number }> = (props) => {
   );
 };
 
-export const ManagementContainer: FC<{ eventId: number }> = (props) => {
+export const ManagementContainer: FC<{ eventId: string }> = (props) => {
   return (
     <div>
       <ManagePromotionCodes eventId={props.eventId} />

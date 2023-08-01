@@ -27,7 +27,7 @@ const paymentValidationSchema = z
   .strip();
 
 const Page = async (props: {
-  params: { ticketSlug: string; eventSlug: string };
+  params: { ticketSlug: string; eventId: string };
 }) => {
   return (
     <div className="flex justify-center items-center flex-1 p-2">
@@ -37,8 +37,8 @@ const Page = async (props: {
         <div className="w-48 h-48 z-0 bg-blue-500 blur-[100px] rounded-full absolute top-1/2 left-1/2 -translate-x-[75%] -translate-y-1/2" />
         <Suspense fallback={<LoadingSpinner size={55} />}>
           <TicketView
-            eventSlug={props.params.eventSlug}
-            ticketSlug={props.params.ticketSlug}
+            eventId={props.params.eventId}
+            ticketId={props.params.ticketSlug}
           />
         </Suspense>
       </div>
@@ -46,7 +46,7 @@ const Page = async (props: {
   );
 };
 
-const TicketView = async (props: { eventSlug: string; ticketSlug: string }) => {
+const TicketView = async (props: { eventId: string; ticketId: string }) => {
   const db = getDb();
   const stripe = getStripeClient();
 
@@ -60,7 +60,7 @@ const TicketView = async (props: { eventSlug: string; ticketSlug: string }) => {
 
   const ticketData = await db.query.tickets.findFirst({
     where: and(
-      eq(tickets.slug, props.ticketSlug),
+      eq(tickets.id, props.ticketId),
       // If the user is an admin, they are always allowed to view tickets
       // If not, the user needs to own the ticket
       isAdmin ? undefined : eq(tickets.userId, user.id)
@@ -78,7 +78,7 @@ const TicketView = async (props: { eventSlug: string; ticketSlug: string }) => {
   // Update status of ticket if pending
   if (ticketData.status === "pending" && ticketData.price.isFree === false) {
     if (!ticketData.stripeSessionId) {
-      redirect(`/events/${ticketData.event.slug}`);
+      redirect(`/events/${ticketData.event.id}`);
     }
 
     const session = await stripe.checkout.sessions.retrieve(
@@ -107,7 +107,7 @@ const TicketView = async (props: { eventSlug: string; ticketSlug: string }) => {
 
   // Still not success, go back to event page
   if (ticketData.status !== "success") {
-    redirect(`/events/${ticketData.event.slug}`);
+    redirect(`/events/${ticketData.event.id}`);
   }
 
   const showLocation =
@@ -120,7 +120,7 @@ const TicketView = async (props: { eventSlug: string; ticketSlug: string }) => {
         Event #{ticketData.eventId}
       </p>
       <QRCode
-        value={`${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketData.event.slug}/tickets/${ticketData.slug}`}
+        value={`${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketData.event.id}/tickets/${ticketData.id}`}
         className="shadow-md border border-gray-300"
       />
       <h1 className="font-bold text-center text-lg capitalize">

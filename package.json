@@ -16,6 +16,7 @@
     "@hookform/resolvers": "^3.1.1",
     "@libsql/client": "^0.3.1",
     "@mapbox/mapbox-gl-geocoder": "^5.0.1",
+    "@paralleldrive/cuid2": "^2.2.1",
     "@radix-ui/react-dialog": "^1.0.4",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-navigation-menu": "^1.1.3",

@@ -168,7 +168,7 @@ export const CreateEventForm = () => {
       );
     }
 
-    push(`/events/${newEvent.slug}`);
+    push(`/events/${newEvent.id}`);
   };
 
   const handleMediaOrderChange = (index: number, direction: MoveDirection) => {

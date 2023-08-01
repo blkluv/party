@@ -9,7 +9,6 @@ export const createEventSchema = insertEventSchema
     id: true,
     userId: true,
     stripeProductId: true,
-    slug: true,
     updatedAt: true,
     createdAt: true,
   })

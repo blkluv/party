@@ -16,9 +16,7 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 
-export const EventAdminToolbar: FC<{ eventId: number; eventSlug: string }> = (
-  props
-) => {
+export const EventAdminToolbar: FC<{ eventId: string }> = (props) => {
   const { push, refresh } = useRouter();
   const { mutate: deleteEvent, isLoading: isEventDeleting } =
     trpc.events.deleteEvent.useMutation({
@@ -57,7 +55,7 @@ export const EventAdminToolbar: FC<{ eventId: number; eventSlug: string }> = (
           </div>
         </DialogContent>
       </Dialog>
-      <Link href={`/events/${props.eventSlug}/manage`}>
+      <Link href={`/events/${props.eventId}/manage`}>
         <Button variant="ghost">
           <Cog8ToothIcon className="w-4 h-4" />
         </Button>

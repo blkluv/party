@@ -1,10 +1,10 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import superjson from "superjson";
-import type { Context } from "./context";
-import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
-import { z } from "zod";
 import { eq } from "drizzle-orm";
+import superjson from "superjson";
+import { z } from "zod";
 import { events } from "~/db/schema";
+import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
+import type { Context } from "./context";
 
 export const t = initTRPC.context<Context>().create({
   transformer: superjson,
@@ -34,7 +34,7 @@ export const publicProcedure = t.procedure;
 // export this procedure to be used anywhere in your application
 export const protectedProcedure = t.procedure.use(isAuthed);
 export const protectedEventProcedure = protectedProcedure
-  .input(z.object({ eventId: z.number() }))
+  .input(z.object({ eventId: z.string() }))
   .use(({ ctx, next, input }) => {
     const event = ctx.db.query.events.findFirst({
       where: eq(events.id, input.eventId),

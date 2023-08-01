@@ -7,7 +7,7 @@ import { events } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { ManagementContainer } from "./event-management-helpers";
 
-type PageProps = { params: { eventSlug: string } };
+type PageProps = { params: { eventId: string } };
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ const Page = async (props: PageProps) => {
 
   const event = await db.query.events.findFirst({
     where: and(
-      eq(events.slug, props.params.eventSlug),
+      eq(events.id, props.params.eventId),
       eq(events.userId, userAuth.userId)
     ),
   });
