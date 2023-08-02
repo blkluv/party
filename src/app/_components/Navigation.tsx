@@ -67,7 +67,7 @@ export const Navigation = () => {
               <MobileNavigationDrawer />
 
               <div className="w-12 h-12 flex justify-center items-center">
-                {/* <UserButton afterSignOutUrl="/" /> */}
+                <UserButton afterSignOutUrl="/" />
               </div>
             </>
           ))
