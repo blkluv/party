@@ -2,7 +2,13 @@ import { z } from "zod";
 
 export const chatMessageEventSchema = z.object({
   __type: z.literal("CHAT_MESSAGE"),
-  data: z.object({ userId: z.string(), message: z.string() }),
+  data: z.object({
+    userId: z.string(),
+    message: z.string(),
+    name: z.string(),
+    createdAt: z.string(),
+    imageUrl: z.string(),
+  }),
 });
 export type ChatMessageEvent = z.infer<typeof chatMessageEventSchema>;
 
