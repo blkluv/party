@@ -93,7 +93,7 @@ export const ChatRoom: FC<{ eventId: string }> = (props) => {
   }, [props.eventId]);
 
   return (
-    <div className="flex-1 relative flex flex-col mx-auto w-full max-w-2xl gap-1 text-sm p-4">
+    <div className="flex-1 relative flex flex-col mx-auto w-full max-w-4xl gap-1 text-sm p-4">
       <div className="flex-1 relative">
         <div className="absolute inset-0 flex flex-col gap-1 overflow-y-auto p-2">
           {events.map((event, i) => (
