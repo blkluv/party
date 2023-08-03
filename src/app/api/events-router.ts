@@ -4,6 +4,7 @@ import { and, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "~/config/env";
 import type { Coupon, NewTicketPrice, TicketPrice } from "~/db/schema";
+
 import {
   coupons,
   eventMedia,
@@ -16,6 +17,7 @@ import {
 } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { createUploadUrls, deleteImage } from "~/utils/images";
+import { isTextSafe } from "~/utils/isTextSafe";
 import {
   protectedEventProcedure,
   protectedProcedure,
@@ -89,6 +91,22 @@ export const eventsRouter = router({
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "You are not allowed to create paid events.",
+          });
+        }
+
+        const [isNameSafe, isDescriptionSafe] = await Promise.all([
+          isTextSafe(eventInput.name),
+          isTextSafe(eventInput.description),
+        ]);
+        if (!isNameSafe) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Event name is inappropriate",
+          });
+        } else if (!isDescriptionSafe) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Event description is inappropriate",
           });
         }
 

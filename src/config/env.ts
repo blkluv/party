@@ -10,15 +10,22 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: z.string(),
     CLOUDFLARE_ACCOUNT_ID: z.string(),
     CLOUDFLARE_IMAGES_API_KEY: z.string(),
+    OPENAI_API_KEY: z.string(),
   },
   client: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
+    NEXT_PUBLIC_CHAT_HOST: z.string(),
     NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string(),
     NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string(),
     NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: z.string(),
     NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: z.string(),
     NEXT_PUBLIC_WEBSITE_URL: z.string(),
     NEXT_PUBLIC_MAPBOX_TOKEN: z.string(),
+    NEXT_PUBLIC_FEATURE_CHAT_MESSAGES: z
+      .enum(["true", "false"])
+      .transform((e) => e === "true")
+      .optional()
+      .default("false"),
   },
   runtimeEnv: {
     NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL:
@@ -38,5 +45,9 @@ export const env = createEnv({
     NEXT_PUBLIC_MAPBOX_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
     CLOUDFLARE_IMAGES_API_KEY: process.env.CLOUDFLARE_IMAGES_API_KEY,
     CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    NEXT_PUBLIC_CHAT_HOST: process.env.NEXT_PUBLIC_CHAT_HOST,
+    NEXT_PUBLIC_FEATURE_CHAT_MESSAGES:
+      process.env.NEXT_PUBLIC_FEATURE_CHAT_MESSAGES,
   },
 });

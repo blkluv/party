@@ -1,5 +1,5 @@
+import { createId } from "@paralleldrive/cuid2";
 import dayjs from "dayjs";
-import { nanoid } from "nanoid";
 import { z } from "zod";
 import { DEFAULT_EVENT_IMAGE } from "~/config/default-image";
 import { env } from "~/config/env";
@@ -25,8 +25,8 @@ export const createUploadUrls = async (count: number) => {
   const urls = await Promise.all(
     Array.from({ length: count }).map(async () => {
       const form = new FormData();
-      const id = nanoid();
-      form.append("id", nanoid());
+      const id = createId();
+      form.append("id", id);
       form.append("expiry", dayjs().add(5, "minute").toISOString());
 
       const imgRes = await fetch(
