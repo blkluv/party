@@ -183,3 +183,68 @@ export type EventMedia = InferModel<typeof eventMedia, "select">;
 export type NewEventMedia = InferModel<typeof eventMedia, "insert">;
 export const selectEventMediaSchema = createSelectSchema(eventMedia);
 export const insertEventMediaSchema = createInsertSchema(eventMedia);
+
+export const chatMessages = sqliteTable("chat_messages", {
+  id: text("id").primaryKey(),
+  eventId: text("event_id").notNull(),
+  userId: text("user_id").notNull(),
+  userImageUrl: text("user_image_url").notNull(),
+  userName: text("user_name").notNull(),
+  message: text("message").notNull(),
+  createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const chatMessageRelations = relations(
+  chatMessages,
+  ({ one, many }) => ({
+    event: one(events, {
+      fields: [chatMessages.eventId],
+      references: [events.id],
+    }),
+    attachments: many(chatMessageAttachments),
+  })
+);
+
+export type ChatMessage = InferModel<typeof chatMessages, "select">;
+export type NewChatMessage = InferModel<typeof chatMessages, "insert">;
+export const selectChatMessageSchema = createSelectSchema(chatMessages);
+export const insertChatMessageSchema = createInsertSchema(chatMessages, {
+  createdAt: () => z.coerce.date(),
+});
+
+export const chatMessageAttachments = sqliteTable("chat_message_attachments", {
+  id: text("id").primaryKey(),
+  eventId: text("event_id").notNull(),
+  userId: text("user_id").notNull(),
+  // The ID within Cloudflare Images
+  // Need this to delete
+  imageId: text("image_id").notNull(),
+  url: text("url").notNull(),
+  // Chat message this belongs to
+  messageId: text("message_id").notNull(),
+});
+
+export const chatMessageAttachmentRelations = relations(
+  chatMessageAttachments,
+  ({ one }) => ({
+    message: one(chatMessages, {
+      fields: [chatMessageAttachments.messageId],
+      references: [chatMessages.id],
+    }),
+  })
+);
+
+export type ChatMessageAttachment = InferModel<
+  typeof chatMessageAttachments,
+  "select"
+>;
+export type NewChatMessageAttachment = InferModel<
+  typeof chatMessageAttachments,
+  "insert"
+>;
+export const selectChatMessageAttachmentSchema = createSelectSchema(
+  chatMessageAttachments
+);
+export const insertChatMessageAttachmentSchema = createInsertSchema(
+  chatMessageAttachments
+);

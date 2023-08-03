@@ -10,15 +10,23 @@ import { z } from "zod";
 /**
  * SERVER ONLY
  */
-export const isTextSafe = async (input: string) => {
+export const isTextSafe = async (
+  input: string,
+  config?: {
+    apiKey?: string;
+    filters?: string[];
+  }
+) => {
   const zodSchema = z.object({
-    unsafe: z.boolean().describe("Whether the text is unsafe"),
+    unsafe: z
+      .boolean()
+      .describe("Whether the text contains racist or threatening language"),
   });
 
   const prompt = new ChatPromptTemplate({
     promptMessages: [
       SystemMessagePromptTemplate.fromTemplate(
-        "Does this text contain unsafe, foul, discriminatory, or harmful language?"
+        "Does this text contain racist or threatening language?"
       ),
       HumanMessagePromptTemplate.fromTemplate("{inputText}"),
     ],
@@ -28,6 +36,7 @@ export const isTextSafe = async (input: string) => {
   const llm = new ChatOpenAI({
     modelName: "gpt-3.5-turbo-0613",
     temperature: 0,
+    openAIApiKey: config?.apiKey,
   });
 
   const chain = createStructuredOutputChainFromZod(zodSchema, {

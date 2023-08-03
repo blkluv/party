@@ -1,7 +1,9 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
+import { createId } from "@paralleldrive/cuid2";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import PartySocket from "partysocket";
 import type { FC } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -15,17 +17,31 @@ import {
   type ChatMessageEvent,
   type ChatSocketEvent,
 } from "~/utils/chat";
+import { isEventOver } from "~/utils/isEventOver";
 import { cn } from "~/utils/shadcn-ui";
 
-export const ChatRoom: FC<{ eventId: string }> = (props) => {
+export const ChatRoom: FC<{
+  eventId: string;
+  eventName: string;
+  startTime: Date;
+}> = (props) => {
   const [socket, setSocket] = useState<null | PartySocket>(null);
   const [events, setEvents] = useState<ChatSocketEvent[]>([]);
   const user = useUser();
   const [userInput, setUserInput] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
+  const [_messageError, setMessageError] = useState("");
+  const { push } = useRouter();
 
-  const sendMessage = (message: string) => {
+  const sendMessage = async (message: string) => {
     if (!socket || !user.isSignedIn || message.length === 0) {
+      return;
+    }
+
+    const isMessageSafe = true;
+
+    if (!isMessageSafe) {
+      setMessageError("Message is inappropriate");
       return;
     }
 
@@ -34,13 +50,16 @@ export const ChatRoom: FC<{ eventId: string }> = (props) => {
       data: {
         message,
         userId: user.user.id,
-        name: user.user.fullName ?? "User",
-        createdAt: new Date().toISOString(),
-        imageUrl: user.user.imageUrl,
+        userName: user.user.fullName ?? "User",
+        userImageUrl: user.user.imageUrl,
+        eventId: props.eventId,
+        createdAt: new Date(),
+        id: createId(),
       },
     };
 
     socket.send(JSON.stringify(newMessageEvent));
+    setMessageError("");
 
     flushSync(() => {
       setEvents((prev) => [...prev, newMessageEvent]);
@@ -92,6 +111,19 @@ export const ChatRoom: FC<{ eventId: string }> = (props) => {
     };
   }, [props.eventId]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Event is over if current time is past max event duration
+      if (isEventOver(props.startTime)) {
+        push("/");
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [props.startTime, push]);
+
   return (
     <div className="flex-1 relative flex flex-col mx-auto w-full max-w-4xl gap-1 text-sm p-4">
       <div className="flex-1 relative">
@@ -105,9 +137,9 @@ export const ChatRoom: FC<{ eventId: string }> = (props) => {
         </div>
       </div>
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          sendMessage(userInput);
+          await sendMessage(userInput);
           setUserInput("");
         }}
         className="flex gap-2 mt-auto"
@@ -139,10 +171,10 @@ const ChatEventView: FC<{ event: ChatSocketEvent }> = (props) => {
           )}
         >
           <div className="w-8 h-8 rounded-full overflow-hidden">
-            <Image src={val.data.imageUrl} width={50} height={50} alt="" />
+            <Image src={val.data.userImageUrl} width={50} height={50} alt="" />
           </div>
           <div className="flex flex-col gap-2">
-            <p className="font-semibold">{val.data.name}</p>
+            <p className="font-semibold">{val.data.userName}</p>
             <p>{val.data.message}</p>
           </div>
         </div>

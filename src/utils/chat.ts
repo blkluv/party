@@ -1,14 +1,9 @@
 import { z } from "zod";
+import { insertChatMessageSchema } from "~/db/schema";
 
 export const chatMessageEventSchema = z.object({
   __type: z.literal("CHAT_MESSAGE"),
-  data: z.object({
-    userId: z.string(),
-    message: z.string(),
-    name: z.string(),
-    createdAt: z.string(),
-    imageUrl: z.string(),
-  }),
+  data: insertChatMessageSchema,
 });
 export type ChatMessageEvent = z.infer<typeof chatMessageEventSchema>;
 
@@ -16,6 +11,7 @@ export const initialMessagesEventSchema = z.object({
   __type: z.literal("INITIAL_MESSAGES"),
   data: z.object({ messages: chatMessageEventSchema.array() }),
 });
+export type InitialMessagesEvent = z.infer<typeof initialMessagesEventSchema>;
 
 export const userJoinedEventSchema = z.object({
   __type: z.literal("USER_JOINED"),
