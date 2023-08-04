@@ -357,7 +357,7 @@ export const eventsRouter = router({
 
       await ctx.db
         .delete(ticketPrices)
-        .where(eq(ticketPrices.eventId, ticketPrices.eventId))
+        .where(eq(ticketPrices.eventId, input.eventId))
         .run();
 
       const deletedEvent = await ctx.db
