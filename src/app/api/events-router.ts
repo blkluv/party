@@ -360,18 +360,12 @@ export const eventsRouter = router({
         .where(eq(ticketPrices.eventId, input.eventId))
         .run();
 
-      const deletedEvent = await ctx.db
-        .delete(events)
-        .where(eq(events.id, input.eventId))
-        .returning()
-        .get();
+      await ctx.db.delete(events).where(eq(events.id, input.eventId)).run();
 
       // Disable buying new tickets
-      if (deletedEvent) {
-        await ctx.stripe.products.update(deletedEvent?.stripeProductId, {
-          active: false,
-        });
-      }
+      await ctx.stripe.products.update(event.stripeProductId, {
+        active: false,
+      });
 
       return event;
     }),
