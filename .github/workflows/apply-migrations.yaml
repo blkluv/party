@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "src/db/migrations/**"
+      - ".github/workflows/apply-migrations.yml"
 
 jobs:
   install:
@@ -40,4 +43,7 @@ jobs:
         run: pnpm install
 
       - name: Run migrations
+        env:
+          DATABASE_URL: ${{secrets.DATABASE_URL}}
+          DATABASE_AUTH_TOKEN: ${{secrets.DATABASE_AUTH_TOKEN}}
         run: pnpm migrate
