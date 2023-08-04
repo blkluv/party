@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "src/db/migrations/**"
-      - ".github/workflows/apply-migrations.yml"
+      - ".github/workflows/apply-migrations.yaml"
 
 jobs:
   install:
