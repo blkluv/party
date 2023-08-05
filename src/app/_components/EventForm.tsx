@@ -9,12 +9,12 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   PhotoIcon,
+  PlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import type { FC } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -31,12 +31,9 @@ import {
   FormMessage,
 } from "~/app/_components/ui/form";
 import { Input } from "~/app/_components/ui/input";
-import { DEFAULT_EVENT_IMAGE } from "~/config/default-image";
 import type { EventMedia } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { cn } from "~/utils/shadcn-ui";
-import { trpc } from "~/utils/trpc";
-import { useUploadImages } from "~/utils/uploads";
 import type { PublicUserMetadata } from "~/utils/userMetadataSchema";
 import { Calendar } from "./ui/calendar";
 import { Label } from "./ui/label";
@@ -45,7 +42,18 @@ import { Switch } from "./ui/switch";
 import { Textarea } from "./ui/textarea";
 
 type PreviewUrl = { fileName: string; url: string };
-type MediaFile = { file: File } & Pick<EventMedia, "isPoster">;
+
+export type EventMediaFileVariant = { __type: "file"; file: File } & Pick<
+  EventMedia,
+  "isPoster"
+>;
+export type EventMediaUrlVariant = {
+  __type: "url";
+  url: string;
+  id: string;
+} & Pick<EventMedia, "isPoster">;
+export type EventMediaFile = EventMediaFileVariant | EventMediaUrlVariant;
+
 type MoveDirection = "left" | "right";
 
 const formSchema = createEventSchema
@@ -53,24 +61,33 @@ const formSchema = createEventSchema
     startTime: true,
   })
   .extend({ startDate: z.date(), startTime: z.string() });
+export type EventFormData = z.infer<typeof formSchema>;
 
-export const CreateEventForm = () => {
+export const EventForm: FC<{
+  mode?: "create" | "edit";
+  initialValues?: EventFormData & { eventMedia: EventMediaFile[] };
+  onSubmit: (
+    values: EventFormData & { eventMedia: EventMediaFile[] }
+  ) => Promise<void> | void;
+}> = (props) => {
   const user = useUser();
-  const { push } = useRouter();
   const isAdmin = Boolean(
     user.user &&
       (user.user.publicMetadata as PublicUserMetadata).platformRole === "admin"
   );
 
-  const [mediaPreviewUrls, setMediaPreviewUrls] = useState<PreviewUrl[]>([]);
-  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
-  const uploadImages = useUploadImages();
-  const { mutateAsync: createEventMedia } =
-    trpc.events.media.createEventMedia.useMutation();
+  const [mediaPreviewUrls, setMediaPreviewUrls] = useState<PreviewUrl[]>(
+    props.initialValues?.eventMedia
+      .filter((e): e is EventMediaUrlVariant => e.__type === "url")
+      .map((e) => ({ fileName: e.url, url: e.url })) ?? []
+  );
+  const [mediaFiles, setMediaFiles] = useState<EventMediaFile[]>(
+    props.initialValues?.eventMedia ?? []
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: props.initialValues ?? {
       name: "",
       description: "",
       startDate: new Date(),
@@ -95,8 +112,6 @@ export const CreateEventForm = () => {
   const [ticketPrices] = form.watch(["ticketPrices"]);
   const [coupons] = form.watch(["coupons"]);
 
-  const { mutateAsync: createEvent } = trpc.events.createEvent.useMutation();
-
   const onDrop = useCallback((files: File[]) => {
     setMediaFiles((prev) => [
       ...prev,
@@ -104,6 +119,7 @@ export const CreateEventForm = () => {
         file,
         order: prev.length + i,
         isPoster: false,
+        __type: "file" as const,
       })),
     ]);
   }, []);
@@ -120,8 +136,12 @@ export const CreateEventForm = () => {
     const urls: PreviewUrl[] = [];
 
     for (const f of mediaFiles) {
-      const url = URL.createObjectURL(f.file);
-      urls.push({ url, fileName: f.file.name });
+      if (f.__type === "file") {
+        const url = URL.createObjectURL(f.file);
+        urls.push({ url, fileName: f.file.name });
+      } else {
+        urls.push({ url: f.url, fileName: f.url });
+      }
     }
 
     setMediaPreviewUrls(urls);
@@ -132,46 +152,6 @@ export const CreateEventForm = () => {
       }
     };
   }, [mediaFiles]);
-
-  const onSubmit = async ({
-    startDate,
-    ...values
-  }: z.infer<typeof formSchema>) => {
-    const [hour, minute] = values.startTime.split(":").map(Number);
-
-    const newEvent = await createEvent({
-      ...values,
-      startTime: dayjs(startDate).hour(hour).minute(minute).toDate(),
-    });
-
-    if (mediaFiles.length === 0) {
-      // No media files. Set default
-      await createEventMedia([
-        {
-          order: 0,
-          isPoster: true,
-          eventId: newEvent.id,
-          url: DEFAULT_EVENT_IMAGE.url,
-          imageId: DEFAULT_EVENT_IMAGE.id,
-        },
-      ]);
-    } else {
-      const downloadUrls = await uploadImages(mediaFiles.map((e) => e.file));
-      const isSomeMediaPoster = mediaFiles.some((e) => e.isPoster);
-      await createEventMedia(
-        mediaFiles.map((e, order) => ({
-          order,
-          // Default poster to first image
-          isPoster: isSomeMediaPoster ? e.isPoster : order === 0,
-          eventId: newEvent.id,
-          url: downloadUrls[order].url,
-          imageId: downloadUrls[order].id,
-        }))
-      );
-    }
-
-    push(`/events/${newEvent.id}`);
-  };
 
   const handleMediaOrderChange = (index: number, direction: MoveDirection) => {
     const magnitude = direction === "right" ? 1 : -1;
@@ -190,7 +170,12 @@ export const CreateEventForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit((values) => {
+          return props.onSubmit({ ...values, eventMedia: mediaFiles });
+        })}
+        className="space-y-8"
+      >
         <FormField
           control={form.control}
           name="name"
@@ -321,8 +306,11 @@ export const CreateEventForm = () => {
                   data={e}
                   maxIndex={mediaFiles.length - 1}
                   imageUrl={
-                    mediaPreviewUrls.find((f) => f.fileName === e.file.name)
-                      ?.url ?? ""
+                    mediaPreviewUrls.find(
+                      (f) =>
+                        f.fileName ===
+                        (e.__type === "file" ? e.file.name : e.url)
+                    )?.url ?? ""
                   }
                 />
               ))}
@@ -349,7 +337,7 @@ export const CreateEventForm = () => {
             )}
           </div>
         </div>
-        {isAdmin && (
+        {isAdmin && props.mode !== "edit" && (
           <>
             <div className="space-y-2">
               <Label>Ticket Tiers</Label>
@@ -404,7 +392,7 @@ export const CreateEventForm = () => {
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">Free</FormLabel>
                           <FormDescription>
-                            Is this ticket option free?
+                            Is this ticket tier free?
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -427,14 +415,15 @@ export const CreateEventForm = () => {
                       );
                     }}
                   >
-                    Remove Ticket Tier
+                    <XMarkIcon className="w-4 h-4 mr-2" />
+                    <p>Remove Ticket Tier</p>
                   </Button>
                 </div>
               ))}
               <Button
                 type="button"
                 variant="outline"
-                className="block"
+                className="flex"
                 onClick={() => {
                   const values = form.getValues();
                   form.setValue("ticketPrices", [
@@ -443,7 +432,8 @@ export const CreateEventForm = () => {
                   ]);
                 }}
               >
-                Add Ticket Tier
+                <PlusIcon className="w-4 h-4 mr-2" />
+                <p>Add Ticket Tier</p>
               </Button>
             </div>
             <div className="space-y-2">
@@ -483,7 +473,7 @@ export const CreateEventForm = () => {
                           />
                         </FormControl>
                         <FormDescription>
-                          This percentage amount will be deduced from the sale
+                          This percentage amount will be deducted from the sale
                           price of the tickets.
                         </FormDescription>
                         <FormMessage />
@@ -501,14 +491,15 @@ export const CreateEventForm = () => {
                       );
                     }}
                   >
-                    Remove Coupon
+                    <XMarkIcon className="w-4 h-4 mr-2" />
+                    <p>Remove Coupon</p>
                   </Button>
                 </div>
               ))}
               <Button
                 type="button"
                 variant="outline"
-                className="block"
+                className="flex"
                 onClick={() => {
                   const values = form.getValues();
                   form.setValue("coupons", [
@@ -517,7 +508,8 @@ export const CreateEventForm = () => {
                   ]);
                 }}
               >
-                Add Coupon
+                <PlusIcon className="w-4 h-4 mr-2" />
+                <p>Add Coupon</p>
               </Button>
             </div>
           </>
@@ -550,7 +542,6 @@ export const CreateEventForm = () => {
                     </PopoverContent>
                   </Popover>
                 </FormControl>
-                {/* <FormDescription>When does your event start?</FormDescription> */}
                 <FormMessage />
               </FormItem>
             )}
@@ -564,14 +555,13 @@ export const CreateEventForm = () => {
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
-                {/* <FormDescription>When does your event start?</FormDescription> */}
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-        <Button type="submit">
-          <p>Create Event</p>
+        <Button type="submit" className="w-full">
+          <p>{props.mode === "edit" ? "Edit" : "Create"} Event</p>
           {form.formState.isSubmitting && (
             <ArrowPathIcon className="ml-2 animate-spin w-4 h-4" />
           )}
@@ -584,7 +574,7 @@ export const CreateEventForm = () => {
 const MediaPreviewItem: FC<{
   onRemove: () => void;
   onMove: (_dir: MoveDirection) => void;
-  data: MediaFile;
+  data: EventMediaFile;
   imageUrl: string;
   onPosterToggle: () => void;
   order: number;
@@ -621,13 +611,16 @@ const MediaPreviewItem: FC<{
         <button
           className="flex justify-center items-center w-8 h-8"
           onClick={() => props.onRemove()}
+          type="button"
         >
           <XMarkIcon className="w-4 h-4" />
         </button>
       </div>
       <Image
         src={props.imageUrl}
-        alt={props.data.file.name}
+        alt={
+          props.data.__type === "file" ? props.data.file.name : props.data.url
+        }
         width={300}
         height={300}
         className="w-full h-full object-cover"

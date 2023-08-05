@@ -43,7 +43,7 @@ export const TicketTierListing: FC<{
     }
   };
   return (
-    <div className="border border-neutral-800 shadow-lg rounded-xl p-4 gap-4 items-center w-56 h-56 flex flex-col justify-between">
+    <div className="border border-neutral-800 bg-neutral-800/25 shadow-lg rounded-xl p-4 gap-4 items-center w-56 h-56 flex flex-col justify-between">
       <p className="font-semibold">{props.data.name}</p>
       <p className="font-bold text-4xl">
         {props.data.isFree ? "Free" : `$${props.data.price.toFixed(2)}`}

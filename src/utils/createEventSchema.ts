@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   insertCouponSchema,
   insertEventSchema,
@@ -16,14 +17,13 @@ export const createEventSchema = insertEventSchema
     ticketPrices: insertTicketPriceSchema
       .omit({
         eventId: true,
-        id: true,
-        stripePaymentLink: true,
-        stripePaymentLinkId: true,
-        stripePriceId: true,
         userId: true,
+        stripePriceId: true,
       })
+      .extend({ id: z.string().nullish() })
       .array(),
     coupons: insertCouponSchema
       .pick({ name: true, percentageDiscount: true })
+      .extend({ id: z.string().nullish() })
       .array(),
   });

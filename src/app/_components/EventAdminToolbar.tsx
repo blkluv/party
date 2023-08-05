@@ -1,6 +1,10 @@
 "use client";
 
-import { Cog8ToothIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  Cog8ToothIcon,
+  PencilIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { DialogClose } from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -58,6 +62,11 @@ export const EventAdminToolbar: FC<{ eventId: string }> = (props) => {
       <Link href={`/events/${props.eventId}/manage`}>
         <Button variant="ghost">
           <Cog8ToothIcon className="w-4 h-4" />
+        </Button>
+      </Link>
+      <Link href={`/events/${props.eventId}/edit`}>
+        <Button variant="ghost">
+          <PencilIcon className="w-4 h-4" />
         </Button>
       </Link>
     </div>

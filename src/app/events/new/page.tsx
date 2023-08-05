@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { CreateEventForm } from "~/app/_components/CreateEventForm";
+import { CreateEventForm } from "~/app/_components/event-form-variants";
 import { getPageTitle } from "~/utils/getPageTitle";
 
 export const metadata: Metadata = {

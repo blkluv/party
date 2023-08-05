@@ -30,8 +30,8 @@ export const Navigation = () => {
             .with(false, () => (
               <Link href="/sign-in">
                 <Button variant="ghost">
+                  <ArrowRightOnRectangleIcon className="mr-2 w-4 h-4" />
                   <p>Login</p>
-                  <ArrowRightOnRectangleIcon className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
             ))
@@ -39,8 +39,8 @@ export const Navigation = () => {
               <div className="flex items-center gap-4">
                 <Link href="/events/new">
                   <Button size="sm">
+                    <PlusIcon className="mr-2 w-4 h-4" />
                     <p>Create Event</p>
-                    <PlusIcon className="ml-2 w-4 h-4" />
                   </Button>
                 </Link>
                 <UserButton afterSignOutUrl="/" />

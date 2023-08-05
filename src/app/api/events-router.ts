@@ -1,9 +1,9 @@
 import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "~/config/env";
-import type { Coupon, NewTicketPrice, TicketPrice } from "~/db/schema";
+import type { Coupon, EventMedia, TicketPrice } from "~/db/schema";
 
 import {
   coupons,
@@ -15,7 +15,9 @@ import {
   ticketPrices,
   tickets,
 } from "~/db/schema";
+import { createCoupon } from "~/utils/createCoupon";
 import { createEventSchema } from "~/utils/createEventSchema";
+import { createTicketPrice } from "~/utils/createTicketPrice";
 import { createUploadUrls, deleteImage } from "~/utils/images";
 import { isTextSafe } from "~/utils/isTextSafe";
 import {
@@ -54,6 +56,68 @@ export const eventMediaRouter = router({
         .get();
 
       return media;
+    }),
+  deleteEventMedia: protectedProcedure
+    .input(
+      insertEventMediaSchema
+        .pick({
+          id: true,
+        })
+        .array()
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.length === 0) {
+        return [];
+      }
+
+      const deletedMedia = await ctx.db
+        .delete(eventMedia)
+        .where(
+          and(
+            inArray(
+              eventMedia.id,
+              input.map((e) => e.id)
+            ),
+            eq(eventMedia.userId, ctx.auth.userId)
+          )
+        )
+        .returning()
+        .all();
+
+      await Promise.all(deletedMedia.map((e) => deleteImage(e.imageId)));
+
+      return deletedMedia;
+    }),
+  updateEventMedia: protectedProcedure
+    .input(
+      insertEventMediaSchema
+        .pick({
+          id: true,
+          isPoster: true,
+          order: true,
+        })
+        .array()
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.length === 0) {
+        return [];
+      }
+
+      const updatedMedia: EventMedia[] = [];
+      for (const e of input) {
+        const m = await ctx.db
+          .update(eventMedia)
+          .set({ isPoster: e.isPoster, order: e.order })
+          .where(
+            and(eq(eventMedia.id, e.id), eq(eventMedia.userId, ctx.auth.userId))
+          )
+          .returning()
+          .get();
+
+        updatedMedia.push(m);
+      }
+
+      return updatedMedia;
     }),
 });
 
@@ -134,61 +198,24 @@ export const eventsRouter = router({
         const createdTicketPrices: TicketPrice[] = [];
 
         for (const price of ticketPricesInput) {
-          const priceData: NewTicketPrice = {
-            id: createId(),
-            eventId: event.id,
-            name: price.name,
-            price: price.price,
-            isFree: price.isFree,
+          const p = await createTicketPrice({
             userId: ctx.auth.userId,
-          };
-
-          // Not free, must create a Stripe price to accept payment
-          if (!price.isFree) {
-            const newPrice = await ctx.stripe.prices.create({
-              product: product.id,
-              currency: "CAD",
-              nickname: price.name,
-              unit_amount: price.price * 100,
-            });
-
-            priceData.stripePriceId = newPrice.id;
-          }
-
-          const p = await ctx.db
-            .insert(ticketPrices)
-            .values(priceData)
-            .returning()
-            .get();
+            eventId,
+            data: price,
+            productId: product.id,
+          });
 
           createdTicketPrices.push(p);
         }
 
         const createdCoupons: Coupon[] = [];
         for (const c of couponsInput) {
-          const stripeCoupon = await ctx.stripe.coupons.create({
-            currency: "CAD",
-            name: c.name,
-            percent_off: c.percentageDiscount,
-            applies_to: {
-              products: [product.id],
-            },
+          const coupon = await createCoupon({
+            data: c,
+            userId: ctx.auth.userId,
+            eventId,
+            productId: product.id,
           });
-
-          const coupon = await ctx.db
-            .insert(coupons)
-            .values({
-              id: createId(),
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              eventId: event.id,
-              name: c.name,
-              percentageDiscount: c.percentageDiscount,
-              stripeCouponId: stripeCoupon.id,
-              userId: ctx.auth.userId,
-            })
-            .returning()
-            .get();
 
           createdCoupons.push(coupon);
         }
@@ -197,6 +224,66 @@ export const eventsRouter = router({
           ...event,
           ticketPrices: createdTicketPrices,
           coupons: createdCoupons,
+        };
+      }
+    ),
+  updateEvent: protectedProcedure
+    .input(z.object({ data: createEventSchema, eventId: z.string() }))
+    .mutation(
+      async ({
+        ctx,
+        input: {
+          data: {
+            ticketPrices: ticketPricesInput,
+            coupons: couponsInput,
+            ...eventInput
+          },
+          eventId,
+        },
+      }) => {
+        // Check if any ticket prices are paid, and block if true
+        // Non-admins aren't allowed to create paid events
+        if (
+          (ticketPricesInput.some((p) => !p.isFree) ||
+            couponsInput.length > 0) &&
+          !ctx.isPlatformAdmin
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You are not allowed to create paid events.",
+          });
+        }
+
+        const [isNameSafe, isDescriptionSafe] = await Promise.all([
+          isTextSafe(eventInput.name),
+          isTextSafe(eventInput.description),
+        ]);
+        if (!isNameSafe) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Event name is inappropriate",
+          });
+        } else if (!isDescriptionSafe) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Event description is inappropriate",
+          });
+        }
+        const event = await ctx.db
+          .update(events)
+          .set({
+            ...eventInput,
+            updatedAt: new Date(),
+            isFeatured: ctx.isPlatformAdmin ? eventInput.isFeatured : false,
+          })
+          .where(
+            and(eq(events.id, eventId), eq(events.userId, ctx.auth.userId))
+          )
+          .returning()
+          .get();
+
+        return {
+          ...event,
         };
       }
     ),

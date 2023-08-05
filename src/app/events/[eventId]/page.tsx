@@ -1,15 +1,18 @@
 import { auth } from "@clerk/nextjs";
-import { asc, eq } from "drizzle-orm";
+import { TicketIcon } from "@heroicons/react/24/outline";
+import { and, asc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense, cache } from "react";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { EventAdminToolbar } from "~/app/_components/EventAdminToolbar";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
+import { Button } from "~/app/_components/ui/button";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
-import { eventMedia, events, ticketPrices } from "~/db/schema";
+import { eventMedia, events, ticketPrices, tickets } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import { TicketTierListing } from "./TicketTierListing";
@@ -51,6 +54,47 @@ const getEventData = cache(async (id: string) => {
   });
 });
 
+const getTicketTiers = cache(async (eventId: string) => {
+  const db = getDb();
+  const userAuth = auth();
+
+  if (userAuth.userId) {
+    const existingTicket = await db.query.tickets.findFirst({
+      where: and(
+        eq(tickets.eventId, eventId),
+        eq(tickets.userId, userAuth.userId)
+      ),
+      columns: {
+        quantity: true,
+        id: true,
+      },
+    });
+
+    if (existingTicket) {
+      return {
+        foundTicket: existingTicket,
+        ticketPrices: [],
+      };
+    }
+  }
+
+  const foundTicketPrices = await db.query.ticketPrices.findMany({
+    where: eq(ticketPrices.eventId, eventId),
+    columns: {
+      isFree: true,
+      name: true,
+      price: true,
+      id: true,
+    },
+    orderBy: asc(ticketPrices.price),
+  });
+
+  return {
+    foundTicket: null,
+    ticketPrices: foundTicketPrices,
+  };
+});
+
 export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
   const eventData = await getEventData(props.params.eventId);
 
@@ -86,6 +130,21 @@ const Page = async (props: PageProps) => {
       >
         <EventView eventId={props.params.eventId} />
       </Suspense>
+
+      <Suspense
+        fallback={
+          <>
+            {[...Array.from({ length: 3 })].map((_, i) => (
+              <div
+                key={`placeholder ticket tier ${i}`}
+                className="border border-neutral-800 bg-neutral-800/25 shadow-lg rounded-xl w-56 h-56"
+              />
+            ))}
+          </>
+        }
+      >
+        <TicketTiersView eventId={props.params.eventId} />
+      </Suspense>
     </div>
   );
 };
@@ -105,7 +164,8 @@ const EventView = async (props: { eventId: string }) => {
   return (
     <>
       <div className="relative h-96 w-full rounded-xl overflow-hidden">
-        <div className="bg-neutral-800 animate-pulse inset-0 absolute z-0" />
+        {/* Placeholder image */}
+        <div className="bg-neutral-800/25 inset-0 absolute z-0" />
         <Image
           src={eventData.eventMedia.find((e) => e.isPoster)?.url ?? ""}
           width={1200}
@@ -126,22 +186,44 @@ const EventView = async (props: { eventId: string }) => {
         </p>
         <p className="text-center">{eventData.description}</p>
       </div>
+    </>
+  );
+};
 
-      <div className="space-y-2">
-        <p className="text-gray-100 font-semibold text-lg text-center">
-          Ticket Tiers
-        </p>
-        <div className="flex justify-center gap-2 flex-wrap">
-          {eventData.ticketPrices.map((price) => (
+const TicketTiersView = async (props: { eventId: string }) => {
+  const foundTicketPrices = await getTicketTiers(props.eventId);
+
+  return (
+    <div className="flex flex-col gap-2">
+      {foundTicketPrices.foundTicket === null && (
+        <>
+          <p className="text-gray-100 font-semibold text-lg text-center">
+            Ticket Tiers
+          </p>
+          <div className="flex justify-center gap-2 flex-wrap"></div>
+          {foundTicketPrices.ticketPrices.map((price) => (
             <TicketTierListing
               key={`ticket price ${price.id}`}
-              eventId={eventData.id}
+              eventId={props.eventId}
               data={price}
             />
           ))}
-        </div>
-      </div>
-    </>
+        </>
+      )}
+      {foundTicketPrices.foundTicket && (
+        <Link
+          className="mx-auto"
+          href={`/events/${props.eventId}/tickets/${foundTicketPrices.foundTicket.id}`}
+        >
+          <Button>
+            <TicketIcon className="mr-2 h-4 w-4" />
+            <p>{`My Ticket${
+              foundTicketPrices.foundTicket.quantity > 1 ? "s" : ""
+            }`}</p>
+          </Button>
+        </Link>
+      )}
+    </div>
   );
 };
 
