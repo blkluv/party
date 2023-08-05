@@ -22,8 +22,8 @@ export const TicketInfoButton = () => {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost">
+          <InformationCircleIcon className="mr-2 w-5 h-5" />
           <p>Info</p>
-          <InformationCircleIcon className="ml-2 w-5 h-5" />
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -47,9 +47,9 @@ export const LocationDialog: FC<{ location: string }> = (props) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost">
+        <Button>
+          <MapPinIcon className="mr-2 w-4 h-4" />
           <p>View Location</p>
-          <MapPinIcon className="ml-2 w-4 h-4" />
         </Button>
       </DialogTrigger>
       <DialogContent>

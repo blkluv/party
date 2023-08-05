@@ -1,12 +1,10 @@
 import { auth } from "@clerk/nextjs";
-import dayjs from "dayjs";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { SHOW_CHAT_HOURS_THRESHOLD } from "~/config/constants";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
-import { isEventOver } from "~/utils/event-time-helpers";
+import { isChatVisible } from "~/utils/event-time-helpers";
 import { ChatRoom } from "./chat-room";
 
 type PageProps = { params: { eventId: string } };
@@ -42,12 +40,7 @@ const Page = async (props: PageProps) => {
     redirect("/");
   }
 
-  if (
-    isEventOver(ticketData.event.startTime) ||
-    dayjs()
-      .add(SHOW_CHAT_HOURS_THRESHOLD, "hour")
-      .isBefore(ticketData.event.startTime)
-  ) {
+  if (!isChatVisible(ticketData.event.startTime)) {
     redirect("/");
   }
 

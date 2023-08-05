@@ -1,18 +1,22 @@
 import { currentUser } from "@clerk/nextjs";
+import { ChatBubbleBottomCenterTextIcon } from "@heroicons/react/24/outline";
 import { and, eq } from "drizzle-orm";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import QRCode from "react-qr-code";
 import { z } from "zod";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
+import { Button } from "~/app/_components/ui/button";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
-import { isLocationVisible } from "~/utils/event-time-helpers";
+import { isChatVisible, isLocationVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
+import { cn } from "~/utils/shadcn-ui";
 import { getStripeClient } from "~/utils/stripe";
 import { LocationDialog, TicketInfoButton } from "./ticket-helpers";
 
@@ -123,9 +127,10 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
   }
 
   const showLocation = isLocationVisible(ticketData.event.startTime);
+  const showChat = isChatVisible(ticketData.event.startTime);
 
   return (
-    <div className="border rounded-lg bg-neutral-900/50 relative z-10 px-8 pt-8 flex flex-col gap-4">
+    <div className="border rounded-lg bg-neutral-900/50 relative z-10 px-8 py-8 flex flex-col gap-4">
       <div>
         <p className="text-sm text-center font-medium">
           {ticketData.event.name}
@@ -147,11 +152,26 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
       <p className="text-center font-medium">
         {`${ticketData.quantity} ticket${ticketData.quantity > 1 ? "s" : ""}`}
       </p>
-      <div className="flex justify-evenly gap-2 border-t border-neutral-800">
-        <TicketInfoButton />
+      <div className="flex flex-col gap-2 border-t border-neutral-800">
         {showLocation && (
           <LocationDialog location={ticketData.event.location} />
         )}
+        <div
+          className={cn("grid gap-2", showChat ? "grid-cols-2" : "grid-cols-1")}
+        >
+          <TicketInfoButton />
+          {showChat && (
+            <Link
+              href={`/events/${props.eventId}/chat`}
+              className="flex-1 block"
+            >
+              <Button variant="ghost" className="w-full">
+                <ChatBubbleBottomCenterTextIcon className="mr-2 w-4 h-4" />
+                <p>Chat</p>
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

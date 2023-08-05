@@ -11,6 +11,8 @@ export const env = createEnv({
     CLOUDFLARE_ACCOUNT_ID: z.string(),
     CLOUDFLARE_IMAGES_API_KEY: z.string(),
     OPENAI_API_KEY: z.string(),
+    UPSTASH_REDIS_URL: z.string(),
+    UPSTASH_REDIS_TOKEN: z.string(),
   },
   client: {
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
@@ -46,6 +48,8 @@ export const env = createEnv({
     CLOUDFLARE_IMAGES_API_KEY: process.env.CLOUDFLARE_IMAGES_API_KEY,
     CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    UPSTASH_REDIS_TOKEN: process.env.UPSTASH_REDIS_TOKEN,
+    UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL,
     NEXT_PUBLIC_CHAT_HOST: process.env.NEXT_PUBLIC_CHAT_HOST,
     NEXT_PUBLIC_FEATURE_CHAT_MESSAGES:
       process.env.NEXT_PUBLIC_FEATURE_CHAT_MESSAGES,

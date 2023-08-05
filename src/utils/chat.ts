@@ -19,6 +19,12 @@ export const userJoinedEventSchema = z.object({
 });
 export type UserJoinedEvent = z.infer<typeof userJoinedEventSchema>;
 
+export const tooManyMessagesEventSchema = z.object({
+  __type: z.literal("TOO_MANY_MESSAGES"),
+  data: z.object({ message: z.string() }),
+});
+export type TooManyMessagesEvent = z.infer<typeof tooManyMessagesEventSchema>;
+
 export const socketEventSchema = chatMessageEventSchema
   .or(initialMessagesEventSchema)
   .or(userJoinedEventSchema);

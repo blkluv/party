@@ -133,14 +133,14 @@ const Page = async (props: PageProps) => {
 
       <Suspense
         fallback={
-          <>
+          <div className="flex justify-center flex-wrap items-center gap-2">
             {[...Array.from({ length: 3 })].map((_, i) => (
               <div
                 key={`placeholder ticket tier ${i}`}
                 className="border border-neutral-800 bg-neutral-800/25 shadow-lg rounded-xl w-56 h-56"
               />
             ))}
-          </>
+          </div>
         }
       >
         <TicketTiersView eventId={props.params.eventId} />

@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import {
   MAX_EVENT_DURATION_HOURS,
+  SHOW_CHAT_HOURS_THRESHOLD,
   SHOW_LOCATION_HOURS_THRESHOLD,
 } from "~/config/constants";
 
@@ -12,4 +13,11 @@ export const isEventOver = (startTime: Date) => {
 
 export const isLocationVisible = (startTime: Date) => {
   return dayjs().add(SHOW_LOCATION_HOURS_THRESHOLD, "hour").isAfter(startTime);
+};
+
+export const isChatVisible = (startTime: Date) => {
+  return (
+    dayjs().add(SHOW_CHAT_HOURS_THRESHOLD, "hour").isAfter(startTime) &&
+    !isEventOver(startTime)
+  );
 };
