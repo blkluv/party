@@ -21,9 +21,14 @@ export const Navigation = () => {
               <CubeIcon className="w-8 h-8" />
             </Link>
             {userAuth.userId && (
-              <Link href="/tickets">
-                <Button variant="ghost">Tickets</Button>
-              </Link>
+              <>
+                <Link href="/events">
+                  <Button variant="ghost">Events</Button>
+                </Link>
+                <Link href="/tickets">
+                  <Button variant="ghost">Tickets</Button>
+                </Link>
+              </>
             )}
           </div>
           {match(Boolean(userAuth.userId))

@@ -1,6 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, like, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "~/config/env";
 import type { Coupon, EventMedia, TicketPrice } from "~/db/schema";
@@ -535,5 +535,23 @@ export const eventsRouter = router({
         })
         .returning()
         .get();
+    }),
+  searchEvents: publicProcedure
+    .input(z.object({ query: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const results = await ctx.db.query.events.findMany({
+        where: or(
+          like(events.name, `%${input.query}%`),
+          like(events.description, `%${input.query}%`)
+        ),
+        columns: {
+          id: true,
+          name: true,
+          description: true,
+          startTime: true,
+        },
+      });
+
+      return results;
     }),
 });

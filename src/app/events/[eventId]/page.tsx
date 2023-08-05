@@ -200,14 +200,15 @@ const TicketTiersView = async (props: { eventId: string }) => {
           <p className="text-gray-100 font-semibold text-lg text-center">
             Ticket Tiers
           </p>
-          <div className="flex justify-center gap-2 flex-wrap"></div>
-          {foundTicketPrices.ticketPrices.map((price) => (
-            <TicketTierListing
-              key={`ticket price ${price.id}`}
-              eventId={props.eventId}
-              data={price}
-            />
-          ))}
+          <div className="flex justify-center gap-2 flex-wrap">
+            {foundTicketPrices.ticketPrices.map((price) => (
+              <TicketTierListing
+                key={`ticket price ${price.id}`}
+                eventId={props.eventId}
+                data={price}
+              />
+            ))}
+          </div>
         </>
       )}
       {foundTicketPrices.foundTicket && (
