@@ -6,7 +6,7 @@ import { SHOW_CHAT_HOURS_THRESHOLD } from "~/config/constants";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
-import { isEventOver } from "~/utils/isEventOver";
+import { isEventOver } from "~/utils/event-time-helpers";
 import { ChatRoom } from "./chat-room";
 
 type PageProps = { params: { eventId: string } };

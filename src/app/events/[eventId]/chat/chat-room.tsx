@@ -8,6 +8,7 @@ import PartySocket from "partysocket";
 import type { FC } from "react";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import ReactMarkdown from "react-markdown";
 import { match } from "ts-pattern";
 import { Button } from "~/app/_components/ui/button";
 import { Input } from "~/app/_components/ui/input";
@@ -17,8 +18,10 @@ import {
   type ChatMessageEvent,
   type ChatSocketEvent,
 } from "~/utils/chat";
-import { isEventOver } from "~/utils/isEventOver";
+import { isEventOver } from "~/utils/event-time-helpers";
 import { cn } from "~/utils/shadcn-ui";
+
+const urlRegex = new RegExp(/^http(s)?:\/\/.{2,}$/);
 
 export const ChatRoom: FC<{
   eventId: string;
@@ -48,7 +51,10 @@ export const ChatRoom: FC<{
     const newMessageEvent: ChatMessageEvent = {
       __type: "CHAT_MESSAGE",
       data: {
-        message,
+        message: message
+          .split(" ")
+          .map((word) => (urlRegex.test(word) ? `[${word}](${word})` : word))
+          .join(" "),
         userId: user.user.id,
         userName: user.user.fullName ?? "User",
         userImageUrl: user.user.imageUrl,
@@ -93,12 +99,6 @@ export const ChatRoom: FC<{
           bottom.current?.scrollIntoView({ behavior: "smooth" });
         })
         .with({ __type: "CHAT_MESSAGE" }, (val) => {
-          flushSync(() => {
-            setEvents((prev) => [...prev, val]);
-          });
-          bottom.current?.scrollIntoView({ behavior: "smooth" });
-        })
-        .with({ __type: "USER_JOINED" }, (val) => {
           flushSync(() => {
             setEvents((prev) => [...prev, val]);
           });
@@ -148,6 +148,7 @@ export const ChatRoom: FC<{
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
         />
+
         <Button type="submit">Send</Button>
       </form>
     </div>
@@ -175,7 +176,21 @@ const ChatEventView: FC<{ event: ChatSocketEvent }> = (props) => {
           </div>
           <div className="flex flex-col gap-2">
             <p className="font-semibold">{val.data.userName}</p>
-            <p>{val.data.message}</p>
+            <div className="text-white prose-invert prose-sm">
+              <ReactMarkdown
+                components={{
+                  a: ({ className, ...p }) => (
+                    <a
+                      {...p}
+                      className={cn(className, "underline")}
+                      target="_blank"
+                    />
+                  ),
+                }}
+              >
+                {val.data.message}
+              </ReactMarkdown>
+            </div>
           </div>
         </div>
       )

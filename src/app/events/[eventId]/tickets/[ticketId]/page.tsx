@@ -1,5 +1,4 @@
 import { currentUser } from "@clerk/nextjs";
-import dayjs from "dayjs";
 import { and, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -8,10 +7,10 @@ import QRCode from "react-qr-code";
 import { z } from "zod";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
-import { SHOW_LOCATION_HOURS_THRESHOLD } from "~/config/constants";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
+import { isLocationVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import { getStripeClient } from "~/utils/stripe";
@@ -57,7 +56,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
     redirect("/sign-in");
   }
 
-  const isAdmin = await isUserPlatformAdmin();
+  const isAdmin = await isUserPlatformAdmin(user);
 
   const ticketData = await db.query.tickets.findFirst({
     where: and(
@@ -66,9 +65,21 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
       // If not, the user needs to own the ticket
       isAdmin ? undefined : eq(tickets.userId, user.id)
     ),
+    columns: { quantity: true, status: true, stripeSessionId: true, id: true },
     with: {
-      price: true,
-      event: true,
+      price: {
+        columns: {
+          isFree: true,
+        },
+      },
+      event: {
+        columns: {
+          id: true,
+          name: true,
+          startTime: true,
+          location: true,
+        },
+      },
     },
   });
 
@@ -111,9 +122,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
     redirect(`/events/${ticketData.event.id}`);
   }
 
-  const showLocation =
-    dayjs(ticketData.event.startTime).diff(new Date(), "hour") <=
-    SHOW_LOCATION_HOURS_THRESHOLD;
+  const showLocation = isLocationVisible(ticketData.event.startTime);
 
   return (
     <div className="border rounded-lg bg-neutral-900/50 relative z-10 px-8 pt-8 flex flex-col gap-4">
@@ -140,7 +149,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
       </p>
       <div className="flex justify-evenly gap-2 border-t border-neutral-800">
         <TicketInfoButton />
-        {!showLocation && (
+        {showLocation && (
           <LocationDialog location={ticketData.event.location} />
         )}
       </div>

@@ -4,8 +4,10 @@ import { publicUserMetadataSchema } from "./userMetadataSchema";
 /**
  * SERVER ONLY
  */
-export const isUserPlatformAdmin = async () => {
-  const user = await currentUser();
+export const isUserPlatformAdmin = async (
+  existingUser?: Awaited<ReturnType<typeof currentUser>>
+) => {
+  const user = existingUser === undefined ? await currentUser() : existingUser;
 
   if (!user) {
     return false;
