@@ -87,7 +87,6 @@ const server: PartyKitServer = {
     }
 
     if (typeof event === "string") {
-      console.log(event);
       const validatedMessage = socketEventSchema.safeParse(JSON.parse(event));
 
       if (!validatedMessage.success) {
@@ -124,17 +123,11 @@ const server: PartyKitServer = {
           url: env.data.DATABASE_URL,
         });
 
-        console.log(
-          JSON.stringify(
-            await db
-              .insert(schema.chatMessages)
-              .values({ ...validatedMessage.data.data, id: createId() })
-              .returning()
-              .get(),
-            null,
-            2
-          )
-        );
+        await db
+          .insert(schema.chatMessages)
+          .values({ ...validatedMessage.data.data, id: createId() })
+          .returning()
+          .get();
       }
 
       room.broadcast(event);
