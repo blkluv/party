@@ -1,21 +1,25 @@
 import { createClient } from "@libsql/client/web";
 import { createId } from "@paralleldrive/cuid2";
-import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
-import { Redis } from "@upstash/redis";
-import { asc, eq } from "drizzle-orm";
+import { MultiRegionRatelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis/cloudflare";
+import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import type { PartyKitRoom, PartyKitServer } from "partykit/server";
 import { z } from "zod";
-import type { InitialMessagesEvent } from "~/utils/chat";
+import type { ChatErrorEvent, InitialMessagesEvent } from "~/utils/chat";
 import { socketEventSchema } from "~/utils/chat";
 import * as schema from "../db/schema";
 
-const getRateLimiter = (args: { url: string; token: string }) =>
-  new Ratelimit({
-    redis: new Redis(args),
-    limiter: Ratelimit.slidingWindow(10, "10 s"),
+const cache = new Map();
+
+const getRateLimiter = (args: { url: string; token: string }) => {
+  return new MultiRegionRatelimit({
+    redis: [new Redis(args)],
+    limiter: MultiRegionRatelimit.slidingWindow(10, "10 s"),
     analytics: true,
+    ephemeralCache: cache,
   });
+};
 
 const getDb = (args: { url: string; authToken: string }) => {
   const libsqlClient = createClient(args);
@@ -59,8 +63,11 @@ const server: PartyKitServer = {
 
     const messages = await db.query.chatMessages.findMany({
       where: eq(schema.chatMessages.eventId, room.id),
-      orderBy: asc(schema.chatMessages.createdAt),
+      orderBy: desc(schema.chatMessages.createdAt),
+      limit: 50,
     });
+
+    messages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     const event: InitialMessagesEvent = {
       __type: "INITIAL_MESSAGES",
@@ -99,6 +106,16 @@ const server: PartyKitServer = {
           console.error(
             `Rate limited user ${validatedMessage.data.data.userId}`
           );
+          const errorEvent: ChatErrorEvent = {
+            __type: "ERROR",
+            data: {
+              code: "TOO_MANY_MESSAGES",
+              message: "You've sent too many messages too quickly. Slow down.",
+            },
+          };
+
+          ws.send(JSON.stringify(errorEvent));
+
           return;
         }
 
@@ -107,13 +124,20 @@ const server: PartyKitServer = {
           url: env.data.DATABASE_URL,
         });
 
-        await db
-          .insert(schema.chatMessages)
-          .values({ ...validatedMessage.data.data, id: createId() })
-          .run();
+        console.log(
+          JSON.stringify(
+            await db
+              .insert(schema.chatMessages)
+              .values({ ...validatedMessage.data.data, id: createId() })
+              .returning()
+              .get(),
+            null,
+            2
+          )
+        );
       }
 
-      room.broadcast(event, [ws.id]);
+      room.broadcast(event);
     }
   },
 };

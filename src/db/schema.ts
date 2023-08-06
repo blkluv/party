@@ -14,6 +14,7 @@ export const events = sqliteTable("events", {
   stripeProductId: text("stripe_product_id").notNull(),
   isPublic: int("is_public", { mode: "boolean" }).notNull(),
   isFeatured: int("is_featured", { mode: "boolean" }).notNull(),
+  // If capacity=0, the event is considered a "discussion" of an event rather than a hosted event
   capacity: int("capacity").notNull(),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
@@ -30,8 +31,8 @@ export type Event = InferModel<typeof events, "select">;
 export type NewEvent = InferModel<typeof events, "insert">;
 export const selectEventSchema = createSelectSchema(events);
 export const insertEventSchema = createInsertSchema(events, {
-  capacity: z.coerce.number().gt(0, {
-    message: "Capacity must be a number greater than 0",
+  capacity: z.coerce.number().gte(0, {
+    message: "Capacity must be a number greater than or equal to 0.",
   }),
   description: (schema) =>
     schema.description.min(15, {
@@ -39,7 +40,7 @@ export const insertEventSchema = createInsertSchema(events, {
     }),
   location: (schema) =>
     schema.location.min(3, {
-      message: "Description must be longer than 3 characters",
+      message: "Location must be longer than 3 characters",
     }),
   name: (schema) =>
     schema.name.min(3, {

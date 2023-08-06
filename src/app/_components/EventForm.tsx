@@ -60,7 +60,11 @@ const formSchema = createEventSchema
   .omit({
     startTime: true,
   })
-  .extend({ startDate: z.date(), startTime: z.string() });
+  .extend({
+    startDate: z.date(),
+    startTime: z.string(),
+    isHosted: z.boolean().optional().default(false),
+  });
 export type EventFormData = z.infer<typeof formSchema>;
 
 export const EventForm: FC<{
@@ -87,30 +91,30 @@ export const EventForm: FC<{
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: props.initialValues ?? {
-      name: "",
-      description: "",
-      startDate: new Date(),
-      isPublic: true,
-      isFeatured: isAdmin,
-      capacity: 100,
-      location: "",
-      // Ticket price is in dollars CAD
-      ticketPrices: [{ name: "Regular", price: 10, isFree: true }],
-      // HH:MM
-      startTime: `${new Date()
-        .getHours()
-        .toString()
-        .padStart(2, "0")}:${new Date()
-        .getMinutes()
-        .toString()
-        .padStart(2, "0")}`,
-      coupons: [],
-    },
+    defaultValues: props.initialValues
+      ? { ...props.initialValues, isHosted: props.initialValues.capacity > 0 }
+      : {
+          name: "",
+          description: "",
+          startDate: new Date(),
+          isPublic: true,
+          isFeatured: isAdmin,
+          capacity: 0,
+          location: "",
+          isHosted: false,
+          // Ticket price is in dollars CAD
+          ticketPrices: [],
+          // HH:MM
+          startTime: dayjs().format("HH:mm"),
+          coupons: [],
+        },
   });
 
-  const [ticketPrices] = form.watch(["ticketPrices"]);
-  const [coupons] = form.watch(["coupons"]);
+  const [ticketPrices, coupons, isHosted] = form.watch([
+    "ticketPrices",
+    "coupons",
+    "isHosted",
+  ]);
 
   const onDrop = useCallback((files: File[]) => {
     setMediaFiles((prev) => [
@@ -172,7 +176,11 @@ export const EventForm: FC<{
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit((values) => {
-          return props.onSubmit({ ...values, eventMedia: mediaFiles });
+          return props.onSubmit({
+            ...values,
+            eventMedia: mediaFiles,
+            capacity: values.isHosted ? 0 : values.capacity,
+          });
         })}
         className="space-y-8"
       >
@@ -202,22 +210,6 @@ export const EventForm: FC<{
                 <Textarea placeholder="Description" {...field} />
               </FormControl>
               <FormDescription>Describe your new event.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Location</FormLabel>
-              <FormControl>
-                <Input placeholder="Location" {...field} />
-              </FormControl>
-              <FormDescription>
-                The location where this event will take place.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -268,23 +260,6 @@ export const EventForm: FC<{
             )}
           />
         )}
-        <FormField
-          control={form.control}
-          name="capacity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Event Capacity</FormLabel>
-              <FormControl>
-                <Input placeholder="Capacity" type="number" {...field} />
-              </FormControl>
-              <FormDescription>
-                Maximum ticket limit prevents further purchases after reaching
-                the specified number.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         {mediaPreviewUrls.length > 0 && (
           <div className="space-y-2">
             <FormLabel>Media</FormLabel>
@@ -318,7 +293,9 @@ export const EventForm: FC<{
           </div>
         )}
         <div className="space-y-2">
-          <FormLabel>Upload</FormLabel>
+          <div className="space-y-0.5">
+            <FormLabel>Event Images</FormLabel>
+          </div>
           <div
             {...getRootProps()}
             className="border p-2 flex justify-center flex-col gap-2 items-center rounded-lg h-24 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition duration-75 text-sm text-neutral-600 dark:text-neutral-300"
@@ -327,16 +304,69 @@ export const EventForm: FC<{
             {isDragActive ? (
               <>
                 <ArrowDownTrayIcon className="w-6 h-6" />
-                <p>Drop files here</p>
+                <p>Drop images here</p>
               </>
             ) : (
               <>
                 <ArrowUpTrayIcon className="w-6 h-6" />
-                <p>Upload files</p>
+                <p>Upload images</p>
               </>
             )}
           </div>
         </div>
+        <FormField
+          control={form.control}
+          name="location"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <FormControl>
+                <Input placeholder="Location" {...field} />
+              </FormControl>
+              <FormDescription>
+                The location where this event will take place.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="isHosted"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">Hosted</FormLabel>
+                <FormDescription>Are you hosting this event?</FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        {isHosted && (
+          <FormField
+            control={form.control}
+            name="capacity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Event Capacity</FormLabel>
+                <FormControl>
+                  <Input placeholder="Capacity" type="number" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Maximum ticket limit prevents further purchases after reaching
+                  the specified number.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         {isAdmin && props.mode !== "edit" && (
           <>
             <div className="space-y-2">
@@ -514,7 +544,6 @@ export const EventForm: FC<{
             </div>
           </>
         )}
-
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}

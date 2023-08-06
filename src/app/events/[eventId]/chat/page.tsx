@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
-import { tickets } from "~/db/schema";
+import { events, tickets } from "~/db/schema";
 import { isChatVisible } from "~/utils/event-time-helpers";
 import { ChatRoom } from "./chat-room";
 
@@ -21,34 +21,38 @@ const Page = async (props: PageProps) => {
 
   const db = getDb();
 
-  const ticketData = await db.query.tickets.findFirst({
-    where: and(
-      eq(tickets.eventId, props.params.eventId),
-      eq(tickets.userId, userAuth.userId),
-      eq(tickets.status, "success")
-    ),
-    with: {
-      event: {
-        columns: {
-          name: true,
-          startTime: true,
-        },
-      },
+  const eventData = await db.query.events.findFirst({
+    where: eq(events.id, props.params.eventId),
+    columns: {
+      capacity: true,
+      startTime: true,
+      name: true,
     },
   });
-  if (!ticketData) {
+
+  if (!eventData || !isChatVisible(eventData.startTime)) {
     redirect("/");
   }
 
-  if (!isChatVisible(ticketData.event.startTime)) {
-    redirect("/");
+  if (eventData.capacity > 0) {
+    const ticketData = await db.query.tickets.findFirst({
+      where: and(
+        eq(tickets.eventId, props.params.eventId),
+        eq(tickets.userId, userAuth.userId),
+        eq(tickets.status, "success")
+      ),
+    });
+
+    if (!ticketData) {
+      redirect("/");
+    }
   }
 
   return (
     <ChatRoom
       eventId={props.params.eventId}
-      eventName={ticketData.event.name}
-      startTime={ticketData.event.startTime}
+      eventName={eventData.name}
+      startTime={eventData.startTime}
     />
   );
 };

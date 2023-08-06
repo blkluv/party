@@ -19,14 +19,18 @@ export const userJoinedEventSchema = z.object({
 });
 export type UserJoinedEvent = z.infer<typeof userJoinedEventSchema>;
 
-export const tooManyMessagesEventSchema = z.object({
-  __type: z.literal("TOO_MANY_MESSAGES"),
-  data: z.object({ message: z.string() }),
+export const errorEventSchema = z.object({
+  __type: z.literal("ERROR"),
+  data: z.object({
+    code: z.enum(["TOO_MANY_MESSAGES", "BAD_MESSAGE"]),
+    message: z.string(),
+  }),
 });
-export type TooManyMessagesEvent = z.infer<typeof tooManyMessagesEventSchema>;
+export type ChatErrorEvent = z.infer<typeof errorEventSchema>;
 
 export const socketEventSchema = chatMessageEventSchema
   .or(initialMessagesEventSchema)
+  .or(errorEventSchema)
   .or(userJoinedEventSchema);
 
 export type ChatSocketEvent = z.infer<typeof socketEventSchema>;

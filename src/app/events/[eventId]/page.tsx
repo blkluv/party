@@ -1,5 +1,8 @@
 import { auth } from "@clerk/nextjs";
-import { TicketIcon } from "@heroicons/react/24/outline";
+import {
+  ChatBubbleBottomCenterTextIcon,
+  TicketIcon,
+} from "@heroicons/react/24/outline";
 import { and, asc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -13,6 +16,7 @@ import { Button } from "~/app/_components/ui/button";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { eventMedia, events, ticketPrices, tickets } from "~/db/schema";
+import { isChatVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import { TicketTierListing } from "./TicketTierListing";
@@ -29,6 +33,7 @@ const getEventData = cache(async (id: string) => {
       startTime: true,
       id: true,
       userId: true,
+      capacity: true,
     },
     with: {
       eventMedia: {
@@ -192,28 +197,42 @@ const EventView = async (props: { eventId: string }) => {
 
 const TicketTiersView = async (props: { eventId: string }) => {
   const foundTicketPrices = await getTicketTiers(props.eventId);
+  const eventData = await getEventData(props.eventId);
 
   return (
-    <div className="flex flex-col gap-2">
-      {foundTicketPrices.foundTicket === null && (
-        <>
-          <p className="text-gray-100 font-semibold text-lg text-center">
-            Ticket Tiers
-          </p>
-          <div className="flex justify-center gap-2 flex-wrap">
-            {foundTicketPrices.ticketPrices.map((price) => (
-              <TicketTierListing
-                key={`ticket price ${price.id}`}
-                eventId={props.eventId}
-                data={price}
-              />
-            ))}
-          </div>
-        </>
+    <div className="flex flex-col gap-2 items-center justify-center">
+      {/* Event is unhosted, just make sure that we can see chat */}
+      {eventData?.capacity === 0 && isChatVisible(eventData.startTime) && (
+        <Link href={`/events/${props.eventId}/chat`}>
+          <Button>
+            <ChatBubbleBottomCenterTextIcon className="mr-2 h-4 w-4" />
+            <p>Join Discussion</p>
+          </Button>
+        </Link>
       )}
+
+      {/* No ticket, but have ticket prices. Show ticket prices */}
+      {foundTicketPrices.foundTicket === null &&
+        foundTicketPrices.ticketPrices.length > 0 && (
+          <>
+            <p className="text-gray-100 font-semibold text-lg text-center">
+              Ticket Tiers
+            </p>
+            <div className="flex justify-center gap-2 flex-wrap">
+              {foundTicketPrices.ticketPrices.map((price) => (
+                <TicketTierListing
+                  key={`ticket price ${price.id}`}
+                  eventId={props.eventId}
+                  data={price}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+      {/* Found a ticket */}
       {foundTicketPrices.foundTicket && (
         <Link
-          className="mx-auto"
           href={`/events/${props.eventId}/tickets/${foundTicketPrices.foundTicket.id}`}
         >
           <Button>

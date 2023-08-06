@@ -22,6 +22,7 @@ import { isEventOver } from "~/utils/event-time-helpers";
 import { cn } from "~/utils/shadcn-ui";
 
 const urlRegex = new RegExp(/^http(s)?:\/\/.{2,}$/);
+const imageExtensions = ["jpg", "png", "jpeg", "webp", "gif", "avif"];
 
 export const ChatRoom: FC<{
   eventId: string;
@@ -30,21 +31,14 @@ export const ChatRoom: FC<{
 }> = (props) => {
   const [socket, setSocket] = useState<null | PartySocket>(null);
   const [events, setEvents] = useState<ChatSocketEvent[]>([]);
+  const isLoaded = useRef<boolean>(false);
   const user = useUser();
   const [userInput, setUserInput] = useState("");
   const bottom = useRef<HTMLDivElement>(null);
-  const [_messageError, setMessageError] = useState("");
   const { push } = useRouter();
 
   const sendMessage = async (message: string) => {
     if (!socket || !user.isSignedIn || message.length === 0) {
-      return;
-    }
-
-    const isMessageSafe = true;
-
-    if (!isMessageSafe) {
-      setMessageError("Message is inappropriate");
       return;
     }
 
@@ -53,7 +47,15 @@ export const ChatRoom: FC<{
       data: {
         message: message
           .split(" ")
-          .map((word) => (urlRegex.test(word) ? `[${word}](${word})` : word))
+          .map((word) =>
+            urlRegex.test(word)
+              ? `${
+                  imageExtensions.some((e) => word.split("?")[0].endsWith(e))
+                    ? "!"
+                    : ""
+                }[${word}](${word})`
+              : word
+          )
           .join(" "),
         userId: user.user.id,
         userName: user.user.fullName ?? "User",
@@ -65,14 +67,23 @@ export const ChatRoom: FC<{
     };
 
     socket.send(JSON.stringify(newMessageEvent));
-    setMessageError("");
-
-    flushSync(() => {
-      setEvents((prev) => [...prev, newMessageEvent]);
-    });
-
-    bottom.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (bottom.current && isLoaded.current) {
+        bottom.current.scrollIntoView({
+          inline: "end",
+          block: "end",
+          behavior: "smooth",
+        });
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [events]);
 
   useEffect(() => {
     const newSocket = new PartySocket({
@@ -96,13 +107,20 @@ export const ChatRoom: FC<{
           flushSync(() => {
             setEvents(val.data.messages);
           });
-          bottom.current?.scrollIntoView({ behavior: "smooth" });
+          if (bottom.current) {
+            bottom.current.scrollIntoView({
+              inline: "end",
+              block: "end",
+            });
+
+            isLoaded.current = true;
+          }
         })
         .with({ __type: "CHAT_MESSAGE" }, (val) => {
-          flushSync(() => {
-            setEvents((prev) => [...prev, val]);
-          });
-          bottom.current?.scrollIntoView({ behavior: "smooth" });
+          setEvents((prev) => [...prev, val]);
+        })
+        .with({ __type: "ERROR" }, (val) => {
+          setEvents((prev) => [...prev, val]);
         });
     });
 
@@ -133,7 +151,7 @@ export const ChatRoom: FC<{
               <ChatEventView event={event} />
             </div>
           ))}
-          <div className="" ref={bottom} />
+          <div ref={bottom} id="bottom" />
         </div>
       </div>
       <form
@@ -202,6 +220,16 @@ const ChatEventView: FC<{ event: ChatSocketEvent }> = (props) => {
       (val) => (
         <div className="p-3 text-xs text-neutral-400">
           {val.data.name} Joined
+        </div>
+      )
+    )
+    .with(
+      {
+        __type: "ERROR",
+      },
+      (val) => (
+        <div className="p-3 text-xs text-white bg-red-600 rounded-2xl ml-auto">
+          {val.data.message}
         </div>
       )
     )
