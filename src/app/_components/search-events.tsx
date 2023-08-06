@@ -2,6 +2,7 @@
 
 import type { inferProcedureOutput } from "@trpc/server";
 import Image from "next/image";
+import Link from "next/link";
 import type { FC } from "react";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -45,8 +46,11 @@ const EventListing: FC<{
   data: inferProcedureOutput<AppRouter["events"]["searchEvents"]>[number];
 }> = (props) => {
   return (
-    <div className="py-2 flex gap-2 items-center">
-      <div className="w-24 h-24 rounded-2xl overflow-hidden shrink-0">
+    <Link
+      className="p-2 flex gap-2 sm:gap-8 items-center rounded-3xl hover:bg-neutral-800 transition duration-75"
+      href={`/events/${props.data.id}`}
+    >
+      <div className="w-24 h-24 sm:h-32 sm:w-32 rounded-2xl overflow-hidden shrink-0">
         <Image
           src={props.data.imageUrl}
           alt=""
@@ -56,11 +60,11 @@ const EventListing: FC<{
         />
       </div>
       <div>
-        <p className="font-semibold truncate">{props.data.name}</p>
+        <p className="font-semibold truncate sm:text-lg">{props.data.name}</p>
         <p className="text-sm text-neutral-200">
           <ClientDate date={props.data.startTime} />
         </p>
       </div>
-    </div>
+    </Link>
   );
 };
