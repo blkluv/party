@@ -1,10 +1,11 @@
 import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt, inArray, like, or, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, like, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "~/config/env";
 import type { Coupon, EventMedia, TicketPrice } from "~/db/schema";
 
+import { MAX_EVENT_DURATION_HOURS } from "~/config/constants";
 import {
   coupons,
   eventMedia,
@@ -539,10 +540,16 @@ export const eventsRouter = router({
   searchEvents: publicProcedure
     .input(z.object({ query: z.string() }))
     .query(async ({ input, ctx }) => {
+      const hoursStr = `-${MAX_EVENT_DURATION_HOURS} hours`;
       const results = await ctx.db.query.events.findMany({
-        where: or(
-          like(events.name, `%${input.query}%`),
-          like(events.description, `%${input.query}%`)
+        where: and(
+          or(
+            like(events.name, `%${input.query}%`),
+            like(events.description, `%${input.query}%`)
+          ),
+          eq(events.isPublic, true),
+          eq(events.isFeatured, false),
+          lte(events.startTime, sql`datetime(datetime('now'),${hoursStr})`)
         ),
         columns: {
           id: true,
@@ -550,8 +557,14 @@ export const eventsRouter = router({
           description: true,
           startTime: true,
         },
+        with: {
+          eventMedia: {
+            where: eq(eventMedia.isPoster, true),
+          },
+        },
+        limit: 10,
       });
 
-      return results;
+      return results.map((e) => ({ ...e, imageUrl: e.eventMedia[0].url }));
     }),
 });

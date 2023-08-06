@@ -54,7 +54,7 @@ export const Navigation = () => {
             .exhaustive()}
         </div>
       </div>
-      <div className="bottom-0 border-t w-full px-4 h-16 bg-neutral-900/90 backdrop-blur z-50 fixed sm:hidden flex justify-evenly items-start">
+      <div className="bottom-0 border-t left-0 right-0 px-4 h-16 bg-neutral-900/90 backdrop-blur z-50 fixed sm:hidden flex justify-evenly items-start">
         <Link href="/" className="w-12 h-12 flex justify-center items-center">
           <CubeIcon className="w-8 h-8" />
         </Link>

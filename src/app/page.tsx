@@ -8,6 +8,7 @@ import { getDb } from "~/db/client";
 import { eventMedia, events } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { ClientDate } from "./_components/ClientDate";
+import { SearchEvents } from "./_components/search-events";
 
 export const dynamic = "force-dynamic";
 
@@ -56,8 +57,8 @@ const EventsListLoadingSkeleton = () => {
 
 const Page = async () => {
   return (
-    <div className="flex-1 flex flex-col relative">
-      <div className="fixed top-36 sm:top-56 left-0 right-0 z-0">
+    <div className="flex-1 flex flex-col relative overflow-x-hidden">
+      <div className="mt-32 w-full">
         <div className="text-white flex gap-4 items-center justify-center relative">
           <div className="bg-white/10 blur-[100px] rounded-[100%] absolute w-[600px] h-96 left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2" />
           <CubeIcon className="w-12 h:12 sm:w-16 sm:h-16" />
@@ -66,13 +67,16 @@ const Page = async () => {
           </h1>
         </div>
       </div>
-      <div className="flex flex-col gap-4 max-w-2xl m-2 sm:mx-auto w-full relative z-20 pb-4 mt-96">
+      <div className="flex flex-col gap-4 max-w-2xl px-2 sm:mx-auto w-full relative z-20 pb-4 mt-32">
         <p className="font-semibold text-white text-lg text-center">
           Featured Events
         </p>
         <Suspense fallback={<EventsListLoadingSkeleton />}>
           <EventsList />
         </Suspense>
+        <div className="mt-16">
+          <SearchEvents />
+        </div>
       </div>
     </div>
   );

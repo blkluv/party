@@ -9,5 +9,8 @@ export const getDb = () => {
     authToken: env.DATABASE_AUTH_TOKEN,
   });
 
-  return drizzle(libsqlClient, { schema });
+  return drizzle(libsqlClient, {
+    schema,
+    logger: process.env.NODE_ENV === "development",
+  });
 };
