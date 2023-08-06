@@ -69,7 +69,9 @@ export type EventFormData = z.infer<typeof formSchema>;
 
 export const EventForm: FC<{
   mode?: "create" | "edit";
-  initialValues?: EventFormData & { eventMedia: EventMediaFile[] };
+  initialValues?: Omit<EventFormData, "isHosted"> & {
+    eventMedia: EventMediaFile[];
+  };
   onSubmit: (
     values: EventFormData & { eventMedia: EventMediaFile[] }
   ) => Promise<void> | void;
