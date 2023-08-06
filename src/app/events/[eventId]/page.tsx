@@ -202,14 +202,16 @@ const TicketTiersView = async (props: { eventId: string }) => {
   return (
     <div className="flex flex-col gap-2 items-center justify-center">
       {/* Event is unhosted, just make sure that we can see chat */}
-      {eventData?.capacity === 0 && isChatVisible(eventData.startTime) && (
-        <Link href={`/events/${props.eventId}/chat`}>
-          <Button>
-            <ChatBubbleBottomCenterTextIcon className="mr-2 h-4 w-4" />
-            <p>Join Discussion</p>
-          </Button>
-        </Link>
-      )}
+      {eventData?.capacity === 0 &&
+        isChatVisible(eventData.startTime) &&
+        foundTicketPrices.ticketPrices.length === 0 && (
+          <Link href={`/events/${props.eventId}/chat`}>
+            <Button>
+              <ChatBubbleBottomCenterTextIcon className="mr-2 h-4 w-4" />
+              <p>Join Discussion</p>
+            </Button>
+          </Link>
+        )}
 
       {/* No ticket, but have ticket prices. Show ticket prices */}
       {foundTicketPrices.foundTicket === null &&
