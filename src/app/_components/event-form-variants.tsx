@@ -10,7 +10,7 @@ import type { EventMediaFileVariant, EventMediaUrlVariant } from "./EventForm";
 import { EventForm } from "./EventForm";
 
 export const CreateEventForm = () => {
-  const { push } = useRouter();
+  const { push, refresh } = useRouter();
 
   const uploadImages = useUploadImages();
   const { mutateAsync: createEventMedia } =
@@ -58,6 +58,7 @@ export const CreateEventForm = () => {
           );
         }
 
+        refresh();
         push(`/events/${newEvent.id}`);
       }}
     />

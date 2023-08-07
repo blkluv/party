@@ -11,12 +11,16 @@ import { z } from "zod";
  * SERVER ONLY
  */
 export const isTextSafe = async (
-  input: string,
+  input?: string | null,
   config?: {
     apiKey?: string;
     filters?: string[];
   }
 ) => {
+  if (!input) {
+    return true;
+  }
+
   const zodSchema = z.object({
     unsafe: z
       .boolean()

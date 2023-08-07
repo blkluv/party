@@ -34,13 +34,13 @@ export const insertEventSchema = createInsertSchema(events, {
   capacity: z.coerce.number().gte(0, {
     message: "Capacity must be a number greater than or equal to 0.",
   }),
-  description: (schema) =>
-    schema.description.min(15, {
-      message: "Description must be longer than 15 characters",
-    }),
   name: (schema) =>
     schema.name.min(3, {
-      message: "Name must be longer than 3 characters",
+      message: "Name must be longer than 3 characters.",
+    }),
+  location: (schema) =>
+    schema.name.min(3, {
+      message: "Location must be longer than 3 characters.",
     }),
 });
 

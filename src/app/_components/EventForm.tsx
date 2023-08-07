@@ -8,6 +8,7 @@ import {
   CalendarIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  Cog6ToothIcon,
   PhotoIcon,
   PlusIcon,
   XMarkIcon,
@@ -82,6 +83,8 @@ export const EventForm: FC<{
       (user.user.publicMetadata as PublicUserMetadata).platformRole === "admin"
   );
 
+  const [showAdditionalSettings, setShowAdditionalSettings] = useState(false);
+
   const [mediaPreviewUrls, setMediaPreviewUrls] = useState<PreviewUrl[]>(
     props.initialValues?.eventMedia
       .filter((e): e is EventMediaUrlVariant => e.__type === "url")
@@ -98,9 +101,9 @@ export const EventForm: FC<{
       : {
           name: "",
           description: "",
-          startDate: new Date(),
+          startDate: dayjs().add(1, "day").toDate(),
           isPublic: true,
-          isFeatured: isAdmin,
+          isFeatured: false,
           capacity: 0,
           location: "",
           isHosted: false,
@@ -201,119 +204,6 @@ export const EventForm: FC<{
         />
         <FormField
           control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Description" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="isPublic"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Public</FormLabel>
-                <FormDescription>
-                  Public events are searchable on the home page, while
-                  non-public events can still be accessed via a direct link to
-                  their event page.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        {isAdmin && (
-          <FormField
-            control={form.control}
-            name="isFeatured"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">Featured</FormLabel>
-                  <FormDescription>
-                    Featured events are shown at the top of the home page and
-                    are generally promoted better than regular events.
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        )}
-        {mediaPreviewUrls.length > 0 && (
-          <div className="space-y-2">
-            <FormLabel>Media</FormLabel>
-
-            <div className="grid grid-cols-2 gap-2">
-              {mediaFiles.map((e, i) => (
-                <MediaPreviewItem
-                  onPosterToggle={() =>
-                    setMediaFiles((prev) =>
-                      prev.map((e, j) => ({ ...e, isPoster: i === j }))
-                    )
-                  }
-                  key={`image ${i}`}
-                  onMove={(dir) => handleMediaOrderChange(i, dir)}
-                  onRemove={() =>
-                    setMediaFiles((prev) => prev.filter((_, j) => i !== j))
-                  }
-                  order={i}
-                  data={e}
-                  maxIndex={mediaFiles.length - 1}
-                  imageUrl={
-                    mediaPreviewUrls.find(
-                      (f) =>
-                        f.fileName ===
-                        (e.__type === "file" ? e.file.name : e.url)
-                    )?.url ?? ""
-                  }
-                />
-              ))}
-            </div>
-          </div>
-        )}
-        <div className="space-y-2">
-          <div className="space-y-0.5">
-            <FormLabel>Event Images</FormLabel>
-          </div>
-          <div
-            {...getRootProps()}
-            className="border p-2 flex justify-center flex-col gap-2 items-center rounded-lg h-24 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition duration-75 text-sm text-neutral-600 dark:text-neutral-300"
-          >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <>
-                <ArrowDownTrayIcon className="w-6 h-6" />
-                <p>Drop images here</p>
-              </>
-            ) : (
-              <>
-                <ArrowUpTrayIcon className="w-6 h-6" />
-                <p>Upload images</p>
-              </>
-            )}
-          </div>
-        </div>
-        <FormField
-          control={form.control}
           name="location"
           render={({ field }) => (
             <FormItem>
@@ -328,265 +218,399 @@ export const EventForm: FC<{
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="isHosted"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Hosted</FormLabel>
-                <FormDescription>Are you hosting this event?</FormDescription>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        {isHosted && (
-          <FormField
-            control={form.control}
-            name="capacity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Event Capacity</FormLabel>
-                <FormControl>
-                  <Input placeholder="Capacity" type="number" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Maximum ticket limit prevents further purchases after reaching
-                  the specified number.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-        {isAdmin && props.mode !== "edit" && (
+
+        <Button
+          variant="outline"
+          type="button"
+          className="w-full"
+          onClick={() => setShowAdditionalSettings((o) => !o)}
+        >
+          <Cog6ToothIcon className="mr-2 w-4 h-4" />
+          <p>{`${
+            showAdditionalSettings ? "Hide" : "Show"
+          } Additional Settings`}</p>
+        </Button>
+        {showAdditionalSettings && (
           <>
-            <div className="space-y-2">
-              <Label>Ticket Tiers</Label>
-              {ticketPrices.map((_, i) => (
-                <div
-                  key={`ticketPrices.${i}`}
-                  className="bg-neutral-50 dark:bg-neutral-900 dark:border shadow-inner dark:shadow-none rounded-xl p-4 flex flex-col gap-2"
-                >
-                  <FormField
-                    control={form.control}
-                    name={`ticketPrices.${i}.name`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Regular" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          The name of this ticket tier.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {!ticketPrices[i].isFree && (
-                    <FormField
-                      control={form.control}
-                      name={`ticketPrices.${i}.price`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Price</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Price"
-                              type="number"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            The cost of the ticket, in dollars CAD
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Description" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isPublic"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Public</FormLabel>
+                    <FormDescription>
+                      Public events are searchable on the home page, while
+                      non-public events can still be accessed via a direct link
+                      to their event page.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
                     />
-                  )}
-                  <FormField
-                    control={form.control}
-                    name={`ticketPrices.${i}.isFree`}
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Free</FormLabel>
-                          <FormDescription>
-                            Is this ticket tier free?
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="button"
-                    className="ml-auto"
-                    variant="ghost"
-                    onClick={() => {
-                      form.setValue(
-                        "ticketPrices",
-                        form.getValues().ticketPrices.filter((_, j) => i !== j)
-                      );
-                    }}
-                  >
-                    <XMarkIcon className="w-4 h-4 mr-2" />
-                    <p>Remove Ticket Tier</p>
-                  </Button>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            {isAdmin && (
+              <FormField
+                control={form.control}
+                name="isFeatured"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Featured</FormLabel>
+                      <FormDescription>
+                        Featured events are shown at the top of the home page
+                        and are generally promoted better than regular events.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            )}
+            {mediaPreviewUrls.length > 0 && (
+              <div className="space-y-2">
+                <FormLabel>Media</FormLabel>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {mediaFiles.map((e, i) => (
+                    <MediaPreviewItem
+                      onPosterToggle={() =>
+                        setMediaFiles((prev) =>
+                          prev.map((e, j) => ({ ...e, isPoster: i === j }))
+                        )
+                      }
+                      key={`image ${i}`}
+                      onMove={(dir) => handleMediaOrderChange(i, dir)}
+                      onRemove={() =>
+                        setMediaFiles((prev) => prev.filter((_, j) => i !== j))
+                      }
+                      order={i}
+                      data={e}
+                      maxIndex={mediaFiles.length - 1}
+                      imageUrl={
+                        mediaPreviewUrls.find(
+                          (f) =>
+                            f.fileName ===
+                            (e.__type === "file" ? e.file.name : e.url)
+                        )?.url ?? ""
+                      }
+                    />
+                  ))}
                 </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                className="flex"
-                onClick={() => {
-                  const values = form.getValues();
-                  form.setValue("ticketPrices", [
-                    ...values.ticketPrices,
-                    { isFree: false, name: "Ticket", price: 1 },
-                  ]);
-                }}
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                <p>Add Ticket Tier</p>
-              </Button>
-            </div>
+              </div>
+            )}
             <div className="space-y-2">
-              <Label>Coupons</Label>
-              {coupons.map((_, i) => (
-                <div
-                  key={`coupons.${i}`}
-                  className="bg-neutral-50 dark:bg-neutral-900 dark:border shadow-inner dark:shadow-none rounded-xl p-4 flex flex-col gap-2"
-                >
-                  <FormField
-                    control={form.control}
-                    name={`coupons.${i}.name`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Regular" {...field} />
-                        </FormControl>
-                        <FormDescription>
-                          The name of this coupon.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`coupons.${i}.percentageDiscount`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Percentage Discount</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Percentage discount"
-                            type="number"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          This percentage amount will be deducted from the sale
-                          price of the tickets.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <div className="space-y-0.5">
+                <FormLabel>Event Images</FormLabel>
+              </div>
+              <div
+                {...getRootProps()}
+                className="border p-2 flex justify-center flex-col gap-2 items-center rounded-lg h-24 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition duration-75 text-sm text-neutral-600 dark:text-neutral-300"
+              >
+                <input {...getInputProps()} />
+                {isDragActive ? (
+                  <>
+                    <ArrowDownTrayIcon className="w-6 h-6" />
+                    <p>Drop images here</p>
+                  </>
+                ) : (
+                  <>
+                    <ArrowUpTrayIcon className="w-6 h-6" />
+                    <p>Upload images</p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="isHosted"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Hosted</FormLabel>
+                    <FormDescription>
+                      Are you hosting this event?
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            {isHosted && (
+              <FormField
+                control={form.control}
+                name="capacity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Event Capacity</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Capacity" type="number" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Maximum ticket limit prevents further purchases after
+                      reaching the specified number.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            {isAdmin && props.mode !== "edit" && (
+              <>
+                <div className="space-y-2">
+                  <Label>Ticket Tiers</Label>
+                  {ticketPrices.map((_, i) => (
+                    <div
+                      key={`ticketPrices.${i}`}
+                      className="bg-neutral-50 dark:bg-neutral-900 dark:border shadow-inner dark:shadow-none rounded-xl p-4 flex flex-col gap-2"
+                    >
+                      <FormField
+                        control={form.control}
+                        name={`ticketPrices.${i}.name`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Regular" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              The name of this ticket tier.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      {!ticketPrices[i].isFree && (
+                        <FormField
+                          control={form.control}
+                          name={`ticketPrices.${i}.price`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Price</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Price"
+                                  type="number"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                The cost of the ticket, in dollars CAD
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                      <FormField
+                        control={form.control}
+                        name={`ticketPrices.${i}.isFree`}
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Free</FormLabel>
+                              <FormDescription>
+                                Is this ticket tier free?
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="button"
+                        className="ml-auto"
+                        variant="ghost"
+                        onClick={() => {
+                          form.setValue(
+                            "ticketPrices",
+                            form
+                              .getValues()
+                              .ticketPrices.filter((_, j) => i !== j)
+                          );
+                        }}
+                      >
+                        <XMarkIcon className="w-4 h-4 mr-2" />
+                        <p>Remove Ticket Tier</p>
+                      </Button>
+                    </div>
+                  ))}
                   <Button
                     type="button"
-                    className="ml-auto"
-                    variant="ghost"
+                    variant="outline"
+                    className="flex"
                     onClick={() => {
-                      form.setValue(
-                        "coupons",
-                        form.getValues().coupons.filter((_, j) => i !== j)
-                      );
+                      const values = form.getValues();
+                      form.setValue("ticketPrices", [
+                        ...values.ticketPrices,
+                        { isFree: false, name: "Ticket", price: 1 },
+                      ]);
                     }}
                   >
-                    <XMarkIcon className="w-4 h-4 mr-2" />
-                    <p>Remove Coupon</p>
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    <p>Add Ticket Tier</p>
                   </Button>
                 </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                className="flex"
-                onClick={() => {
-                  const values = form.getValues();
-                  form.setValue("coupons", [
-                    ...values.coupons,
-                    { name: "Coupon", percentageDiscount: 10 },
-                  ]);
-                }}
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                <p>Add Coupon</p>
-              </Button>
+                <div className="space-y-2">
+                  <Label>Coupons</Label>
+                  {coupons.map((_, i) => (
+                    <div
+                      key={`coupons.${i}`}
+                      className="bg-neutral-50 dark:bg-neutral-900 dark:border shadow-inner dark:shadow-none rounded-xl p-4 flex flex-col gap-2"
+                    >
+                      <FormField
+                        control={form.control}
+                        name={`coupons.${i}.name`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Regular" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              The name of this coupon.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`coupons.${i}.percentageDiscount`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Percentage Discount</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Percentage discount"
+                                type="number"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              This percentage amount will be deducted from the
+                              sale price of the tickets.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="button"
+                        className="ml-auto"
+                        variant="ghost"
+                        onClick={() => {
+                          form.setValue(
+                            "coupons",
+                            form.getValues().coupons.filter((_, j) => i !== j)
+                          );
+                        }}
+                      >
+                        <XMarkIcon className="w-4 h-4 mr-2" />
+                        <p>Remove Coupon</p>
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex"
+                    onClick={() => {
+                      const values = form.getValues();
+                      form.setValue("coupons", [
+                        ...values.coupons,
+                        { name: "Coupon", percentageDiscount: 10 },
+                      ]);
+                    }}
+                  >
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    <p>Add Coupon</p>
+                  </Button>
+                </div>
+              </>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Start Date</FormLabel>
+                    <FormControl>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-between flex items-center"
+                          >
+                            <p>{dayjs(field.value).format("DD-MM-YYYY")}</p>
+                            <CalendarIcon className="w-4 h-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="flex justify-center items-center">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="startTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Start Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </>
         )}
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Start Date</FormLabel>
-                <FormControl>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between flex items-center"
-                      >
-                        <p>{dayjs(field.value).format("DD-MM-YYYY")}</p>
-                        <CalendarIcon className="w-4 h-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="flex justify-center items-center">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="startTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Start Time</FormLabel>
-                <FormControl>
-                  <Input type="time" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
         <Button type="submit" className="w-full">
           <p>{props.mode === "edit" ? "Edit" : "Create"} Event</p>
           {form.formState.isSubmitting && (

@@ -1,70 +1,51 @@
 "use client";
 
-import type { inferProcedureOutput } from "@trpc/server";
-import Image from "next/image";
-import Link from "next/link";
+import { ClockIcon } from "@heroicons/react/24/outline";
+import dayjs from "dayjs";
 import type { FC } from "react";
-import { useState } from "react";
-import { useDebounce } from "use-debounce";
-import { trpc } from "~/utils/trpc";
-import type { AppRouter } from "../api/trpc/trpc-router";
-import { ClientDate } from "./ClientDate";
-import { LoadingSpinner } from "./LoadingSpinner";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { useEffect, useMemo, useState } from "react";
+import { cn } from "~/utils/shadcn-ui";
 
-export const SearchEvents = () => {
-  const [query, setQuery] = useState("");
-  const [debouncedQuery] = useDebounce(query, 100);
-  const { data = [], isFetching } = trpc.events.searchEvents.useQuery({
-    query: debouncedQuery,
-  });
-
+export const EventSearchInput = () => {
   return (
-    <div>
-      <div className="space-y-0.5">
-        <Label>Search</Label>
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for events"
-        />
-      </div>
-      <div className="flex flex-col mt-4">
-        {data.map((e) => (
-          <EventListing data={e} key={e.id} />
-        ))}
-        {isFetching && data.length === 0 && (
-          <LoadingSpinner className="mx-auto mt-4" size={25} />
-        )}
-      </div>
-    </div>
+    <input
+      className="px-4 py-2 text-lg rounded-full bg-black text-white ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mx-auto w-full max-w-lg"
+      placeholder="Search for events"
+    />
   );
 };
 
-const EventListing: FC<{
-  data: inferProcedureOutput<AppRouter["events"]["searchEvents"]>[number];
-}> = (props) => {
+const getHoursUntil = (date: Date) =>
+  Math.abs(dayjs(date).diff(dayjs(), "hour"));
+
+export const EventTimer: FC<{ startTime: Date }> = (props) => {
+  const [hoursUntil, setHoursUntil] = useState(0);
+
+  const colour = useMemo(() => {
+    if (hoursUntil >= 24) {
+      return "text-green-500";
+    } else if (hoursUntil >= 3) {
+      return "text-yellow-500";
+    }
+
+    return "text-red-500";
+  }, [hoursUntil]);
+
+  useEffect(() => {
+    setHoursUntil(getHoursUntil(props.startTime));
+    const interval = setInterval(() => {
+      setHoursUntil(getHoursUntil(props.startTime));
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [props.startTime]);
+
   return (
-    <Link
-      className="p-2 flex gap-2 sm:gap-8 items-center rounded-3xl hover:bg-neutral-800 transition duration-75"
-      href={`/events/${props.data.id}`}
-    >
-      <div className="w-24 h-24 sm:h-32 sm:w-32 rounded-2xl overflow-hidden shrink-0">
-        <Image
-          src={props.data.imageUrl}
-          alt=""
-          width={200}
-          height={200}
-          className="object-cover w-full h-full"
-        />
-      </div>
-      <div>
-        <p className="font-semibold truncate sm:text-lg">{props.data.name}</p>
-        <p className="text-sm text-neutral-200">
-          <ClientDate date={props.data.startTime} />
-        </p>
-      </div>
-    </Link>
+    <div className={cn(colour, "flex flex-row items-center gap-1")}>
+      <ClockIcon className={cn("w-5 h-5")} />
+      <p className="font-bold text-sm">{hoursUntil}h</p>
+    </div>
   );
 };

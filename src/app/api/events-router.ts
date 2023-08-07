@@ -1,6 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
-import { and, eq, gt, inArray, like, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, gt, inArray, like, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "~/config/env";
 import type { Coupon, EventMedia, TicketPrice } from "~/db/schema";
@@ -178,7 +178,8 @@ export const eventsRouter = router({
         const eventId = createId();
         const product = await ctx.stripe.products.create({
           name: eventInput.name,
-          description: eventInput.description,
+          description:
+            eventInput.description === "" ? undefined : eventInput.description,
           metadata: { eventId },
         });
 
@@ -186,6 +187,7 @@ export const eventsRouter = router({
           .insert(events)
           .values({
             ...eventInput,
+            description: eventInput.description ?? "",
             id: eventId,
             userId: ctx.auth.userId,
             updatedAt: new Date(),
@@ -274,6 +276,7 @@ export const eventsRouter = router({
           .update(events)
           .set({
             ...eventInput,
+            description: eventInput.description ?? "",
             updatedAt: new Date(),
             isFeatured: ctx.isPlatformAdmin ? eventInput.isFeatured : false,
           })
@@ -556,15 +559,43 @@ export const eventsRouter = router({
           name: true,
           description: true,
           startTime: true,
+          location: true,
         },
         with: {
           eventMedia: {
             where: eq(eventMedia.isPoster, true),
           },
         },
-        limit: 10,
+        orderBy: asc(events.startTime),
+        limit: 25,
       });
 
       return results.map((e) => ({ ...e, imageUrl: e.eventMedia[0].url }));
     }),
+  getUpcomingPublicEvents: publicProcedure.query(async ({ ctx }) => {
+    const hoursStr = `-${MAX_EVENT_DURATION_HOURS} hours`;
+    const results = await ctx.db.query.events.findMany({
+      where: and(
+        eq(events.isPublic, true),
+        eq(events.isFeatured, false),
+        lte(events.startTime, sql`datetime(datetime('now'),${hoursStr})`)
+      ),
+      columns: {
+        id: true,
+        name: true,
+        description: true,
+        startTime: true,
+        location: true,
+      },
+      with: {
+        eventMedia: {
+          where: eq(eventMedia.isPoster, true),
+        },
+      },
+      orderBy: asc(events.startTime),
+      limit: 25,
+    });
+
+    return results.map((e) => ({ ...e, imageUrl: e.eventMedia[0].url }));
+  }),
 });

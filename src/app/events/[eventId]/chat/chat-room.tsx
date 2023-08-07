@@ -166,7 +166,7 @@ export const ChatRoom: FC<{
               userInput.current.value = "";
             }
           }}
-          className="flex gap-2 fixed bottom-0 py-2 left-0 right-0 px-4 bg-neutral-900/90 backdrop-blur z-50 sm:mx-auto sm:max-w-4xl"
+          className="flex gap-2 fixed sm:bottom-0 bottom-16 py-2 left-0 right-0 px-4 bg-neutral-900/90 backdrop-blur z-50 sm:mx-auto sm:max-w-4xl"
         >
           <Input ref={userInput} />
 
