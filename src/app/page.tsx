@@ -147,7 +147,7 @@ const FeaturedEventsList = async () => {
   );
 };
 
-export const UpcomingEvents = async () => {
+const UpcomingEvents = async () => {
   const data = await getUpcomingPublicEvents();
 
   return (
