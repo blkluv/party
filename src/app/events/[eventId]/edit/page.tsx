@@ -34,6 +34,7 @@ const Page = async (props: PageProps) => {
 
   return (
     <div className="mx-2 sm:mx-auto sm:w-full max-w-lg my-8">
+      <h1 className="font-bold text-3xl mb-8 text-center">Edit</h1>
       <EditEventForm
         eventId={props.params.eventId}
         initialValues={{

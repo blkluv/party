@@ -45,7 +45,7 @@ export const Navigation = () => {
                 <Link href="/events/new">
                   <Button size="sm">
                     <PlusIcon className="mr-2 w-4 h-4" />
-                    <p>Create Event</p>
+                    <p>Create Discussion</p>
                   </Button>
                 </Link>
                 <UserButton afterSignOutUrl="/" />

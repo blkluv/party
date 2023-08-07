@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useUser } from "@clerk/nextjs";
@@ -6,13 +7,14 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import PartySocket from "partysocket";
 import type { FC } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import { match } from "ts-pattern";
 import { Button } from "~/app/_components/ui/button";
 import { Input } from "~/app/_components/ui/input";
 import { env } from "~/config/env";
+import type { ChatErrorEvent } from "~/utils/chat";
 import {
   socketEventSchema,
   type ChatMessageEvent,
@@ -31,9 +33,8 @@ export const ChatRoom: FC<{
 }> = (props) => {
   const [socket, setSocket] = useState<null | PartySocket>(null);
   const [events, setEvents] = useState<ChatSocketEvent[]>([]);
-  const isLoaded = useRef<boolean>(false);
   const user = useUser();
-  const [userInput, setUserInput] = useState("");
+  const userInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const { push } = useRouter();
 
@@ -66,29 +67,28 @@ export const ChatRoom: FC<{
       },
     };
 
+    scrollToBottom({ smooth: true });
+
     socket.send(JSON.stringify(newMessageEvent));
   };
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (bottom.current && isLoaded.current) {
-        bottom.current.scrollIntoView({
-          inline: "end",
-          block: "end",
-          behavior: "smooth",
-        });
-      }
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [events]);
+  const scrollToBottom = useCallback((args?: { smooth?: boolean }) => {
+    if (bottom.current) {
+      bottom.current.scrollIntoView({
+        inline: "end",
+        block: "end",
+        behavior: args?.smooth ? "smooth" : "instant",
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const newSocket = new PartySocket({
       host: env.NEXT_PUBLIC_CHAT_HOST,
       room: props.eventId,
+      query: {
+        authorization: "123",
+      },
     });
 
     setSocket(newSocket);
@@ -107,27 +107,26 @@ export const ChatRoom: FC<{
           flushSync(() => {
             setEvents(val.data.messages);
           });
-          if (bottom.current) {
-            bottom.current.scrollIntoView({
-              inline: "end",
-              block: "end",
-            });
-
-            isLoaded.current = true;
-          }
+          scrollToBottom();
         })
         .with({ __type: "CHAT_MESSAGE" }, (val) => {
-          setEvents((prev) => [...prev, val]);
+          flushSync(() => {
+            setEvents((prev) => [...prev, val]);
+          });
+          scrollToBottom({ smooth: true });
         })
         .with({ __type: "ERROR" }, (val) => {
-          setEvents((prev) => [...prev, val]);
+          flushSync(() => {
+            setEvents((prev) => [...prev, val]);
+          });
+          scrollToBottom({ smooth: true });
         });
     });
 
     return () => {
       newSocket.close();
     };
-  }, [props.eventId]);
+  }, [props.eventId, scrollToBottom]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -143,95 +142,89 @@ export const ChatRoom: FC<{
   }, [props.startTime, push]);
 
   return (
-    <div className="flex-1 relative flex flex-col mx-auto w-full max-w-4xl gap-1 text-sm p-4">
-      <div className="flex-1 relative">
-        <div className="absolute inset-0 flex flex-col gap-1 overflow-y-auto p-2">
-          {events.map((event, i) => (
-            <div className="flex items-center" key={`event ${i}`}>
-              <ChatEventView event={event} />
-            </div>
-          ))}
-          <div ref={bottom} id="bottom" />
+    <div className="flex-1 flex flex-col mx-auto w-full max-w-4xl p-4">
+      <div className="flex-1 relative flex flex-col gap-1 text-sm mb-8">
+        <div className="flex-1 relative">
+          <div className="absolute inset-0 flex flex-col gap-1 overflow-y-auto px-2 py-4">
+            {events.map((event, i) => (
+              <div className="flex items-center" key={`event ${i}`}>
+                {event.__type === "CHAT_MESSAGE" && (
+                  <MessageEventView event={event} />
+                )}
+                {event.__type === "ERROR" && <ErrorEventView event={event} />}
+              </div>
+            ))}
+            <div ref={bottom} id="bottom" className="h-2 shrink-0"></div>
+          </div>
         </div>
-      </div>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          await sendMessage(userInput);
-          setUserInput("");
-        }}
-        className="flex gap-2 mt-auto"
-      >
-        <Input
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-        />
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
 
-        <Button type="submit">Send</Button>
-      </form>
+            if (userInput.current) {
+              await sendMessage(userInput.current.value);
+              userInput.current.value = "";
+            }
+          }}
+          className="flex gap-2 fixed bottom-0 py-2 left-0 right-0 px-4 bg-neutral-900/90 backdrop-blur z-50 sm:mx-auto sm:max-w-4xl"
+        >
+          <Input ref={userInput} />
+
+          <Button type="submit">Send</Button>
+        </form>
+      </div>
     </div>
   );
 };
 
-const ChatEventView: FC<{ event: ChatSocketEvent }> = (props) => {
+const MessageEventView: FC<{
+  event: ChatMessageEvent;
+}> = (props) => {
   const user = useUser();
-  return match(props.event)
-    .with(
-      {
-        __type: "CHAT_MESSAGE",
-      },
-      (val) => (
-        <div
-          className={cn(
-            "rounded-2xl p-3 flex items-start gap-2",
-            user.user?.id === val.data.userId
-              ? "bg-blue-500 ml-auto"
-              : "bg-neutral-800"
-          )}
-        >
-          <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
-            <Image src={val.data.userImageUrl} width={50} height={50} alt="" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <p className="font-semibold">{val.data.userName}</p>
-            <div className="text-white prose-invert prose-sm">
-              <ReactMarkdown
-                components={{
-                  a: ({ className, ...p }) => (
-                    <a
-                      {...p}
-                      className={cn(className, "underline")}
-                      target="_blank"
-                    />
-                  ),
-                }}
-              >
-                {val.data.message}
-              </ReactMarkdown>
-            </div>
-          </div>
+
+  return (
+    <div
+      className={cn(
+        "rounded-2xl p-3 flex items-start gap-2",
+        user.user?.id === props.event.data.userId
+          ? "bg-blue-500 ml-auto"
+          : "bg-neutral-800"
+      )}
+    >
+      <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+        <Image
+          src={props.event.data.userImageUrl}
+          width={50}
+          height={50}
+          alt=""
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <p className="font-semibold">{props.event.data.userName}</p>
+        <div className="text-white prose-invert prose-sm">
+          <ReactMarkdown
+            components={{
+              a: ({ className, ...p }) => (
+                <a
+                  {...p}
+                  className={cn(className, "underline")}
+                  target="_blank"
+                />
+              ),
+            }}
+          >
+            {props.event.data.message}
+          </ReactMarkdown>
         </div>
-      )
-    )
-    .with(
-      {
-        __type: "USER_JOINED",
-      },
-      (val) => (
-        <div className="p-3 text-xs text-neutral-400">
-          {val.data.name} Joined
-        </div>
-      )
-    )
-    .with(
-      {
-        __type: "ERROR",
-      },
-      (val) => (
-        <div className="p-3 text-xs text-white bg-red-600 rounded-2xl ml-auto">
-          {val.data.message}
-        </div>
-      )
-    )
-    .otherwise(() => null);
+      </div>
+    </div>
+  );
+};
+
+const ErrorEventView: FC<{ event: ChatErrorEvent }> = (props) => {
+  return (
+    <div className="p-3 text-xs text-white bg-red-600 rounded-2xl ml-auto">
+      {props.event.data.message}
+    </div>
+  );
 };

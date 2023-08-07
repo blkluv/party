@@ -38,10 +38,6 @@ export const insertEventSchema = createInsertSchema(events, {
     schema.description.min(15, {
       message: "Description must be longer than 15 characters",
     }),
-  location: (schema) =>
-    schema.location.min(3, {
-      message: "Location must be longer than 3 characters",
-    }),
   name: (schema) =>
     schema.name.min(3, {
       message: "Name must be longer than 3 characters",

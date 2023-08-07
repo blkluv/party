@@ -195,9 +195,6 @@ export const EventForm: FC<{
               <FormControl>
                 <Input placeholder="New event" {...field} />
               </FormControl>
-              <FormDescription>
-                This is the name of your new event.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -211,7 +208,6 @@ export const EventForm: FC<{
               <FormControl>
                 <Textarea placeholder="Description" {...field} />
               </FormControl>
-              <FormDescription>Describe your new event.</FormDescription>
               <FormMessage />
             </FormItem>
           )}

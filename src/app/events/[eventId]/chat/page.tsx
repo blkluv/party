@@ -1,14 +1,64 @@
 import { auth } from "@clerk/nextjs";
 import { and, eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
-import { events, tickets } from "~/db/schema";
+import { eventMedia, events, tickets } from "~/db/schema";
 import { isChatVisible } from "~/utils/event-time-helpers";
+import { getPageTitle } from "~/utils/getPageTitle";
 import { ChatRoom } from "./chat-room";
 
 type PageProps = { params: { eventId: string } };
+const getEventData = cache(async (eventId: string) => {
+  const db = getDb();
+  const eventData = await db.query.events.findFirst({
+    where: eq(events.id, eventId),
+    columns: {
+      capacity: true,
+      startTime: true,
+      name: true,
+    },
+    with: {
+      eventMedia: {
+        where: eq(eventMedia.isPoster, true),
+      },
+    },
+  });
 
+  return eventData;
+});
+
+export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
+  const eventData = await getEventData(props.params.eventId);
+
+  if (!eventData) {
+    return {};
+  }
+
+  const poster = eventData.eventMedia[0];
+
+  const images: NonNullable<Metadata["openGraph"]>["images"] = [];
+
+  if (poster) {
+    images.push({ url: poster.url, width: 1200, height: 630 });
+  }
+
+  const title = getPageTitle(`Discussion for ${eventData.name}`);
+  const description = `This is a chat room to discuss ${eventData.name}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      url: env.NEXT_PUBLIC_WEBSITE_URL,
+      images,
+      title,
+      description,
+    },
+  };
+};
 /**
  * Chat room for ticket holders that opens a few hours before the event and closes when the event is done
  */
@@ -21,14 +71,7 @@ const Page = async (props: PageProps) => {
 
   const db = getDb();
 
-  const eventData = await db.query.events.findFirst({
-    where: eq(events.id, props.params.eventId),
-    columns: {
-      capacity: true,
-      startTime: true,
-      name: true,
-    },
-  });
+  const eventData = await getEventData(props.params.eventId);
 
   if (!eventData || !isChatVisible(eventData.startTime)) {
     redirect("/");
