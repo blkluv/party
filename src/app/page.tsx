@@ -7,12 +7,14 @@ import {
   MapPinIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-import { and, asc, eq, gt } from "drizzle-orm";
+import dayjs from "dayjs";
+import { and, asc, eq, gte } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { FC } from "react";
 import { Suspense } from "react";
+import { MAX_EVENT_DURATION_HOURS } from "~/config/constants";
 import { getDb } from "~/db/client";
 import { eventMedia, events } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
@@ -44,7 +46,10 @@ const getFeaturedEvents = async () => {
     },
     orderBy: asc(events.startTime),
     where: and(
-      gt(events.startTime, new Date()),
+      gte(
+        events.startTime,
+        dayjs().subtract(MAX_EVENT_DURATION_HOURS, "hours").toDate()
+      ),
       eq(events.isPublic, true),
       eq(events.isFeatured, true)
     ),
@@ -113,7 +118,7 @@ const FeaturedEventsList = async () => {
   return (
     <>
       {foundEvents.length === 0 && (
-        <p className="font-medium text-sm text-center text-neutral-400">
+        <p className="font-medium text-sm text-center text-neutral-400 sm:col-start-2">
           No events found. Check again later.
         </p>
       )}
@@ -217,29 +222,27 @@ const DenseEventListing: FC<{
   return (
     <div className="bg-black rounded-2xl relative h-16 sm:h-20 hover:bg-black/50 transition overflow-hidden border border-neutral-800">
       <Link
-        className="flex items-center pl-4 gap-4 py-4 sm:pr-12 pr-10 h-full w-full "
+        className="flex items-center pl-12 sm:pl-16 gap-4 sm:gap-8 py-4 pr-4 h-full w-full z-0"
         href={`/events/${props.data.id}`}
       >
-        <EventTimer startTime={props.data.startTime} />
         <div className="flex-1 overflow-hidden space-y-1">
           <p className="text-sm truncate sm:font-semibold sm:text-base">
             {props.data.name}
           </p>
           <div className="flex items-center gap-2">
             <MapPinIcon className="w-4 h-4 " />
-            <p className="text-xs sm:text-sm">{props.data.location}</p>
+            <p className="text-xs sm:text-sm truncate">{props.data.location}</p>
           </div>
         </div>
+        <EventTimer startTime={props.data.startTime} />
       </Link>
-      <div className="flex gap-2 absolute right-0 top-0 bottom-0 items-center justify-end w-10 sm:w-12 pr-4">
-        <div className="">
-          <Link
-            href={`/events/${props.data.id}/chat`}
-            className="transition hover:text-neutral-300 sm:w-8 sm:h-8"
-          >
-            <ChatBubbleBottomCenterTextIcon className="w-5 h-5 sm:w-6 sm:h-6 white" />
-          </Link>
-        </div>
+      <div className="flex gap-2 absolute left-4 top-0 bottom-0 items-center justify-end z-10">
+        <Link
+          href={`/events/${props.data.id}/chat`}
+          className="transition hover:text-neutral-300 sm:w-8 sm:h-8 flex items-center justify-center"
+        >
+          <ChatBubbleBottomCenterTextIcon className="w-5 h-5 sm:w-6 sm:h-6 white" />
+        </Link>
       </div>
     </div>
   );
