@@ -21,6 +21,7 @@ import {
   type ChatSocketEvent,
 } from "~/utils/chat";
 import { isEventOver } from "~/utils/event-time-helpers";
+import { getImageUrl } from "~/utils/getImageUrl";
 import { cn } from "~/utils/shadcn-ui";
 
 const urlRegex = new RegExp(/^http(s)?:\/\/.{2,}$/);
@@ -48,15 +49,21 @@ export const ChatRoom: FC<{
       data: {
         message: message
           .split(" ")
-          .map((word) =>
-            urlRegex.test(word)
-              ? `${
-                  imageExtensions.some((e) => word.split("?")[0].endsWith(e))
-                    ? "!"
-                    : ""
-                }[${word}](${word})`
-              : word
-          )
+          .map((word) => {
+            const isImage = imageExtensions.some((e) =>
+              word.split("?")[0].endsWith(e)
+            );
+            const isUrl = urlRegex.test(word);
+
+            if (isUrl) {
+              if (isImage) {
+                const imageUrl = getImageUrl({ url: word, width: 500 });
+                return `![${imageUrl}](${imageUrl})`;
+              }
+
+              return `[${word}](${word})`;
+            }
+          })
           .join(" "),
         userId: user.user.id,
         userName: user.user.fullName ?? "User",
@@ -209,6 +216,15 @@ const MessageEventView: FC<{
                   {...p}
                   className={cn(className, "underline")}
                   target="_blank"
+                />
+              ),
+              img: ({ className, src }) => (
+                <Image
+                  className={className}
+                  src={src ?? ""}
+                  alt=""
+                  width={500}
+                  height={500}
                 />
               ),
             }}

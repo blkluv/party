@@ -4,6 +4,7 @@ import {
   ChatBubbleBottomCenterTextIcon,
   CubeIcon,
   HomeIcon,
+  MapPinIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import { and, asc, eq, gt } from "drizzle-orm";
@@ -155,16 +156,16 @@ const UpcomingEvents = async () => {
       <p className="font-semibold text-white text-lg text-center">
         Upcoming Events
       </p>
-      <div className="flex flex-col lg:grid lg:grid-cols-2 gap-2 mt-4">
+      <div className="flex flex-col gap-2 mt-4 w-full max-w-xl mx-auto">
         {data.map((e) => (
-          <UpcomingEventListing data={e} key={e.id} />
+          <DenseEventListing data={e} key={e.id} />
         ))}
       </div>
     </div>
   );
 };
 
-const UpcomingEventListing: FC<{
+const _UpcomingEventListing: FC<{
   data: Awaited<ReturnType<typeof getUpcomingPublicEvents>>[number];
 }> = (props) => {
   return (
@@ -206,6 +207,39 @@ const UpcomingEventListing: FC<{
           <ArrowRightCircleIcon className="w-5 h-5 text-white" />
           <p className="hidden sm:block">View</p>
         </Link>
+      </div>
+    </div>
+  );
+};
+const DenseEventListing: FC<{
+  data: Awaited<ReturnType<typeof getUpcomingPublicEvents>>[number];
+}> = (props) => {
+  return (
+    <div className="bg-black rounded-2xl relative h-16 sm:h-20 hover:bg-black/50 transition overflow-hidden border border-neutral-800">
+      <Link
+        className="flex items-center pl-4 gap-4 py-4 sm:pr-12 pr-10 h-full w-full "
+        href={`/events/${props.data.id}`}
+      >
+        <EventTimer startTime={props.data.startTime} />
+        <div className="flex-1 overflow-hidden space-y-1">
+          <p className="text-sm truncate sm:font-semibold sm:text-base">
+            {props.data.name}
+          </p>
+          <div className="flex items-center gap-2">
+            <MapPinIcon className="w-4 h-4 " />
+            <p className="text-xs sm:text-sm">{props.data.location}</p>
+          </div>
+        </div>
+      </Link>
+      <div className="flex gap-2 absolute right-0 top-0 bottom-0 items-center justify-end w-10 sm:w-12 pr-4">
+        <div className="">
+          <Link
+            href={`/events/${props.data.id}/chat`}
+            className="transition hover:text-neutral-300 sm:w-8 sm:h-8"
+          >
+            <ChatBubbleBottomCenterTextIcon className="w-5 h-5 sm:w-6 sm:h-6 white" />
+          </Link>
+        </div>
       </div>
     </div>
   );

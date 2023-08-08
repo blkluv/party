@@ -15,26 +15,41 @@ export const EventSearchInput = () => {
   );
 };
 
-const getHoursUntil = (date: Date) =>
-  Math.abs(dayjs(date).diff(dayjs(), "hour"));
+const getTimeUntil = (date: Date) => {
+  const hours = Math.abs(dayjs(date).diff(dayjs(), "hour"));
+
+  if (hours === 0) {
+    return {
+      label: "m" as const,
+      value: Math.abs(dayjs(date).diff(dayjs(), "minute")),
+    };
+  }
+
+  return { label: "h" as const, value: hours };
+};
 
 export const EventTimer: FC<{ startTime: Date }> = (props) => {
-  const [hoursUntil, setHoursUntil] = useState(0);
+  const [timeUntil, setTimeUntil] = useState<ReturnType<typeof getTimeUntil>>({
+    value: 0,
+    label: "h",
+  });
 
   const colour = useMemo(() => {
-    if (hoursUntil >= 24) {
-      return "text-green-500";
-    } else if (hoursUntil >= 3) {
-      return "text-yellow-500";
+    if (timeUntil.label === "h") {
+      if (timeUntil.value >= 24) {
+        return "text-green-500";
+      } else if (timeUntil.value >= 3) {
+        return "text-yellow-500";
+      }
     }
 
     return "text-red-500";
-  }, [hoursUntil]);
+  }, [timeUntil]);
 
   useEffect(() => {
-    setHoursUntil(getHoursUntil(props.startTime));
+    setTimeUntil(getTimeUntil(props.startTime));
     const interval = setInterval(() => {
-      setHoursUntil(getHoursUntil(props.startTime));
+      setTimeUntil(getTimeUntil(props.startTime));
     }, 5000);
 
     return () => {
@@ -45,7 +60,10 @@ export const EventTimer: FC<{ startTime: Date }> = (props) => {
   return (
     <div className={cn(colour, "flex flex-row items-center gap-1")}>
       <ClockIcon className={cn("w-5 h-5")} />
-      <p className="font-bold text-sm">{hoursUntil}h</p>
+      <p className="font-bold text-sm tabular-nums w-8">
+        {timeUntil.value}
+        {timeUntil.label}
+      </p>
     </div>
   );
 };
