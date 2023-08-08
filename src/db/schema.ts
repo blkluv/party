@@ -39,9 +39,16 @@ export const insertEventSchema = createInsertSchema(events, {
       message: "Name must be longer than 3 characters.",
     }),
   location: (schema) =>
-    schema.name.min(3, {
-      message: "Location must be longer than 3 characters.",
-    }),
+    schema.name
+      .min(3, {
+        message: "Location must be longer than 3 characters.",
+      })
+      .refine(
+        (e) => e.split("").filter((letter) => letter !== " ").length > 3,
+        {
+          message: "Location must be longer than 3 characters.",
+        }
+      ),
 });
 
 export const coupons = sqliteTable("coupons", {
@@ -185,8 +192,6 @@ export const chatMessages = sqliteTable("chat_messages", {
   id: text("id").primaryKey(),
   eventId: text("event_id").notNull(),
   userId: text("user_id").notNull(),
-  userImageUrl: text("user_image_url").notNull(),
-  userName: text("user_name").notNull(),
   message: text("message").notNull(),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
 });
