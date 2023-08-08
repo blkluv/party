@@ -49,7 +49,7 @@ export const ChatRoom: FC<{
       data: {
         message: message
           .split(" ")
-          .map((word) => {
+          .map((word): string => {
             const isImage = imageExtensions.some((e) =>
               word.split("?")[0].endsWith(e)
             );
@@ -63,6 +63,8 @@ export const ChatRoom: FC<{
 
               return `[${word}](${word})`;
             }
+
+            return word;
           })
           .join(" "),
         userId: user.user.id,
