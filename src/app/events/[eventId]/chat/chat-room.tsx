@@ -49,7 +49,7 @@ export const ChatRoom: FC<{
       data: {
         message: message
           .split(" ")
-          .map((word): string => {
+          .map((word): string | undefined => {
             const isImage = imageExtensions.some((e) =>
               word.split("?")[0].endsWith(e)
             );
@@ -66,6 +66,7 @@ export const ChatRoom: FC<{
 
             return word;
           })
+          .filter(Boolean)
           .join(" "),
         userId: user.user.id,
         userName: user.user.fullName ?? "User",
@@ -95,9 +96,6 @@ export const ChatRoom: FC<{
     const newSocket = new PartySocket({
       host: env.NEXT_PUBLIC_CHAT_HOST,
       room: props.eventId,
-      query: {
-        authorization: "123",
-      },
     });
 
     setSocket(newSocket);
