@@ -16,12 +16,28 @@ export const EventSearchInput = () => {
 };
 
 const getTimeUntil = (date: Date) => {
-  const hours = Math.abs(dayjs(date).diff(dayjs(), "hour"));
+  const hours = dayjs(date).diff(dayjs(), "hour");
+
+  if (hours <= 0) {
+    const mins = dayjs(date).diff(dayjs(), "minute");
+
+    if (mins <= 0) {
+      return {
+        label: "Now" as const,
+        value: null,
+      };
+    }
+
+    return {
+      label: "m",
+      value: mins,
+    };
+  }
 
   if (hours === 0) {
     return {
       label: "m" as const,
-      value: Math.abs(dayjs(date).diff(dayjs(), "minute")),
+      value: dayjs(date).diff(dayjs(), "minute"),
     };
   }
 

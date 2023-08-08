@@ -47,6 +47,7 @@
     "drizzle-zod": "^0.5.0",
     "eslint-config-next": "13.4.12",
     "framer-motion": "^10.15.0",
+    "jose": "^4.14.4",
     "langchain": "^0.0.121",
     "lucide-react": "^0.263.1",
     "mapbox-gl": "^2.15.0",

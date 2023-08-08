@@ -2,6 +2,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
+import { CheckBadgeIcon } from "@heroicons/react/20/solid";
 import { createId } from "@paralleldrive/cuid2";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -23,6 +24,7 @@ import {
 import { isEventOver } from "~/utils/event-time-helpers";
 import { getImageUrl } from "~/utils/getImageUrl";
 import { cn } from "~/utils/shadcn-ui";
+import { trpc } from "~/utils/trpc";
 
 const urlRegex = new RegExp(/^http(s)?:\/\/.{2,}$/);
 const imageExtensions = ["jpg", "png", "jpeg", "webp", "gif", "avif"];
@@ -31,6 +33,8 @@ export const ChatRoom: FC<{
   eventId: string;
   eventName: string;
   startTime: Date;
+  isUserPlatformAdmin: boolean;
+  authToken: string;
 }> = (props) => {
   const [socket, setSocket] = useState<null | PartySocket>(null);
   const [events, setEvents] = useState<ChatSocketEvent[]>([]);
@@ -50,12 +54,13 @@ export const ChatRoom: FC<{
         message: message
           .split(" ")
           .map((word): string | undefined => {
-            const isImage = imageExtensions.some((e) =>
-              word.split("?")[0].endsWith(e)
-            );
             const isUrl = urlRegex.test(word);
 
             if (isUrl) {
+              const isImage = imageExtensions.some((e) =>
+                word.split("?")[0].endsWith(e)
+              );
+
               if (isImage) {
                 const imageUrl = getImageUrl({ url: word, width: 500 });
                 return `![${imageUrl}](${imageUrl})`;
@@ -69,8 +74,6 @@ export const ChatRoom: FC<{
           .filter(Boolean)
           .join(" "),
         userId: user.user.id,
-        userName: user.user.fullName ?? "User",
-        userImageUrl: user.user.imageUrl,
         eventId: props.eventId,
         createdAt: new Date(),
         id: createId(),
@@ -96,6 +99,9 @@ export const ChatRoom: FC<{
     const newSocket = new PartySocket({
       host: env.NEXT_PUBLIC_CHAT_HOST,
       room: props.eventId,
+      query: {
+        authorization: props.authToken,
+      },
     });
 
     setSocket(newSocket);
@@ -123,6 +129,10 @@ export const ChatRoom: FC<{
           scrollToBottom({ smooth: true });
         })
         .with({ __type: "ERROR" }, (val) => {
+          if (val.data.code === "UNAUTHORIZED") {
+            push("/");
+          }
+
           flushSync(() => {
             setEvents((prev) => [...prev, val]);
           });
@@ -133,7 +143,7 @@ export const ChatRoom: FC<{
     return () => {
       newSocket.close();
     };
-  }, [props.eventId, scrollToBottom]);
+  }, [props.eventId, scrollToBottom, props.authToken, push]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -188,26 +198,40 @@ const MessageEventView: FC<{
   event: ChatMessageEvent;
 }> = (props) => {
   const user = useUser();
+  const { data: senderData } = trpc.auth.getUser.useQuery({
+    userId: props.event.data.userId,
+  });
 
   return (
     <div
       className={cn(
-        "rounded-2xl p-3 flex items-start gap-2",
+        "rounded-2xl p-3 flex items-start gap-4",
         user.user?.id === props.event.data.userId
           ? "bg-blue-500 ml-auto"
           : "bg-neutral-800"
       )}
     >
-      <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
-        <Image
-          src={props.event.data.userImageUrl}
-          width={50}
-          height={50}
-          alt=""
-        />
+      <div className="relative shrink-0">
+        <div className="w-10 h-10 rounded-full overflow-hidden">
+          {senderData?.imageUrl && (
+            <Image
+              src={senderData.imageUrl}
+              width={50}
+              height={50}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+          )}
+        </div>
+        {senderData?.role === "admin" && (
+          <div className="absolute -bottom-1 -right-1">
+            <CheckBadgeIcon className="w-5 h-5 text-green-500 relative rounded-full z-10" />
+            <div className="bg-white w-3 h-3 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 absolute rounded-full z-0" />
+          </div>
+        )}
       </div>
-      <div className="flex flex-col gap-2">
-        <p className="font-semibold">{props.event.data.userName}</p>
+      <div className="flex flex-col gap-px">
+        <p className="font-semibold">{senderData?.name}</p>
         <div className="text-white prose-invert prose-sm">
           <ReactMarkdown
             components={{

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs";
+import { auth, currentUser } from "@clerk/nextjs";
 import { and, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -8,6 +8,7 @@ import { getDb } from "~/db/client";
 import { eventMedia, events, tickets } from "~/db/schema";
 import { isChatVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
+import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import { ChatRoom } from "./chat-room";
 
 type PageProps = { params: { eventId: string } };
@@ -63,15 +64,20 @@ export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
  * Chat room for ticket holders that opens a few hours before the event and closes when the event is done
  */
 const Page = async (props: PageProps) => {
-  const userAuth = auth();
+  const user = await currentUser();
 
-  if (!env.NEXT_PUBLIC_FEATURE_CHAT_MESSAGES || !userAuth.userId) {
+  const token = await auth().getToken();
+
+  if (!env.NEXT_PUBLIC_FEATURE_CHAT_MESSAGES || !user?.id) {
     redirect(`/events/${props.params.eventId}`);
   }
 
   const db = getDb();
 
-  const eventData = await getEventData(props.params.eventId);
+  const [eventData, admin] = await Promise.all([
+    getEventData(props.params.eventId),
+    isUserPlatformAdmin(user),
+  ]);
 
   if (!eventData || !isChatVisible(eventData.startTime)) {
     redirect("/");
@@ -81,7 +87,7 @@ const Page = async (props: PageProps) => {
     const ticketData = await db.query.tickets.findFirst({
       where: and(
         eq(tickets.eventId, props.params.eventId),
-        eq(tickets.userId, userAuth.userId),
+        eq(tickets.userId, user.id),
         eq(tickets.status, "success")
       ),
     });
@@ -96,6 +102,8 @@ const Page = async (props: PageProps) => {
       eventId={props.params.eventId}
       eventName={eventData.name}
       startTime={eventData.startTime}
+      isUserPlatformAdmin={admin}
+      authToken={token ?? ""}
     />
   );
 };
