@@ -243,13 +243,15 @@ const MessageEventView: FC<{
                 />
               ),
               img: ({ className, src }) => (
-                <Image
-                  className={className}
-                  src={src ?? ""}
-                  alt=""
-                  width={500}
-                  height={500}
-                />
+                <div className="w-96 h-96">
+                  <Image
+                    className={cn(className, "h-full w-full object-cover")}
+                    src={src ?? ""}
+                    alt=""
+                    width={500}
+                    height={500}
+                  />
+                </div>
               ),
             }}
           >
