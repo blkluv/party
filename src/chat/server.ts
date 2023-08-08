@@ -4,6 +4,7 @@ import { MultiRegionRatelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis/cloudflare";
 import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
+import { createLocalJWKSet, jwtVerify } from "jose";
 import type { PartyKitRoom, PartyKitServer } from "partykit/server";
 import { z } from "zod";
 import type { ChatErrorEvent, InitialMessagesEvent } from "~/utils/chat";
@@ -35,6 +36,8 @@ const getEnv = (room: PartyKitRoom) => {
       DATABASE_AUTH_TOKEN: z.string(),
       UPSTASH_REDIS_URL: z.string(),
       UPSTASH_REDIS_TOKEN: z.string(),
+      CLERK_PUBLISHABLE_KEY: z.string(),
+      CLERK_SECRET_KEY: z.string(),
     })
     .safeParse({
       OPENAI_API_KEY: room.env.OPENAI_API_KEY,
@@ -42,17 +45,53 @@ const getEnv = (room: PartyKitRoom) => {
       UPSTASH_REDIS_URL: room.env.UPSTASH_REDIS_URL,
       DATABASE_URL: room.env.DATABASE_URL,
       DATABASE_AUTH_TOKEN: room.env.DATABASE_AUTH_TOKEN,
+      CLERK_PUBLISHABLE_KEY: room.env.CLERK_PUBLISHABLE_KEY,
+      CLERK_SECRET_KEY: room.env.CLERK_SECRET_KEY,
     });
 
   return env;
 };
 
 const server: PartyKitServer = {
-  onConnect: async (ws, room) => {
+  onConnect: async (ws, room, ctx) => {
+    const { searchParams } = new URL(ctx.request.url);
+    const token = searchParams.get("authorization");
+
     const env = getEnv(room);
 
     if (!env.success) {
       console.log(env.error.message);
+      return;
+    }
+
+    if (!token) {
+      console.log("Missing auth token");
+      return;
+    }
+
+    try {
+      const headers = new Headers();
+      headers.set("authorization", `Bearer ${env.data.CLERK_SECRET_KEY}`);
+
+      const data = await fetch("https://api.clerk.com/v1/jwks", {
+        headers,
+      }).then((res) => res.json());
+
+      const jwks = createLocalJWKSet(data);
+      await jwtVerify(token, jwks);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log(error.message);
+      }
+      const errorEvent: ChatErrorEvent = {
+        __type: "ERROR",
+        data: {
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to view this chat room",
+        },
+      };
+
+      ws.send(JSON.stringify(errorEvent));
       return;
     }
 

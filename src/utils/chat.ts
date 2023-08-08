@@ -22,7 +22,7 @@ export type UserJoinedEvent = z.infer<typeof userJoinedEventSchema>;
 export const errorEventSchema = z.object({
   __type: z.literal("ERROR"),
   data: z.object({
-    code: z.enum(["TOO_MANY_MESSAGES", "BAD_MESSAGE"]),
+    code: z.enum(["TOO_MANY_MESSAGES", "BAD_MESSAGE", "UNAUTHORIZED"]),
     message: z.string(),
   }),
 });
