@@ -68,7 +68,11 @@ const Page = async (props: PageProps) => {
 
   const token = await auth().getToken();
 
-  if (!env.NEXT_PUBLIC_FEATURE_CHAT_MESSAGES || !user?.id) {
+  if (!user) {
+    redirect("/sign-in");
+  }
+
+  if (!env.NEXT_PUBLIC_FEATURE_CHAT_MESSAGES) {
     redirect(`/events/${props.params.eventId}`);
   }
 

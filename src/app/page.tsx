@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { FC } from "react";
-import { Suspense } from "react";
+import { Suspense, cache } from "react";
 import { MAX_EVENT_DURATION_HOURS } from "~/config/constants";
 import { getDb } from "~/db/client";
 import { eventMedia, events } from "~/db/schema";
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   title: getPageTitle("Home"),
 };
 
-const getFeaturedEvents = async () => {
+const getFeaturedEvents = cache(async () => {
   const db = getDb();
 
   const foundEvents = await db.query.events.findMany({
@@ -56,7 +56,7 @@ const getFeaturedEvents = async () => {
   });
 
   return foundEvents;
-};
+});
 
 const EventsListLoadingSkeleton = () => {
   return (

@@ -44,7 +44,12 @@ export const ChatRoom: FC<{
   const { push } = useRouter();
 
   const sendMessage = async (message: string) => {
-    if (!socket || !user.isSignedIn || message.length === 0) {
+    if (
+      !socket ||
+      !user.isSignedIn ||
+      message.length === 0 ||
+      message.split("").every((char) => char === " ")
+    ) {
       return;
     }
 
@@ -243,7 +248,7 @@ const MessageEventView: FC<{
                 />
               ),
               img: ({ className, src }) => (
-                <div className="w-96 h-96">
+                <div className="w-full h-96">
                   <Image
                     className={cn(className, "h-full w-full object-cover")}
                     src={src ?? ""}

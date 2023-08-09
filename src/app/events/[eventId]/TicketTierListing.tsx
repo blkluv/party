@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { FC } from "react";
 import { useState } from "react";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
+import { LoginPrompt } from "~/app/_components/login-prompt";
 import { Button } from "~/app/_components/ui/button";
 import {
   Dialog,
@@ -59,27 +60,5 @@ export const TicketTierListing: FC<{
       </Button>
       {showLoginPrompt && <LoginPrompt onOpenChange={setShowLoginPrompt} />}
     </div>
-  );
-};
-
-const LoginPrompt: FC<{
-  onOpenChange: (_val: boolean) => void;
-}> = (props) => {
-  const { push } = useRouter();
-  return (
-    <Dialog {...props} open={true}>
-      <DialogContent>
-        <DialogTitle>Login Required</DialogTitle>
-        <DialogDescription>
-          You must be logged in to purchase tickets.
-        </DialogDescription>
-        <div className="flex justify-end gap-2">
-          <Button onClick={() => props.onOpenChange(false)} variant="outline">
-            Go Back
-          </Button>
-          <Button onClick={() => push("/sign-in")}>Login</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 };
