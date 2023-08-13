@@ -216,7 +216,7 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
         <TableHeader>
           <TableRow>
             <TableHead>Code</TableHead>
-            <TableHead className="hidden sm:block">Created At</TableHead>
+            <TableHead className="hidden sm:table-cell">Created At</TableHead>
             <TableHead>Coupon</TableHead>
             <TableHead>Discount</TableHead>
           </TableRow>
@@ -225,7 +225,7 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
           {codes.map((e) => (
             <TableRow key={`promo code ${e.id}`}>
               <TableCell>{e.code}</TableCell>
-              <TableCell className="hidden sm:block">
+              <TableCell className="hidden sm:table-cell">
                 {dayjs(e.createdAt).format("D/MM/YYYY")}
               </TableCell>
               <TableCell>{e.coupon.name}</TableCell>
@@ -365,7 +365,7 @@ const ManageRoles: FC<{ eventId: string }> = (props) => {
           <TableRow>
             <TableHead>User</TableHead>
             <TableHead>Role</TableHead>
-            <TableHead className="hidden sm:block">Created At</TableHead>
+            <TableHead className="hidden sm:table-cell">Created At</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -373,7 +373,7 @@ const ManageRoles: FC<{ eventId: string }> = (props) => {
             <TableRow key={`event role user ${e.id}`}>
               <TableCell>
                 <div className="flex items-center">
-                  <div className="rounded-full overflow-hidden w-8 h-8 mr-4 hidden sm:block">
+                  <div className="rounded-full overflow-hidden w-8 h-8 mr-4 hidden sm:table-cell">
                     <Image
                       src={e.userImageUrl}
                       loading="eager"
@@ -410,12 +410,12 @@ const ManageRoles: FC<{ eventId: string }> = (props) => {
                         handleUpdateEventRole({ roleId: e.id, role: "manager" })
                       }
                     >
-                      Manager
+                      Ticket Rep
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
-              <TableCell className="hidden sm:block">
+              <TableCell className="hidden sm:table-cell">
                 {dayjs(e.createdAt).format("D/MM/YYYY")}
               </TableCell>
             </TableRow>
