@@ -18,8 +18,9 @@ import { getDb } from "~/db/client";
 import { eventMedia, events, ticketPrices, tickets } from "~/db/schema";
 import { isChatVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
-import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
+import { getUserEventRole } from "~/utils/getUserEventRole";
 import { TicketTierListing } from "./TicketTierListing";
+import { LocationDialog } from "./tickets/[ticketId]/ticket-helpers";
 
 export const dynamic = "force-dynamic";
 type PageProps = { params: { eventId: string } };
@@ -34,6 +35,7 @@ const getEventData = cache(async (id: string) => {
       id: true,
       userId: true,
       capacity: true,
+      location: true,
     },
     with: {
       eventMedia: {
@@ -161,11 +163,6 @@ const EventView = async (props: { eventId: string }) => {
     redirect("/");
   }
 
-  const userAuth = auth();
-
-  const isEventAdmin =
-    userAuth.userId === eventData.userId || (await isUserPlatformAdmin());
-
   return (
     <>
       <div className="relative h-96 w-full rounded-xl overflow-hidden">
@@ -179,19 +176,30 @@ const EventView = async (props: { eventId: string }) => {
           className="w-full h-full object-cover relative z-10"
         />
       </div>
-      {isEventAdmin && (
-        <div className="flex justify-center">
-          <EventAdminToolbar eventId={eventData.id} />
+      <AdminToolbarView eventId={props.eventId} />
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <h1 className="font-bold text-2xl text-center">{eventData.name}</h1>
+          <p className="text-sm text-center text-gray-200">
+            <ClientDate date={eventData.startTime} />
+          </p>
         </div>
-      )}
-      <div className="space-y-2">
-        <h1 className="font-bold text-2xl text-center">{eventData.name}</h1>
-        <p className="text-sm text-center text-gray-200">
-          <ClientDate date={eventData.startTime} />
-        </p>
-        <p className="text-center">{eventData.description}</p>
+
+        {eventData.description.length > 0 && (
+          <p className="text-center">{eventData.description}</p>
+        )}
       </div>
     </>
+  );
+};
+
+const AdminToolbarView = async (props: { eventId: string }) => {
+  const eventRole = await getUserEventRole(props.eventId);
+
+  return (
+    <div className="flex justify-center">
+      <EventAdminToolbar eventId={props.eventId} role={eventRole} />
+    </div>
   );
 };
 
@@ -205,12 +213,15 @@ const TicketTiersView = async (props: { eventId: string }) => {
       {eventData?.capacity === 0 &&
         isChatVisible(eventData.startTime) &&
         foundTicketPrices.ticketPrices.length === 0 && (
-          <Link href={`/events/${props.eventId}/chat`}>
-            <Button>
-              <ChatBubbleBottomCenterTextIcon className="mr-2 h-4 w-4" />
-              <p>Join Discussion</p>
-            </Button>
-          </Link>
+          <>
+            <LocationDialog location={eventData.location} variant="ghost" />
+            <Link href={`/events/${props.eventId}/chat`}>
+              <Button>
+                <ChatBubbleBottomCenterTextIcon className="mr-2 h-4 w-4" />
+                <p>Join Discussion</p>
+              </Button>
+            </Link>
+          </>
         )}
 
       {/* No ticket, but have ticket prices. Show ticket prices */}

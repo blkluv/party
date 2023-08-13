@@ -25,6 +25,7 @@ export const eventsRelations = relations(events, ({ many }) => ({
   ticketPrices: many(ticketPrices),
   eventMedia: many(eventMedia),
   coupons: many(coupons),
+  roles: many(eventRoles),
 }));
 
 export type Event = InferModel<typeof events, "select">;
@@ -84,6 +85,7 @@ export const promotionCodes = sqliteTable("promotion_codes", {
   couponId: text("coupon_id").notNull(),
   code: text("code").notNull(),
   eventId: text("event_id").notNull(),
+  // The creator of this promotion code
   userId: text("user_id").notNull(),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
@@ -250,3 +252,25 @@ export const selectChatMessageAttachmentSchema = createSelectSchema(
 export const insertChatMessageAttachmentSchema = createInsertSchema(
   chatMessageAttachments
 );
+
+export const EVENT_ROLES = ["admin", "manager", "promoter"] as const;
+export const eventRoles = sqliteTable("event_roles", {
+  id: text("id").primaryKey(),
+  eventId: text("event_id").notNull(),
+  userId: text("user_id").notNull(),
+  role: text("role", { enum: EVENT_ROLES }).notNull(),
+  createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const eventRolesRelations = relations(eventRoles, ({ one }) => ({
+  event: one(events, {
+    fields: [eventRoles.eventId],
+    references: [events.id],
+  }),
+}));
+
+export type EventRole = InferModel<typeof eventRoles, "select">;
+export type NewEventRole = InferModel<typeof eventRoles, "insert">;
+export const selectEventRoleSchema = createSelectSchema(eventRoles);
+export const insertEventRoleSchema = createInsertSchema(eventRoles);

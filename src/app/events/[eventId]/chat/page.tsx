@@ -8,7 +8,7 @@ import { getDb } from "~/db/client";
 import { eventMedia, events, tickets } from "~/db/schema";
 import { isChatVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
-import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
+import { getUserEventRole } from "~/utils/getUserEventRole";
 import { ChatRoom } from "./chat-room";
 
 type PageProps = { params: { eventId: string } };
@@ -78,9 +78,9 @@ const Page = async (props: PageProps) => {
 
   const db = getDb();
 
-  const [eventData, admin] = await Promise.all([
+  const [eventData, eventRole] = await Promise.all([
     getEventData(props.params.eventId),
-    isUserPlatformAdmin(user),
+    getUserEventRole(props.params.eventId),
   ]);
 
   if (!eventData || !isChatVisible(eventData.startTime)) {
@@ -106,7 +106,7 @@ const Page = async (props: PageProps) => {
       eventId={props.params.eventId}
       eventName={eventData.name}
       startTime={eventData.startTime}
-      isUserPlatformAdmin={admin}
+      role={eventRole}
       authToken={token ?? ""}
     />
   );

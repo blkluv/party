@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { EditEventForm } from "~/app/_components/event-form-variants";
 import { getDb } from "~/db/client";
 import { events } from "~/db/schema";
+import { getUserEventRole } from "~/utils/getUserEventRole";
 
 type PageProps = { params: { eventId: string } };
 const Page = async (props: PageProps) => {
@@ -18,7 +19,6 @@ const Page = async (props: PageProps) => {
   const eventData = await db.query.events.findFirst({
     where: and(
       eq(events.id, props.params.eventId),
-      eq(events.userId, userAuth.userId)
     ),
     with: {
       eventMedia: true,
@@ -30,6 +30,12 @@ const Page = async (props: PageProps) => {
 
   if (!eventData) {
     redirect("/");
+  }
+
+  const eventRole = await getUserEventRole(props.params.eventId);
+
+  if (eventRole!=="admin"){
+    return redirect(`/events/${props.params.eventId}`)
   }
 
   return (

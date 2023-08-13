@@ -1,4 +1,3 @@
-import { currentUser } from "@clerk/nextjs";
 import {
   ArrowRightCircleIcon,
   ChatBubbleBottomCenterTextIcon,
@@ -72,7 +71,6 @@ const EventsListLoadingSkeleton = () => {
 };
 
 const Page = async () => {
-  const user = await currentUser();
   return (
     <div className="flex-1 flex flex-col relative overflow-x-hidden gap-32">
       <div className="w-full mt-32">
@@ -85,19 +83,17 @@ const Page = async () => {
         </div>
       </div>
       <div className="flex flex-col gap-16 max-w-6xl px-2 sm:mx-auto w-full relative pb-4">
-        {user && (
-          <Link href="/events/new" className="mx-auto">
-            <Button>
-              <PlusIcon className="w-4 h-4 mr-2" />
-              <p>Create Discussion</p>
-            </Button>
-          </Link>
-        )}
+        <Link href="/events/new" className="mx-auto">
+          <Button>
+            <PlusIcon className="w-4 h-4 mr-2" />
+            <p>Create Discussion</p>
+          </Button>
+        </Link>
         <div className="space-y-2">
           <p className="font-semibold text-white text-lg text-center">
             Featured Events
           </p>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="flex gap-2 flex-wrap flex-row justify-center">
             <Suspense fallback={<EventsListLoadingSkeleton />}>
               <FeaturedEventsList />
             </Suspense>
@@ -126,7 +122,7 @@ const FeaturedEventsList = async () => {
         <Link
           key={e.id}
           href={`/events/${e.id}`}
-          className="relative hover:scale-105 h-64 group transition flex flex-col rounded-xl overflow-hidden justify-end"
+          className="relative hover:scale-105 h-64 group transition flex flex-col rounded-xl overflow-hidden justify-end md:w-[45%] lg:w-[30%] shrink-0 w-full"
         >
           <div className="absolute inset-0 w-full dark:bg-neutral-900">
             <div className="absolute -inset-0 bg-gradient-to-b from-transparent via-transparent to-black z-10" />
@@ -134,8 +130,8 @@ const FeaturedEventsList = async () => {
               <Image
                 src={e.eventMedia[0]?.url ?? ""}
                 alt=""
-                width={300}
-                height={300}
+                width={600}
+                height={600}
                 className="w-full h-full object-cover z-0"
               />
             </div>
@@ -155,6 +151,10 @@ const FeaturedEventsList = async () => {
 
 const UpcomingEvents = async () => {
   const data = await getUpcomingPublicEvents();
+
+  if (data.length === 0) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col">

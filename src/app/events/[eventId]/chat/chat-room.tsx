@@ -15,6 +15,7 @@ import { match } from "ts-pattern";
 import { Button } from "~/app/_components/ui/button";
 import { Input } from "~/app/_components/ui/input";
 import { env } from "~/config/env";
+import type { EVENT_ROLES } from "~/db/schema";
 import type { ChatErrorEvent } from "~/utils/chat";
 import {
   socketEventSchema,
@@ -33,7 +34,7 @@ export const ChatRoom: FC<{
   eventId: string;
   eventName: string;
   startTime: Date;
-  isUserPlatformAdmin: boolean;
+  role: (typeof EVENT_ROLES)[number] | null;
   authToken: string;
 }> = (props) => {
   const [socket, setSocket] = useState<null | PartySocket>(null);
@@ -164,10 +165,10 @@ export const ChatRoom: FC<{
   }, [props.startTime, push]);
 
   return (
-    <div className="flex-1 flex flex-col mx-auto w-full max-w-4xl p-4">
+    <div className="flex-1 flex flex-col mx-auto w-full max-w-4xl">
       <div className="flex-1 relative flex flex-col gap-1 text-sm mb-8">
         <div className="flex-1 relative">
-          <div className="absolute inset-0 flex flex-col gap-1 overflow-y-auto px-2 py-4">
+          <div className="absolute inset-0 flex flex-col gap-1 overflow-y-auto p-1">
             {events.map((event, i) => (
               <div className="flex items-center" key={`event ${i}`}>
                 {event.__type === "CHAT_MESSAGE" && (
@@ -202,7 +203,6 @@ export const ChatRoom: FC<{
 const MessageEventView: FC<{
   event: ChatMessageEvent;
 }> = (props) => {
-  const user = useUser();
   const { data: senderData } = trpc.auth.getUser.useQuery({
     userId: props.event.data.userId,
   });
@@ -210,10 +210,7 @@ const MessageEventView: FC<{
   return (
     <div
       className={cn(
-        "rounded-2xl p-3 flex items-start gap-4",
-        user.user?.id === props.event.data.userId
-          ? "bg-blue-500 ml-auto"
-          : "bg-neutral-800"
+        "rounded-2xl p-3 flex w-full items-start gap-4 bg-neutral-800"
       )}
     >
       <div className="relative shrink-0">
@@ -230,7 +227,7 @@ const MessageEventView: FC<{
         </div>
         {senderData?.role === "admin" && (
           <div className="absolute -bottom-1 -right-1">
-            <CheckBadgeIcon className="w-5 h-5 text-green-500 relative rounded-full z-10" />
+            <CheckBadgeIcon className="w-5 h-5 text-orange-500 relative rounded-full z-10" />
             <div className="bg-white w-3 h-3 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 absolute rounded-full z-0" />
           </div>
         )}
@@ -248,9 +245,9 @@ const MessageEventView: FC<{
                 />
               ),
               img: ({ className, src }) => (
-                <div className="w-full h-96">
+                <div className="w-full h-64">
                   <Image
-                    className={cn(className, "h-full w-full object-cover")}
+                    className={cn(className, "h-full w-full object-contain")}
                     src={src ?? ""}
                     alt=""
                     width={500}

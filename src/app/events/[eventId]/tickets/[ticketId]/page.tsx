@@ -15,7 +15,7 @@ import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
 import { isChatVisible, isLocationVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
-import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
+import { getUserEventRole } from "~/utils/getUserEventRole";
 import { cn } from "~/utils/shadcn-ui";
 import { getStripeClient } from "~/utils/stripe";
 import { LocationDialog, TicketInfoButton } from "./ticket-helpers";
@@ -60,7 +60,8 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
     redirect("/sign-in");
   }
 
-  const isAdmin = await isUserPlatformAdmin(user);
+  const eventRole = await getUserEventRole(props.eventId);
+  const isAdmin = eventRole === "admin";
 
   const ticketData = await db.query.tickets.findFirst({
     where: and(

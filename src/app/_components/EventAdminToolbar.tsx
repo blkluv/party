@@ -9,6 +9,7 @@ import { DialogClose } from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FC } from "react";
+import type { EVENT_ROLES } from "~/db/schema";
 import { trpc } from "~/utils/trpc";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { Button } from "./ui/button";
@@ -20,7 +21,10 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 
-export const EventAdminToolbar: FC<{ eventId: string }> = (props) => {
+export const EventAdminToolbar: FC<{
+  eventId: string;
+  role: (typeof EVENT_ROLES)[number] | null;
+}> = (props) => {
   const { push, refresh } = useRouter();
   const { mutate: deleteEvent, isLoading: isEventDeleting } =
     trpc.events.deleteEvent.useMutation({
@@ -34,9 +38,11 @@ export const EventAdminToolbar: FC<{ eventId: string }> = (props) => {
     <div>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="ghost">
-            <TrashIcon className="w-4 h-4" />
-          </Button>
+          {props.role === "admin" && (
+            <Button variant="ghost">
+              <TrashIcon className="w-4 h-4" />
+            </Button>
+          )}
         </DialogTrigger>
         <DialogContent>
           <DialogTitle>Delete Event</DialogTitle>
@@ -64,11 +70,13 @@ export const EventAdminToolbar: FC<{ eventId: string }> = (props) => {
           <Cog8ToothIcon className="w-4 h-4" />
         </Button>
       </Link>
-      <Link href={`/events/${props.eventId}/edit`}>
-        <Button variant="ghost">
-          <PencilIcon className="w-4 h-4" />
-        </Button>
-      </Link>
+      {props.role === "admin" && (
+        <Link href={`/events/${props.eventId}/edit`}>
+          <Button variant="ghost">
+            <PencilIcon className="w-4 h-4" />
+          </Button>
+        </Link>
+      )}
     </div>
   );
 };

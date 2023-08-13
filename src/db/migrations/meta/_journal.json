@@ -29,6 +29,20 @@
       "when": 1691532288034,
       "tag": "0003_married_wilson_fisk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1691781182053,
+      "tag": "0004_nifty_harry_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1691958389792,
+      "tag": "0005_yellow_jack_flag",
+      "breakpoints": true
     }
   ]
 }

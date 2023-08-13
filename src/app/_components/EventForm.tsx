@@ -82,7 +82,6 @@ export const EventForm: FC<{
     user.user &&
       (user.user.publicMetadata as PublicUserMetadata).platformRole === "admin"
   );
-
   const [showAdditionalSettings, setShowAdditionalSettings] = useState(false);
 
   const [mediaPreviewUrls, setMediaPreviewUrls] = useState<PreviewUrl[]>(

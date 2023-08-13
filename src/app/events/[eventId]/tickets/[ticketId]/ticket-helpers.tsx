@@ -3,7 +3,7 @@
 import { InformationCircleIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import type { FC } from "react";
+import type { ComponentProps, FC } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "~/app/_components/ui/button";
 import {
@@ -41,13 +41,16 @@ export const TicketInfoButton = () => {
   );
 };
 
-export const LocationDialog: FC<{ location: string }> = (props) => {
+export const LocationDialog: FC<{
+  location: string;
+  variant?: ComponentProps<typeof Button>["variant"];
+}> = (props) => {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button variant={props.variant}>
           <MapPinIcon className="mr-2 w-4 h-4" />
           <p>View Location</p>
         </Button>

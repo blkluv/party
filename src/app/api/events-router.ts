@@ -1,17 +1,15 @@
 import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, gt, inArray, like, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, gt, like, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "~/config/env";
-import type { Coupon, EventMedia, TicketPrice } from "~/db/schema";
+import type { Coupon, TicketPrice } from "~/db/schema";
 
 import { MAX_EVENT_DURATION_HOURS } from "~/config/constants";
 import {
   coupons,
   eventMedia,
   events,
-  insertEventMediaSchema,
-  insertPromotionCodeSchema,
   promotionCodes,
   ticketPrices,
   tickets,
@@ -19,110 +17,23 @@ import {
 import { createCoupon } from "~/utils/createCoupon";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { createTicketPrice } from "~/utils/createTicketPrice";
-import { createUploadUrls, deleteImage } from "~/utils/images";
+import { deleteImage } from "~/utils/images";
 import { isTextSafe } from "~/utils/isTextSafe";
+import { eventMediaRouter } from "./event-media-router";
+import { eventPromotionCodesRouter } from "./event-promotion-codes-router";
+import { eventRolesRouter } from "./event-roles-router";
 import {
-  protectedEventProcedure,
+  adminEventProcedure,
   protectedProcedure,
   publicProcedure,
   router,
 } from "./trpc/trpc-config";
 
-export const eventMediaRouter = router({
-  createUploadUrls: protectedProcedure
-    .input(z.object({ count: z.number().gt(0) }))
-    .mutation(async ({ input }) => {
-      const urls = await createUploadUrls(input.count);
-      return urls;
-    }),
-  createEventMedia: protectedProcedure
-    .input(
-      insertEventMediaSchema
-        .pick({
-          isPoster: true,
-          order: true,
-          eventId: true,
-          url: true,
-          imageId: true,
-        })
-        .array()
-    )
-    .mutation(async ({ ctx, input }) => {
-      const media = await ctx.db
-        .insert(eventMedia)
-        .values(
-          input.map((e) => ({ ...e, userId: ctx.auth.userId, id: createId() }))
-        )
-        .returning()
-        .get();
-
-      return media;
-    }),
-  deleteEventMedia: protectedProcedure
-    .input(
-      insertEventMediaSchema
-        .pick({
-          id: true,
-        })
-        .array()
-    )
-    .mutation(async ({ ctx, input }) => {
-      if (input.length === 0) {
-        return [];
-      }
-
-      const deletedMedia = await ctx.db
-        .delete(eventMedia)
-        .where(
-          and(
-            inArray(
-              eventMedia.id,
-              input.map((e) => e.id)
-            ),
-            eq(eventMedia.userId, ctx.auth.userId)
-          )
-        )
-        .returning()
-        .all();
-
-      await Promise.all(deletedMedia.map((e) => deleteImage(e.imageId)));
-
-      return deletedMedia;
-    }),
-  updateEventMedia: protectedProcedure
-    .input(
-      insertEventMediaSchema
-        .pick({
-          id: true,
-          isPoster: true,
-          order: true,
-        })
-        .array()
-    )
-    .mutation(async ({ ctx, input }) => {
-      if (input.length === 0) {
-        return [];
-      }
-
-      const updatedMedia: EventMedia[] = [];
-      for (const e of input) {
-        const m = await ctx.db
-          .update(eventMedia)
-          .set({ isPoster: e.isPoster, order: e.order })
-          .where(
-            and(eq(eventMedia.id, e.id), eq(eventMedia.userId, ctx.auth.userId))
-          )
-          .returning()
-          .get();
-
-        updatedMedia.push(m);
-      }
-
-      return updatedMedia;
-    }),
-});
-
 export const eventsRouter = router({
+  roles: eventRolesRouter,
+  media: eventMediaRouter,
+  promotionCodes: eventPromotionCodesRouter,
+
   getAllEvents: publicProcedure.query(async ({ ctx }) => {
     const foundEvents = await ctx.db.query.events.findMany({
       columns: {
@@ -230,8 +141,8 @@ export const eventsRouter = router({
         };
       }
     ),
-  updateEvent: protectedProcedure
-    .input(z.object({ data: createEventSchema, eventId: z.string() }))
+  updateEvent: adminEventProcedure
+    .input(z.object({ data: createEventSchema }))
     .mutation(
       async ({
         ctx,
@@ -291,7 +202,6 @@ export const eventsRouter = router({
         };
       }
     ),
-  media: eventMediaRouter,
   createTicketPurchaseUrl: protectedProcedure
     .input(z.object({ ticketPriceId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -395,151 +305,70 @@ export const eventsRouter = router({
 
       return url;
     }),
-  deleteEvent: protectedProcedure
-    .input(z.object({ eventId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      // Delete promo codes
-      const event = await ctx.db.query.events.findFirst({
-        where: and(
-          eq(events.id, input.eventId),
-          eq(events.userId, ctx.auth.userId)
-        ),
-        with: {
-          coupons: {
-            with: {
-              promotionCodes: true,
-            },
+  deleteEvent: adminEventProcedure.mutation(async ({ ctx, input }) => {
+    // Delete promo codes
+    const event = await ctx.db.query.events.findFirst({
+      where: and(
+        eq(events.id, input.eventId),
+        eq(events.userId, ctx.auth.userId)
+      ),
+      with: {
+        coupons: {
+          with: {
+            promotionCodes: true,
           },
-          eventMedia: true,
-          ticketPrices: true,
-          tickets: true,
         },
-      });
-
-      if (!event) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Event does not exist",
-        });
-      }
-
-      await ctx.db
-        .delete(promotionCodes)
-        .where(eq(promotionCodes.eventId, input.eventId))
-        .run();
-
-      await ctx.db
-        .delete(coupons)
-        .where(eq(coupons.eventId, input.eventId))
-        .run();
-
-      const media = await ctx.db
-        .delete(eventMedia)
-        .where(eq(eventMedia.eventId, input.eventId))
-        .returning({ imageId: eventMedia.imageId })
-        .all();
-
-      await Promise.all(media.map((e) => deleteImage(e.imageId)));
-
-      await ctx.db
-        .delete(tickets)
-        .where(eq(tickets.eventId, input.eventId))
-        .run();
-
-      await ctx.db
-        .delete(ticketPrices)
-        .where(eq(ticketPrices.eventId, input.eventId))
-        .run();
-
-      await ctx.db.delete(events).where(eq(events.id, input.eventId)).run();
-
-      // Disable buying new tickets
-      await ctx.stripe.products.update(event.stripeProductId, {
-        active: false,
-      });
-
-      return event;
-    }),
-  getAllCoupons: protectedEventProcedure.query(async ({ ctx, input }) => {
-    return await ctx.db.query.coupons.findMany({
-      where: eq(coupons.eventId, input.eventId),
-      columns: {
-        id: true,
-        name: true,
-        percentageDiscount: true,
-        updatedAt: true,
+        eventMedia: true,
+        ticketPrices: true,
+        tickets: true,
       },
     });
-  }),
-  getAllPromotionCodes: protectedEventProcedure.query(
-    async ({ ctx, input }) => {
-      return await ctx.db.query.promotionCodes.findMany({
-        where: and(
-          eq(promotionCodes.eventId, input.eventId),
-          eq(promotionCodes.userId, ctx.auth.userId)
-        ),
-        columns: {
-          id: true,
-          code: true,
-          couponId: true,
-          createdAt: true,
-        },
-        with: {
-          coupon: {
-            columns: {
-              percentageDiscount: true,
-              id: true,
-              name: true,
-              createdAt: true,
-            },
-          },
-        },
+
+    if (!event) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Event does not exist",
       });
     }
-  ),
-  createPromotionCode: protectedEventProcedure
-    .input(
-      insertPromotionCodeSchema.pick({
-        couponId: true,
-        code: true,
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const foundCoupon = await ctx.db.query.coupons.findFirst({
-        where: and(
-          eq(coupons.id, input.couponId),
-          eq(coupons.userId, ctx.auth.userId)
-        ),
-      });
 
-      if (!foundCoupon) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Coupon does not exist",
-        });
-      }
+    await ctx.db
+      .delete(promotionCodes)
+      .where(eq(promotionCodes.eventId, input.eventId))
+      .run();
 
-      const newPromotionCode = await ctx.stripe.promotionCodes.create({
-        coupon: foundCoupon?.stripeCouponId,
-        code: input.code,
-      });
+    await ctx.db
+      .delete(coupons)
+      .where(eq(coupons.eventId, input.eventId))
+      .run();
 
-      return await ctx.db
-        .insert(promotionCodes)
-        .values({
-          id: createId(),
-          code: newPromotionCode.code,
-          couponId: input.couponId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          userId: ctx.auth.userId,
-          eventId: input.eventId,
-          name: "Promotion Code",
-          stripePromotionCodeId: newPromotionCode.id,
-        })
-        .returning()
-        .get();
-    }),
+    const media = await ctx.db
+      .delete(eventMedia)
+      .where(eq(eventMedia.eventId, input.eventId))
+      .returning({ imageId: eventMedia.imageId })
+      .all();
+
+    await Promise.all(media.map((e) => deleteImage(e.imageId)));
+
+    await ctx.db
+      .delete(tickets)
+      .where(eq(tickets.eventId, input.eventId))
+      .run();
+
+    await ctx.db
+      .delete(ticketPrices)
+      .where(eq(ticketPrices.eventId, input.eventId))
+      .run();
+
+    await ctx.db.delete(events).where(eq(events.id, input.eventId)).run();
+
+    // Disable buying new tickets
+    await ctx.stripe.products.update(event.stripeProductId, {
+      active: false,
+    });
+
+    return event;
+  }),
+
   searchEvents: publicProcedure
     .input(z.object({ query: z.string() }))
     .query(async ({ input, ctx }) => {
