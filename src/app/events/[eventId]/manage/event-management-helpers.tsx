@@ -85,7 +85,7 @@ const getCouponString = (
   if (!coupon) {
     return "None";
   }
-  return `${coupon.name} - %${coupon.percentageDiscount}`;
+  return `${coupon.name} - ${coupon.percentageDiscount}%`;
 };
 export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

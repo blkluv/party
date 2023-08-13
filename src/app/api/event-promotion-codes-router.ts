@@ -22,10 +22,7 @@ export const eventPromotionCodesRouter = router({
   }),
   getAllPromotionCodes: managerEventProcedure.query(async ({ ctx, input }) => {
     return await ctx.db.query.promotionCodes.findMany({
-      where: and(
-        eq(promotionCodes.eventId, input.eventId),
-        eq(promotionCodes.userId, ctx.auth.userId)
-      ),
+      where: and(eq(promotionCodes.eventId, input.eventId)),
       columns: {
         id: true,
         code: true,
@@ -53,10 +50,7 @@ export const eventPromotionCodesRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const foundCoupon = await ctx.db.query.coupons.findFirst({
-        where: and(
-          eq(coupons.id, input.couponId),
-          eq(coupons.userId, ctx.auth.userId)
-        ),
+        where: and(eq(coupons.id, input.couponId)),
       });
 
       if (!foundCoupon) {
