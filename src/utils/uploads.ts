@@ -22,11 +22,14 @@ export const useUploadImages = () => {
     trpc.events.media.createUploadUrls.useMutation();
 
   const upload = useCallback(
-    async (files: File[]) => {
-      const urls = await getUploadUrls({ count: files.length });
+    async (args: { files: File[]; eventId: string }) => {
+      const urls = await getUploadUrls({
+        count: args.files.length,
+        eventId: args.eventId,
+      });
 
       return await Promise.all(
-        files.map(async (f, i) => {
+        args.files.map(async (f, i) => {
           const formData = new FormData();
           formData.append("file", f);
 

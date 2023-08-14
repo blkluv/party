@@ -43,11 +43,12 @@ export const CreateEventForm = () => {
             ],
           });
         } else {
-          const downloadUrls = await uploadImages(
-            eventMedia
+          const downloadUrls = await uploadImages({
+            files: eventMedia
               .filter((e): e is EventMediaFileVariant => e.__type === "file")
-              .map((e) => e.file)
-          );
+              .map((e) => e.file),
+            eventId: newEvent.id,
+          });
           const isSomeMediaPoster = eventMedia.some((e) => e.isPoster);
           await createEventMedia({
             eventId: newEvent.id,
@@ -117,9 +118,10 @@ export const EditEventForm: FC<{
           );
 
           if (eventMediaFiles.length > 0) {
-            const downloadUrls = await uploadImages(
-              eventMediaFiles.map((e) => e.file)
-            );
+            const downloadUrls = await uploadImages({
+              files: eventMediaFiles.map((e) => e.file),
+              eventId: props.eventId,
+            });
             const posterIndex = eventMedia.findIndex((e) => e.isPoster);
 
             await createEventMedia({
