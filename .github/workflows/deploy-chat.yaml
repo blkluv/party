@@ -1,4 +1,4 @@
-name: apply-migrations
+name: deploy-chat
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "src/**"
-      - ".github/workflows/apply-migrations.yaml"
+      - ".github/workflows/deploy-chat.yaml"
 
 jobs:
   install:
