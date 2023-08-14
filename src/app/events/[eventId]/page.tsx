@@ -71,7 +71,8 @@ const getTicketTiers = cache(async (eventId: string) => {
     const existingTicket = await db.query.tickets.findFirst({
       where: and(
         eq(tickets.eventId, eventId),
-        eq(tickets.userId, userAuth.userId)
+        eq(tickets.userId, userAuth.userId),
+        eq(tickets.status, "success")
       ),
       columns: {
         quantity: true,
