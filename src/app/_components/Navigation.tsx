@@ -23,10 +23,10 @@ export const Navigation = () => {
             {userAuth.userId && (
               <>
                 <Link href="/events">
-                  <Button variant="ghost">Events</Button>
+                  <Button variant="ghost">My Discussions & Events</Button>
                 </Link>
                 <Link href="/tickets">
-                  <Button variant="ghost">Tickets</Button>
+                  <Button variant="ghost">My Tickets</Button>
                 </Link>
               </>
             )}

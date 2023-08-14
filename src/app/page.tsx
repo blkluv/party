@@ -1,8 +1,6 @@
 import {
-  ArrowRightCircleIcon,
   ChatBubbleBottomCenterTextIcon,
   CubeIcon,
-  HomeIcon,
   MapPinIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
@@ -158,65 +156,17 @@ const UpcomingEvents = async () => {
 
   return (
     <div className="flex flex-col">
-      <p className="font-semibold text-white text-lg text-center">
-        Upcoming Events
-      </p>
+      <p className="font-semibold text-white text-lg text-center">Events</p>
       <div className="flex flex-col gap-2 mt-4 w-full max-w-xl mx-auto">
         {data.map((e) => (
-          <DenseEventListing data={e} key={e.id} />
+          <UpcomingEventListing data={e} key={e.id} />
         ))}
       </div>
     </div>
   );
 };
 
-const _UpcomingEventListing: FC<{
-  data: Awaited<ReturnType<typeof getUpcomingPublicEvents>>[number];
-}> = (props) => {
-  return (
-    <div className="rounded-3xl hover:bg-neutral-900 transition duration-75 flex flex-col sm:items-center sm:hover:bg-neutral-800 sm:bg-neutral-800/50 sm:flex-row h-72 sm:h-auto sm:w-auto gap-2 relative sm:p-2">
-      <div className="rounded-2xl overflow-hidden shrink-0 inset-0 absolute sm:relative sm:h-32 sm:w-32">
-        <Image
-          src={props.data.imageUrl}
-          alt=""
-          width={300}
-          height={300}
-          className="object-cover w-full h-full z-0 relative"
-        />
-      </div>
-      <div className="flex flex-col gap-1 items-center sm:items-start text-center z-10 absolute sm:left-auto sm:right-auto sm:bottom-auto left-4 right-4 bottom-4 sm:relative bg-neutral-900 sm:bg-transparent p-4 rounded-xl sm:flex-1">
-        <p className="font-medium whitespace-pre-wrap text-sm">
-          {props.data.name}
-        </p>
-        <div className="flex items-center justify-center gap-2 text-xs">
-          <HomeIcon className="w-4 h-4" />
-          <p>{props.data.location}</p>
-        </div>
-      </div>
-      <div className="sm:flex sm:flex-col sm:gap-2 sm:items-start sm:px-8 lg:px-0">
-        <div className="absolute top-4 rounded-full p-2 sm:relative left-4 sm:left-auto sm:top-auto bg-neutral-900 sm:bg-transparent z-10">
-          <EventTimer startTime={props.data.startTime} />
-        </div>
-
-        <Link
-          href={`/events/${props.data.id}/chat`}
-          className="absolute top-4 rounded-full p-2 right-16 sm:relative sm:right-auto sm:top-auto bg-neutral-900 z-10 sm:bg-transparent hover:bg-neutral-800 transition flex justify-center items-center gap-1 text-sm sm:hover:bg-neutral-700"
-        >
-          <ChatBubbleBottomCenterTextIcon className="w-5 h-5 text-white" />
-          <p className="hidden sm:block">Chat</p>
-        </Link>
-        <Link
-          href={`/events/${props.data.id}`}
-          className="absolute top-4 rounded-full p-2 right-4 sm:relative sm:right-auto sm:top-auto bg-neutral-900 z-10 sm:bg-transparent hover:bg-neutral-800 transition flex justify-center items-center gap-1 text-sm sm:hover:bg-neutral-700"
-        >
-          <ArrowRightCircleIcon className="w-5 h-5 text-white" />
-          <p className="hidden sm:block">View</p>
-        </Link>
-      </div>
-    </div>
-  );
-};
-const DenseEventListing: FC<{
+const UpcomingEventListing: FC<{
   data: Awaited<ReturnType<typeof getUpcomingPublicEvents>>[number];
 }> = (props) => {
   return (

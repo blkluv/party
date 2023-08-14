@@ -17,6 +17,7 @@ import {
 import { createCoupon } from "~/utils/createCoupon";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { createTicketPrice } from "~/utils/createTicketPrice";
+import { getSoldTickets } from "~/utils/getSoldTickets";
 import { deleteImage } from "~/utils/images";
 import { isTextSafe } from "~/utils/isTextSafe";
 import { eventMediaRouter } from "./event-media-router";
@@ -191,9 +192,7 @@ export const eventsRouter = router({
             updatedAt: new Date(),
             isFeatured: ctx.isPlatformAdmin ? eventInput.isFeatured : false,
           })
-          .where(
-            and(eq(events.id, eventId), eq(events.userId, ctx.auth.userId))
-          )
+          .where(eq(events.id, eventId))
           .returning()
           .get();
 
@@ -224,16 +223,7 @@ export const eventsRouter = router({
         });
       }
 
-      const { ticketsSold } = await ctx.db
-        .select({ ticketsSold: sql<number>`count(*)` })
-        .from(tickets)
-        .where(
-          and(
-            eq(tickets.eventId, ticketPriceData.eventId),
-            eq(tickets.status, "success")
-          )
-        )
-        .get();
+      const ticketsSold = await getSoldTickets(ticketPriceData.eventId);
 
       if (ticketsSold >= ticketPriceData.event.capacity) {
         throw new TRPCError({
@@ -308,10 +298,7 @@ export const eventsRouter = router({
   deleteEvent: adminEventProcedure.mutation(async ({ ctx, input }) => {
     // Delete promo codes
     const event = await ctx.db.query.events.findFirst({
-      where: and(
-        eq(events.id, input.eventId),
-        eq(events.userId, ctx.auth.userId)
-      ),
+      where: and(eq(events.id, input.eventId)),
       with: {
         coupons: {
           with: {

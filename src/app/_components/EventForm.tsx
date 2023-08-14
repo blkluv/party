@@ -183,7 +183,7 @@ export const EventForm: FC<{
           return props.onSubmit({
             ...values,
             eventMedia: mediaFiles,
-            capacity: values.isHosted ? 0 : values.capacity,
+            capacity: values.isHosted ? values.capacity : 0,
           });
         })}
         className="space-y-8"
@@ -384,7 +384,7 @@ export const EventForm: FC<{
                 )}
               />
             )}
-            {isAdmin && props.mode !== "edit" && (
+            {isAdmin && (
               <>
                 <div className="space-y-2">
                   <Label>Ticket Tiers</Label>
@@ -433,6 +433,27 @@ export const EventForm: FC<{
                       )}
                       <FormField
                         control={form.control}
+                        name={`ticketPrices.${i}.limit`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Ticket Limit</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Limit"
+                                type="number"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              The maximum number of tickets that are allowed to
+                              be sold under this ticket tier.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
                         name={`ticketPrices.${i}.isFree`}
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -477,7 +498,7 @@ export const EventForm: FC<{
                       const values = form.getValues();
                       form.setValue("ticketPrices", [
                         ...values.ticketPrices,
-                        { isFree: false, name: "Ticket", price: 1 },
+                        { isFree: false, name: "Regular", price: 10 },
                       ]);
                     }}
                   >

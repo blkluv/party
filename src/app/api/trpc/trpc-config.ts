@@ -1,8 +1,8 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import superjson from "superjson";
 import { z } from "zod";
-import type { EVENT_ROLES, EventRole } from "~/db/schema";
+import type { EVENT_ROLES } from "~/db/schema";
 import { eventRoles, events } from "~/db/schema";
 import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import type { Context } from "./context";
@@ -41,14 +41,17 @@ export const roleProtectedEventProcedure = (
   protectedProcedure
     .input(z.object({ eventId: z.string() }))
     .use(async ({ ctx, next, input }) => {
-      const event = await ctx.db.query.events.findFirst({
-        where: eq(events.id, input.eventId),
-        with: {
-          roles: {
-            where: eq(eventRoles.userId, ctx.auth.userId),
-          },
-        },
-      });
+      const [event, role] = await Promise.all([
+        ctx.db.query.events.findFirst({
+          where: eq(events.id, input.eventId),
+        }),
+        ctx.db.query.eventRoles.findFirst({
+          where: and(
+            eq(eventRoles.eventId, input.eventId),
+            eq(eventRoles.userId, ctx.auth.userId)
+          ),
+        }),
+      ]);
 
       if (!event) {
         throw new TRPCError({
@@ -57,24 +60,27 @@ export const roleProtectedEventProcedure = (
         });
       }
 
-      const role: EventRole | undefined = event.roles[0];
+      let eventRole = role?.role;
+      // Is the event owner or platform admin. Override any set roles
+      const hasRoleOverride =
+        event.userId === ctx.auth.userId || ctx.isPlatformAdmin;
 
-      // User must be event admin or event owner
-      if (event.userId !== ctx.auth.userId) {
-        if (!role || !allowedRoles.includes(role.role)) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message:
-              "You are not allowed to perform this operation on this event.",
-          });
-        }
+      if (hasRoleOverride) {
+        eventRole = "admin";
+      } else if (!eventRole || !allowedRoles.includes(eventRole)) {
+        // Role not found or role not allowed for this procedure
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "You are not allowed to perform this operation on this event.",
+        });
       }
 
       return next({
         ctx: {
           ...ctx,
           event,
-          eventRole: role ? { ...role, role: "admin" as const } : null,
+          eventRole,
         },
       });
     });

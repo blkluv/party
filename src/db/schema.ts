@@ -147,6 +147,8 @@ export const ticketPrices = sqliteTable("ticket_prices", {
   stripePriceId: text("stripe_price_id"),
   userId: text("user_id").notNull(),
   isFree: int("is_free", { mode: "boolean" }).notNull(),
+  // The maximum number of tickets that are allowed to be sold for this price
+  limit: int("limit").notNull().default(0),
 });
 
 export const ticketPriceRelations = relations(
@@ -167,6 +169,7 @@ export const insertTicketPriceSchema = createInsertSchema(ticketPrices, {
   price: z.coerce
     .number()
     .gt(0.5, { message: "Price must be greater than $0.50" }),
+  limit: z.coerce.number(),
 });
 
 export const eventMedia = sqliteTable("event_media", {

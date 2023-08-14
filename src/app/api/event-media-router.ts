@@ -5,60 +5,65 @@ import type { EventMedia } from "~/db/schema";
 
 import { eventMedia, insertEventMediaSchema } from "~/db/schema";
 import { createUploadUrls, deleteImage } from "~/utils/images";
-import { protectedProcedure, router } from "./trpc/trpc-config";
+import { adminEventProcedure, router } from "./trpc/trpc-config";
 
 export const eventMediaRouter = router({
-  createUploadUrls: protectedProcedure
+  createUploadUrls: adminEventProcedure
     .input(z.object({ count: z.number().gt(0) }))
     .mutation(async ({ input }) => {
       const urls = await createUploadUrls(input.count);
       return urls;
     }),
-  createEventMedia: protectedProcedure
+  createEventMedia: adminEventProcedure
     .input(
-      insertEventMediaSchema
-        .pick({
-          isPoster: true,
-          order: true,
-          eventId: true,
-          url: true,
-          imageId: true,
-        })
-        .array()
+      z.object({
+        media: insertEventMediaSchema
+          .pick({
+            isPoster: true,
+            order: true,
+            eventId: true,
+            url: true,
+            imageId: true,
+          })
+          .array(),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       const media = await ctx.db
         .insert(eventMedia)
         .values(
-          input.map((e) => ({ ...e, userId: ctx.auth.userId, id: createId() }))
+          input.media.map((e) => ({
+            ...e,
+            userId: ctx.auth.userId,
+            id: createId(),
+          }))
         )
         .returning()
         .get();
 
       return media;
     }),
-  deleteEventMedia: protectedProcedure
+  deleteEventMedia: adminEventProcedure
     .input(
-      insertEventMediaSchema
-        .pick({
-          id: true,
-        })
-        .array()
+      z.object({
+        ids: insertEventMediaSchema
+          .pick({
+            id: true,
+          })
+          .array(),
+      })
     )
     .mutation(async ({ ctx, input }) => {
-      if (input.length === 0) {
+      if (input.ids.length === 0) {
         return [];
       }
 
       const deletedMedia = await ctx.db
         .delete(eventMedia)
         .where(
-          and(
-            inArray(
-              eventMedia.id,
-              input.map((e) => e.id)
-            ),
-            eq(eventMedia.userId, ctx.auth.userId)
+          inArray(
+            eventMedia.id,
+            input.ids.map((e) => e.id)
           )
         )
         .returning()
@@ -68,23 +73,25 @@ export const eventMediaRouter = router({
 
       return deletedMedia;
     }),
-  updateEventMedia: protectedProcedure
+  updateEventMedia: adminEventProcedure
     .input(
-      insertEventMediaSchema
-        .pick({
-          id: true,
-          isPoster: true,
-          order: true,
-        })
-        .array()
+      z.object({
+        media: insertEventMediaSchema
+          .pick({
+            id: true,
+            isPoster: true,
+            order: true,
+          })
+          .array(),
+      })
     )
     .mutation(async ({ ctx, input }) => {
-      if (input.length === 0) {
+      if (input.media.length === 0) {
         return [];
       }
 
       const updatedMedia: EventMedia[] = [];
-      for (const e of input) {
+      for (const e of input.media) {
         const m = await ctx.db
           .update(eventMedia)
           .set({ isPoster: e.isPoster, order: e.order })

@@ -43,6 +43,13 @@
       "when": 1691958389792,
       "tag": "0005_yellow_jack_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1692020299299,
+      "tag": "0006_closed_mandroid",
+      "breakpoints": true
     }
   ]
 }

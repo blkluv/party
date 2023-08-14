@@ -17,9 +17,7 @@ const Page = async (props: PageProps) => {
   }
 
   const eventData = await db.query.events.findFirst({
-    where: and(
-      eq(events.id, props.params.eventId),
-    ),
+    where: and(eq(events.id, props.params.eventId)),
     with: {
       eventMedia: true,
       coupons: true,
@@ -34,8 +32,8 @@ const Page = async (props: PageProps) => {
 
   const eventRole = await getUserEventRole(props.params.eventId);
 
-  if (eventRole!=="admin"){
-    return redirect(`/events/${props.params.eventId}`)
+  if (eventRole !== "admin") {
+    return redirect(`/events/${props.params.eventId}`);
   }
 
   return (

@@ -40,7 +40,7 @@ export const MobileNavigationDrawer = () => {
                   className="flex gap-8 w-full justify-start"
                 >
                   <TicketIcon className="w-8 h-8" />
-                  <p className="font-medium text-lg">Tickets</p>
+                  <p className="font-medium text-lg">My Tickets</p>
                 </Button>
               </DialogClose>
             </Link>
@@ -51,7 +51,7 @@ export const MobileNavigationDrawer = () => {
                   className="flex gap-8 w-full justify-start"
                 >
                   <UserGroupIcon className="w-8 h-8" />
-                  <p className="font-medium text-lg">Events</p>
+                  <p className="font-medium text-lg">My Discussions & Events</p>
                 </Button>
               </DialogClose>
             </Link>

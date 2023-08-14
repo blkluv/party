@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs";
 import {
   ChatBubbleBottomCenterTextIcon,
+  ExclamationCircleIcon,
   TicketIcon,
 } from "@heroicons/react/24/outline";
 import { and, asc, eq } from "drizzle-orm";
@@ -18,6 +19,7 @@ import { getDb } from "~/db/client";
 import { eventMedia, events, ticketPrices, tickets } from "~/db/schema";
 import { isChatVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
+import { getSoldTickets } from "~/utils/getSoldTickets";
 import { getUserEventRole } from "~/utils/getUserEventRole";
 import { TicketTierListing } from "./TicketTierListing";
 import { LocationDialog } from "./tickets/[ticketId]/ticket-helpers";
@@ -204,13 +206,19 @@ const AdminToolbarView = async (props: { eventId: string }) => {
 };
 
 const TicketTiersView = async (props: { eventId: string }) => {
-  const foundTicketPrices = await getTicketTiers(props.eventId);
-  const eventData = await getEventData(props.eventId);
+  const [eventData, foundTicketPrices, ticketsSold] = await Promise.all([
+    getEventData(props.eventId),
+    getTicketTiers(props.eventId),
+    getSoldTickets(props.eventId),
+  ]);
+
+  const isAtCapacity = !eventData || ticketsSold >= eventData.capacity;
 
   return (
     <div className="flex flex-col gap-2 items-center justify-center">
       {/* Event is unhosted, just make sure that we can see chat */}
-      {eventData?.capacity === 0 &&
+      {!isAtCapacity &&
+        eventData?.capacity === 0 &&
         isChatVisible(eventData.startTime) &&
         foundTicketPrices.ticketPrices.length === 0 && (
           <>
@@ -224,8 +232,17 @@ const TicketTiersView = async (props: { eventId: string }) => {
           </>
         )}
 
+      {/* Event is at capacity and user has not purchased a ticket */}
+      {isAtCapacity && !foundTicketPrices.foundTicket && (
+        <div className="px-4 py-2 text-black rounded-full bg-white flex gap-2 items-center justify-center">
+          <ExclamationCircleIcon className="w-6 h-6" />
+          <p className="text-center font-medium">Event is at capacity</p>
+        </div>
+      )}
+
       {/* No ticket, but have ticket prices. Show ticket prices */}
-      {foundTicketPrices.foundTicket === null &&
+      {!isAtCapacity &&
+        foundTicketPrices.foundTicket === null &&
         foundTicketPrices.ticketPrices.length > 0 && (
           <>
             <p className="text-gray-100 font-semibold text-lg text-center">

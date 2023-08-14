@@ -30,15 +30,18 @@ export const CreateEventForm = () => {
 
         if (eventMedia.length === 0) {
           // No media files. Set default
-          await createEventMedia([
-            {
-              order: 0,
-              isPoster: true,
-              eventId: newEvent.id,
-              url: DEFAULT_EVENT_IMAGE.url,
-              imageId: DEFAULT_EVENT_IMAGE.id,
-            },
-          ]);
+          await createEventMedia({
+            eventId: newEvent.id,
+            media: [
+              {
+                order: 0,
+                isPoster: true,
+                eventId: newEvent.id,
+                url: DEFAULT_EVENT_IMAGE.url,
+                imageId: DEFAULT_EVENT_IMAGE.id,
+              },
+            ],
+          });
         } else {
           const downloadUrls = await uploadImages(
             eventMedia
@@ -46,16 +49,17 @@ export const CreateEventForm = () => {
               .map((e) => e.file)
           );
           const isSomeMediaPoster = eventMedia.some((e) => e.isPoster);
-          await createEventMedia(
-            eventMedia.map((e, order) => ({
+          await createEventMedia({
+            eventId: newEvent.id,
+            media: eventMedia.map((e, order) => ({
               order,
               // Default poster to first image
               isPoster: isSomeMediaPoster ? e.isPoster : order === 0,
               eventId: newEvent.id,
               url: downloadUrls[order].url,
               imageId: downloadUrls[order].id,
-            }))
-          );
+            })),
+          });
         }
 
         refresh();
@@ -95,15 +99,18 @@ export const EditEventForm: FC<{
 
         if (eventMedia.length === 0) {
           // No media files. Set default
-          await createEventMedia([
-            {
-              order: 0,
-              isPoster: true,
-              eventId: updatedEvent.id,
-              url: DEFAULT_EVENT_IMAGE.url,
-              imageId: DEFAULT_EVENT_IMAGE.id,
-            },
-          ]);
+          await createEventMedia({
+            eventId: props.eventId,
+            media: [
+              {
+                order: 0,
+                isPoster: true,
+                eventId: updatedEvent.id,
+                url: DEFAULT_EVENT_IMAGE.url,
+                imageId: DEFAULT_EVENT_IMAGE.id,
+              },
+            ],
+          });
         } else {
           const eventMediaFiles = eventMedia.filter(
             (e): e is EventMediaFileVariant => e.__type === "file"
@@ -115,16 +122,17 @@ export const EditEventForm: FC<{
             );
             const posterIndex = eventMedia.findIndex((e) => e.isPoster);
 
-            await createEventMedia(
-              eventMediaFiles.map((e, order) => ({
+            await createEventMedia({
+              eventId: props.eventId,
+              media: eventMediaFiles.map((e, order) => ({
                 order,
                 // Default poster to first image
                 isPoster: posterIndex !== -1 ? e.isPoster : order === 0,
                 eventId: updatedEvent.id,
                 url: downloadUrls[order].url,
                 imageId: downloadUrls[order].id,
-              }))
-            );
+              })),
+            });
           }
 
           // Check if we should make any updates
@@ -138,7 +146,10 @@ export const EditEventForm: FC<{
           );
 
           if (deletedMedia.length > 0) {
-            await deleteEventMedia(deletedMedia.map((e) => ({ id: e.id })));
+            await deleteEventMedia({
+              ids: deletedMedia.map((e) => ({ id: e.id })),
+              eventId: props.eventId,
+            });
           }
 
           // Find all URLs in updated media that weren't deleted and submit for updating
@@ -148,15 +159,16 @@ export const EditEventForm: FC<{
           );
 
           if (updatedMedia.length > 0) {
-            await updateEventMedia(
-              updatedMedia.map((e) => ({
+            await updateEventMedia({
+              eventId: props.eventId,
+              media: updatedMedia.map((e) => ({
                 id: e.id,
                 isPoster: e.isPoster,
                 order: eventMedia.findIndex(
                   (m) => m.__type === "url" && m.id === e.id
                 ),
-              }))
-            );
+              })),
+            });
           }
         }
 
