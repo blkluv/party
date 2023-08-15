@@ -221,6 +221,8 @@ const MessageEventView: FC<{
               width={50}
               height={50}
               alt=""
+              loading="eager"
+              priority
               className="w-full h-full object-cover"
             />
           )}
