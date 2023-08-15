@@ -214,12 +214,13 @@ const TicketTiersView = async (props: { eventId: string }) => {
   ]);
 
   const isAtCapacity = !eventData || ticketsSold >= eventData.capacity;
+  const eventType = eventData?.capacity === 0 ? "discussion" : "event";
 
   return (
     <div className="flex flex-col gap-2 items-center justify-center">
       {/* Event is unhosted, just make sure that we can see chat */}
-      {!isAtCapacity &&
-        eventData?.capacity === 0 &&
+      {eventType === "discussion" &&
+        eventData &&
         isChatVisible(eventData.startTime) &&
         foundTicketPrices.ticketPrices.length === 0 && (
           <>
@@ -233,46 +234,50 @@ const TicketTiersView = async (props: { eventId: string }) => {
           </>
         )}
 
-      {/* Event is at capacity and user has not purchased a ticket */}
-      {isAtCapacity && !foundTicketPrices.foundTicket && (
-        <div className="px-4 py-2 text-black rounded-full bg-white flex gap-2 items-center justify-center">
-          <ExclamationCircleIcon className="w-6 h-6" />
-          <p className="text-center font-medium">Event is at capacity</p>
-        </div>
-      )}
-
-      {/* No ticket, but have ticket prices. Show ticket prices */}
-      {!isAtCapacity &&
-        foundTicketPrices.foundTicket === null &&
-        foundTicketPrices.ticketPrices.length > 0 && (
-          <>
-            <p className="text-gray-100 font-semibold text-lg text-center">
-              Ticket Tiers
-            </p>
-            <div className="flex justify-center gap-2 flex-wrap">
-              {foundTicketPrices.ticketPrices.map((price) => (
-                <TicketTierListing
-                  key={`ticket price ${price.id}`}
-                  eventId={props.eventId}
-                  data={price}
-                />
-              ))}
+      {eventType === "event" && (
+        <>
+          {/* Event is at capacity and user has not purchased a ticket */}
+          {isAtCapacity && !foundTicketPrices.foundTicket && (
+            <div className="px-4 py-2 text-black rounded-full bg-white flex gap-2 items-center justify-center">
+              <ExclamationCircleIcon className="w-6 h-6" />
+              <p className="text-center font-medium">Event is at capacity</p>
             </div>
-          </>
-        )}
+          )}
 
-      {/* Found a ticket */}
-      {foundTicketPrices.foundTicket && (
-        <Link
-          href={`/events/${props.eventId}/tickets/${foundTicketPrices.foundTicket.id}`}
-        >
-          <Button>
-            <TicketIcon className="mr-2 h-4 w-4" />
-            <p>{`My Ticket${
-              foundTicketPrices.foundTicket.quantity > 1 ? "s" : ""
-            }`}</p>
-          </Button>
-        </Link>
+          {/* No ticket, but have ticket prices. Show ticket prices */}
+          {!isAtCapacity &&
+            foundTicketPrices.foundTicket === null &&
+            foundTicketPrices.ticketPrices.length > 0 && (
+              <>
+                <p className="text-gray-100 font-semibold text-lg text-center">
+                  Ticket Tiers
+                </p>
+                <div className="flex justify-center gap-2 flex-wrap">
+                  {foundTicketPrices.ticketPrices.map((price) => (
+                    <TicketTierListing
+                      key={`ticket price ${price.id}`}
+                      eventId={props.eventId}
+                      data={price}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+          {/* Found a ticket */}
+          {foundTicketPrices.foundTicket && (
+            <Link
+              href={`/events/${props.eventId}/tickets/${foundTicketPrices.foundTicket.id}`}
+            >
+              <Button>
+                <TicketIcon className="mr-2 h-4 w-4" />
+                <p>{`My Ticket${
+                  foundTicketPrices.foundTicket.quantity > 1 ? "s" : ""
+                }`}</p>
+              </Button>
+            </Link>
+          )}
+        </>
       )}
     </div>
   );
