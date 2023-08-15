@@ -199,6 +199,10 @@ const EventView = async (props: { eventId: string }) => {
 const AdminToolbarView = async (props: { eventId: string }) => {
   const eventRole = await getUserEventRole(props.eventId);
 
+  if (eventRole === null) {
+    return null;
+  }
+
   return (
     <div className="flex justify-center">
       <EventAdminToolbar eventId={props.eventId} role={eventRole} />

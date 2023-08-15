@@ -46,6 +46,9 @@ export const roleProtectedEventProcedure = (
           where: eq(events.id, input.eventId),
         }),
         ctx.db.query.eventRoles.findFirst({
+          columns: {
+            role: true,
+          },
           where: and(
             eq(eventRoles.eventId, input.eventId),
             eq(eventRoles.userId, ctx.auth.userId)
