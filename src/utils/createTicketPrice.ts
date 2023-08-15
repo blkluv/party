@@ -21,6 +21,7 @@ export const createTicketPrice = async (args: {
     price: args.data.price,
     isFree: args.data.isFree,
     userId: args.userId,
+    limit: args.data.limit,
   };
 
   // Not free, must create a Stripe price to accept payment

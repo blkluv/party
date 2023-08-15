@@ -1,10 +1,11 @@
 import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
-import { and, asc, eq, gt, like, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, gt, gte, like, or } from "drizzle-orm";
 import { z } from "zod";
 import { env } from "~/config/env";
-import type { Coupon, TicketPrice } from "~/db/schema";
+import type { TicketPrice } from "~/db/schema";
 
+import dayjs from "dayjs";
 import { MAX_EVENT_DURATION_HOURS } from "~/config/constants";
 import {
   coupons,
@@ -14,7 +15,6 @@ import {
   ticketPrices,
   tickets,
 } from "~/db/schema";
-import { createCoupon } from "~/utils/createCoupon";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { createTicketPrice } from "~/utils/createTicketPrice";
 import { getSoldTickets } from "~/utils/getSoldTickets";
@@ -47,24 +47,29 @@ export const eventsRouter = router({
     });
     return foundEvents;
   }),
+  getFullEvent: adminEventProcedure.query(async ({ input, ctx }) => {
+    return await ctx.db.query.events.findFirst({
+      where: and(eq(events.id, input.eventId)),
+      with: {
+        eventMedia: true,
+        coupons: true,
+        ticketPrices: true,
+        tickets: true,
+        roles: true,
+      },
+    });
+  }),
   createEvent: protectedProcedure
     .input(createEventSchema)
     .mutation(
       async ({
         ctx,
-        input: {
-          ticketPrices: ticketPricesInput,
-          coupons: couponsInput,
-          ...eventInput
-        },
+        input: { ticketPrices: ticketPricesInput, ...eventInput },
       }) => {
+        const hasPaidTicketPrice = ticketPricesInput.some((p) => !p.isFree);
         // Check if any ticket prices are paid, and block if true
         // Non-admins aren't allowed to create paid events
-        if (
-          (ticketPricesInput.some((p) => !p.isFree) ||
-            couponsInput.length > 0) &&
-          !ctx.isPlatformAdmin
-        ) {
+        if (hasPaidTicketPrice && !ctx.isPlatformAdmin) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "You are not allowed to create paid events.",
@@ -99,13 +104,13 @@ export const eventsRouter = router({
           .insert(events)
           .values({
             ...eventInput,
-            description: eventInput.description ?? "",
             id: eventId,
+            isPublic: true,
             userId: ctx.auth.userId,
             updatedAt: new Date(),
             createdAt: new Date(),
             stripeProductId: product.id,
-            isFeatured: ctx.isPlatformAdmin ? eventInput.isFeatured : false,
+            isFeatured: hasPaidTicketPrice,
           })
           .returning()
           .get();
@@ -123,22 +128,9 @@ export const eventsRouter = router({
           createdTicketPrices.push(p);
         }
 
-        const createdCoupons: Coupon[] = [];
-        for (const c of couponsInput) {
-          const coupon = await createCoupon({
-            data: c,
-            userId: ctx.auth.userId,
-            eventId,
-            productId: product.id,
-          });
-
-          createdCoupons.push(coupon);
-        }
-
         return {
           ...event,
           ticketPrices: createdTicketPrices,
-          coupons: createdCoupons,
         };
       }
     ),
@@ -148,21 +140,14 @@ export const eventsRouter = router({
       async ({
         ctx,
         input: {
-          data: {
-            ticketPrices: ticketPricesInput,
-            coupons: couponsInput,
-            ...eventInput
-          },
+          data: { ticketPrices: ticketPricesInput, ...eventInput },
           eventId,
         },
       }) => {
+        const hasPaidTicketPrice = ticketPricesInput.some((p) => !p.isFree);
         // Check if any ticket prices are paid, and block if true
         // Non-admins aren't allowed to create paid events
-        if (
-          (ticketPricesInput.some((p) => !p.isFree) ||
-            couponsInput.length > 0) &&
-          !ctx.isPlatformAdmin
-        ) {
+        if (hasPaidTicketPrice && !ctx.isPlatformAdmin) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "You are not allowed to create paid events.",
@@ -188,13 +173,30 @@ export const eventsRouter = router({
           .update(events)
           .set({
             ...eventInput,
-            description: eventInput.description ?? "",
             updatedAt: new Date(),
-            isFeatured: ctx.isPlatformAdmin ? eventInput.isFeatured : false,
+            isFeatured: hasPaidTicketPrice,
           })
           .where(eq(events.id, eventId))
           .returning()
           .get();
+
+        const updatedTicketPrices: TicketPrice[] = [];
+
+        for (const price of ticketPricesInput) {
+          if (!price.id) {
+            const p = await createTicketPrice({
+              userId: ctx.auth.userId,
+              eventId,
+              data: price,
+              productId: event.stripeProductId,
+            });
+
+            updatedTicketPrices.push(p);
+          } else {
+            // TODO update ticket prices
+            continue;
+          }
+        }
 
         return {
           ...event,
@@ -359,7 +361,6 @@ export const eventsRouter = router({
   searchEvents: publicProcedure
     .input(z.object({ query: z.string() }))
     .query(async ({ input, ctx }) => {
-      const hoursStr = `-${MAX_EVENT_DURATION_HOURS} hours`;
       const results = await ctx.db.query.events.findMany({
         where: and(
           or(
@@ -368,7 +369,10 @@ export const eventsRouter = router({
           ),
           eq(events.isPublic, true),
           eq(events.isFeatured, false),
-          lte(events.startTime, sql`datetime(datetime('now'),${hoursStr})`)
+          gte(
+            events.startTime,
+            dayjs().subtract(MAX_EVENT_DURATION_HOURS, "hours").toDate()
+          )
         ),
         columns: {
           id: true,
@@ -388,30 +392,4 @@ export const eventsRouter = router({
 
       return results.map((e) => ({ ...e, imageUrl: e.eventMedia[0].url }));
     }),
-  getUpcomingPublicEvents: publicProcedure.query(async ({ ctx }) => {
-    const hoursStr = `-${MAX_EVENT_DURATION_HOURS} hours`;
-    const results = await ctx.db.query.events.findMany({
-      where: and(
-        eq(events.isPublic, true),
-        eq(events.isFeatured, false),
-        lte(events.startTime, sql`datetime(datetime('now'),${hoursStr})`)
-      ),
-      columns: {
-        id: true,
-        name: true,
-        description: true,
-        startTime: true,
-        location: true,
-      },
-      with: {
-        eventMedia: {
-          where: eq(eventMedia.isPoster, true),
-        },
-      },
-      orderBy: asc(events.startTime),
-      limit: 25,
-    });
-
-    return results.map((e) => ({ ...e, imageUrl: e.eventMedia[0].url }));
-  }),
 });

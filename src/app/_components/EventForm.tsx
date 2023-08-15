@@ -101,8 +101,6 @@ export const EventForm: FC<{
           name: "",
           description: "",
           startDate: dayjs().add(1, "day").toDate(),
-          isPublic: true,
-          isFeatured: false,
           capacity: 0,
           location: "",
           isHosted: false,
@@ -110,15 +108,10 @@ export const EventForm: FC<{
           ticketPrices: [],
           // HH:MM
           startTime: dayjs().format("HH:mm"),
-          coupons: [],
         },
   });
 
-  const [ticketPrices, coupons, isHosted] = form.watch([
-    "ticketPrices",
-    "coupons",
-    "isHosted",
-  ]);
+  const [ticketPrices, isHosted] = form.watch(["ticketPrices", "isHosted"]);
 
   const onDrop = useCallback((files: File[]) => {
     setMediaFiles((prev) => [
@@ -245,7 +238,7 @@ export const EventForm: FC<{
               )}
             />
 
-            <FormField
+            {/* <FormField
               control={form.control}
               name="isPublic"
               render={({ field }) => (
@@ -266,8 +259,8 @@ export const EventForm: FC<{
                   </FormControl>
                 </FormItem>
               )}
-            />
-            {isAdmin && (
+            /> */}
+            {/* {isAdmin && (
               <FormField
                 control={form.control}
                 name="isFeatured"
@@ -289,7 +282,7 @@ export const EventForm: FC<{
                   </FormItem>
                 )}
               />
-            )}
+            )} */}
             {mediaPreviewUrls.length > 0 && (
               <div className="space-y-2">
                 <FormLabel>Media</FormLabel>
@@ -504,82 +497,6 @@ export const EventForm: FC<{
                   >
                     <PlusIcon className="w-4 h-4 mr-2" />
                     <p>Add Ticket Tier</p>
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  <Label>Coupons</Label>
-                  {coupons.map((_, i) => (
-                    <div
-                      key={`coupons.${i}`}
-                      className="bg-neutral-50 dark:bg-neutral-900 dark:border shadow-inner dark:shadow-none rounded-xl p-4 flex flex-col gap-2"
-                    >
-                      <FormField
-                        control={form.control}
-                        name={`coupons.${i}.name`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Regular" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              The name of this coupon.
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`coupons.${i}.percentageDiscount`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Percentage Discount</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Percentage discount"
-                                type="number"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              This percentage amount will be deducted from the
-                              sale price of the tickets.
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button
-                        type="button"
-                        className="ml-auto"
-                        variant="ghost"
-                        onClick={() => {
-                          form.setValue(
-                            "coupons",
-                            form.getValues().coupons.filter((_, j) => i !== j)
-                          );
-                        }}
-                      >
-                        <XMarkIcon className="w-4 h-4 mr-2" />
-                        <p>Remove Coupon</p>
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex"
-                    onClick={() => {
-                      const values = form.getValues();
-                      form.setValue("coupons", [
-                        ...values.coupons,
-                        { name: "Coupon", percentageDiscount: 10 },
-                      ]);
-                    }}
-                  >
-                    <PlusIcon className="w-4 h-4 mr-2" />
-                    <p>Add Coupon</p>
                   </Button>
                 </div>
               </>

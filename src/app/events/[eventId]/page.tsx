@@ -14,6 +14,7 @@ import { ClientDate } from "~/app/_components/ClientDate";
 import { EventAdminToolbar } from "~/app/_components/EventAdminToolbar";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { Button } from "~/app/_components/ui/button";
+import { DEFAULT_EVENT_IMAGE } from "~/config/default-image";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { eventMedia, events, ticketPrices, tickets } from "~/db/schema";
@@ -168,17 +169,15 @@ const EventView = async (props: { eventId: string }) => {
 
   return (
     <>
-      <div className="relative h-96 w-full rounded-xl overflow-hidden">
-        {/* Placeholder image */}
-        <div className="bg-neutral-800/25 inset-0 absolute z-0" />
-        <Image
-          src={eventData.eventMedia.find((e) => e.isPoster)?.url ?? ""}
-          width={1200}
-          height={1200}
-          alt=""
-          className="w-full h-full object-cover relative z-10"
-        />
-      </div>
+      <Image
+        src={eventData.eventMedia.find((e) => e.isPoster)?.url ?? ""}
+        width={1200}
+        height={1200}
+        alt=""
+        className="relative z-10 rounded-xl overflow-hidden"
+        placeholder="blur"
+        blurDataURL={DEFAULT_EVENT_IMAGE.dataUrl}
+      />
       <AdminToolbarView eventId={props.eventId} />
       <div className="space-y-4">
         <div className="space-y-2">

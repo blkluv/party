@@ -3,7 +3,6 @@
 import { useUser } from "@clerk/nextjs";
 import { ArrowPathIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { inferProcedureOutput } from "@trpc/server";
 import dayjs from "dayjs";
 import Image from "next/image";
 import type { FC } from "react";
@@ -12,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import type { z } from "zod";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
+import { EditEventForm } from "~/app/_components/event-form-variants";
 import { Button } from "~/app/_components/ui/button";
 import {
   CommandDialog,
@@ -45,13 +45,6 @@ import {
 } from "~/app/_components/ui/form";
 import { Input } from "~/app/_components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/app/_components/ui/select";
-import {
   Table,
   TableBody,
   TableCaption,
@@ -66,27 +59,12 @@ import {
   TabsList,
   TabsTrigger,
 } from "~/app/_components/ui/tabs";
-import type { AppRouter } from "~/app/api/trpc/trpc-router";
 import type { EVENT_ROLES, EventRole } from "~/db/schema";
-import { insertPromotionCodeSchema } from "~/db/schema";
+import { createPromotionCodeFormSchema } from "~/utils/createPromotionCodeFormSchema";
 import { trpc } from "~/utils/trpc";
 
-const formSchema = insertPromotionCodeSchema.pick({
-  code: true,
-  couponId: true,
-});
+type FormData = z.infer<typeof createPromotionCodeFormSchema>;
 
-type FormData = z.infer<typeof formSchema>;
-const getCouponString = (
-  coupon?: inferProcedureOutput<
-    AppRouter["events"]["promotionCodes"]["getAllCoupons"]
-  >[number]
-) => {
-  if (!coupon) {
-    return "None";
-  }
-  return `${coupon.name} - ${coupon.percentageDiscount}%`;
-};
 export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const {
@@ -96,10 +74,7 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
   } = trpc.events.promotionCodes.getAllPromotionCodes.useQuery({
     eventId: props.eventId,
   });
-  const { data: coupons = [] } =
-    trpc.events.promotionCodes.getAllCoupons.useQuery({
-      eventId: props.eventId,
-    });
+
   const { mutateAsync: createPromotionCode } =
     trpc.events.promotionCodes.createPromotionCode.useMutation({
       onSuccess: () => {
@@ -109,18 +84,15 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
     });
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(createPromotionCodeFormSchema),
     defaultValues: {
+      name: "",
       code: "",
-      couponId: "",
+      percentageDiscount: 0,
     },
   });
 
   const onSubmit = async (values: FormData) => {
-    if (values.couponId === "") {
-      return;
-    }
-
     await createPromotionCode({ ...values, eventId: props.eventId });
   };
 
@@ -128,12 +100,10 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
     <div className="flex flex-col">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          {coupons.length > 0 && (
-            <Button className="ml-auto mb-2 mr-2">
-              <p>Create Promotion Code</p>
-              <PlusIcon className="ml-2 w-4 h-4" />
-            </Button>
-          )}
+          <Button className="ml-auto mb-2 mr-2">
+            <p>Create Promotion Code</p>
+            <PlusIcon className="ml-2 w-4 h-4" />
+          </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogTitle>Create Promotion Code</DialogTitle>
@@ -145,12 +115,25 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <FormField
                 control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Promotion code name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="code"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Code</FormLabel>
                     <FormControl>
-                      <Input placeholder="Promotion code" {...field} />
+                      <Input placeholder="Code" {...field} />
                     </FormControl>
                     <FormDescription>
                       This is the promotion code used to apply discounts.
@@ -161,39 +144,16 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
               />
               <FormField
                 control={form.control}
-                name="couponId"
+                name="percentageDiscount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Coupon</FormLabel>
+                    <FormLabel>Percentage Discount</FormLabel>
                     <FormControl>
-                      <Select
-                        onValueChange={(val) => {
-                          form.setValue("couponId", val);
-                        }}
-                        value={field.value.toString()}
-                      >
-                        <SelectTrigger>
-                          <SelectValue>
-                            {getCouponString(
-                              coupons.find((e) => e.id === field.value)
-                            )}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {coupons.map((e) => (
-                            <SelectItem
-                              value={e.id.toString()}
-                              key={`coupon ${e.id}`}
-                            >
-                              {getCouponString(e)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Input placeholder="Discount" type="number" {...field} />
                     </FormControl>
                     <FormDescription>
-                      This is the coupon that this promotion code will use. This
-                      determines the discount applied.
+                      This percentage amount will be deducted from the sale
+                      price of the tickets.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -215,21 +175,21 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
         <TableCaption>A list of promotion codes for your event.</TableCaption>
         <TableHeader>
           <TableRow>
+            <TableHead>Name</TableHead>
             <TableHead>Code</TableHead>
-            <TableHead className="hidden sm:table-cell">Created At</TableHead>
-            <TableHead>Coupon</TableHead>
             <TableHead>Discount</TableHead>
+            <TableHead className="hidden sm:table-cell">Created At</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {codes.map((e) => (
             <TableRow key={`promo code ${e.id}`}>
+              <TableCell>{e.coupon.name}</TableCell>
               <TableCell>{e.code}</TableCell>
+              <TableCell>{e.coupon.percentageDiscount}%</TableCell>
               <TableCell className="hidden sm:table-cell">
                 {dayjs(e.createdAt).format("D/MM/YYYY")}
               </TableCell>
-              <TableCell>{e.coupon.name}</TableCell>
-              <TableCell>{e.coupon.percentageDiscount}%</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -433,26 +393,69 @@ export const ManagementContainer: FC<{
 }> = (props) => {
   return (
     <div>
-      <Tabs defaultValue={props.role === "admin" ? "roles" : "promotion-codes"}>
+      <Tabs
+        defaultValue={props.role === "admin" ? "details" : "promotion-codes"}
+      >
         <TabsList className="w-full flex">
           {props.role === "admin" && (
-            <TabsTrigger value="roles" className="flex-1">
-              Roles
-            </TabsTrigger>
+            <>
+              <TabsTrigger value="details" className="flex-1">
+                Details
+              </TabsTrigger>
+              <TabsTrigger value="roles" className="flex-1">
+                Roles
+              </TabsTrigger>
+            </>
           )}
           <TabsTrigger value="promotion-codes" className="flex-1">
             Promotion Codes
           </TabsTrigger>
         </TabsList>
         {props.role === "admin" && (
-          <TabsContent value="roles">
-            <ManageRoles eventId={props.eventId} />
-          </TabsContent>
+          <>
+            <TabsContent value="roles">
+              <ManageRoles eventId={props.eventId} />
+            </TabsContent>
+            <TabsContent value="details">
+              <ManageEventDetails eventId={props.eventId} />
+            </TabsContent>
+          </>
         )}
         <TabsContent value="promotion-codes">
           <ManagePromotionCodes eventId={props.eventId} />
         </TabsContent>
       </Tabs>
     </div>
+  );
+};
+
+const ManageEventDetails: FC<{ eventId: string }> = (props) => {
+  const { data: eventData, isLoading } = trpc.events.getFullEvent.useQuery({
+    eventId: props.eventId,
+  });
+
+  if (isLoading || !eventData) {
+    return (
+      <div className="flex justify-center">
+        <LoadingSpinner size={30} />
+      </div>
+    );
+  }
+
+  return (
+    <EditEventForm
+      eventId={props.eventId}
+      initialValues={{
+        ...eventData,
+        startDate: new Date(eventData.startTime),
+        startTime: dayjs(eventData.startTime).format("HH:mm"),
+        eventMedia: eventData.eventMedia.map((e) => ({
+          __type: "url",
+          id: e.id,
+          url: e.url,
+          isPoster: e.isPoster,
+        })),
+      }}
+    />
   );
 };

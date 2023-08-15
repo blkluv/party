@@ -1,58 +1,25 @@
 import { auth } from "@clerk/nextjs";
-import dayjs from "dayjs";
-import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { EditEventForm } from "~/app/_components/event-form-variants";
-import { getDb } from "~/db/client";
-import { events } from "~/db/schema";
 import { getUserEventRole } from "~/utils/getUserEventRole";
+import { ManagementContainer } from "../manage/event-management-helpers";
 
 type PageProps = { params: { eventId: string } };
 const Page = async (props: PageProps) => {
-  const db = getDb();
   const userAuth = auth();
 
   if (!userAuth.userId) {
     redirect("/sign-in");
   }
 
-  const eventData = await db.query.events.findFirst({
-    where: and(eq(events.id, props.params.eventId)),
-    with: {
-      eventMedia: true,
-      coupons: true,
-      ticketPrices: true,
-      tickets: true,
-    },
-  });
-
-  if (!eventData) {
-    redirect("/");
-  }
-
   const eventRole = await getUserEventRole(props.params.eventId);
 
-  if (eventRole !== "admin") {
+  if (eventRole === null) {
     return redirect(`/events/${props.params.eventId}`);
   }
 
   return (
-    <div className="mx-2 sm:mx-auto sm:w-full max-w-lg my-8">
-      <h1 className="font-bold text-3xl mb-8 text-center">Edit</h1>
-      <EditEventForm
-        eventId={props.params.eventId}
-        initialValues={{
-          ...eventData,
-          startDate: new Date(eventData.startTime),
-          startTime: dayjs(eventData.startTime).format("HH:mm"),
-          eventMedia: eventData.eventMedia.map((e) => ({
-            __type: "url",
-            id: e.id,
-            url: e.url,
-            isPoster: e.isPoster,
-          })),
-        }}
-      />
+    <div className="mx-2 sm:mx-auto sm:w-full max-w-xl my-8">
+      <ManagementContainer eventId={props.params.eventId} role={eventRole} />
     </div>
   );
 };

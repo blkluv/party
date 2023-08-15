@@ -1,12 +1,9 @@
 import { createId } from "@paralleldrive/cuid2";
-import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 
-import {
-  coupons,
-  insertPromotionCodeSchema,
-  promotionCodes,
-} from "~/db/schema";
+import { coupons, promotionCodes } from "~/db/schema";
+import { createCoupon } from "~/utils/createCoupon";
+import { createPromotionCodeFormSchema } from "~/utils/createPromotionCodeFormSchema";
 import { managerEventProcedure, router } from "./trpc/trpc-config";
 export const eventPromotionCodesRouter = router({
   getAllCoupons: managerEventProcedure.query(async ({ ctx, input }) => {
@@ -42,43 +39,43 @@ export const eventPromotionCodesRouter = router({
     });
   }),
   createPromotionCode: managerEventProcedure
-    .input(
-      insertPromotionCodeSchema.pick({
-        couponId: true,
-        code: true,
-      })
-    )
+    .input(createPromotionCodeFormSchema)
     .mutation(async ({ ctx, input }) => {
-      const foundCoupon = await ctx.db.query.coupons.findFirst({
-        where: and(eq(coupons.id, input.couponId)),
+      const newCoupon = await createCoupon({
+        data: {
+          id: createId(),
+          name: input.name,
+          percentageDiscount: input.percentageDiscount,
+        },
+        userId: ctx.auth.userId,
+        eventId: input.eventId,
+        productId: ctx.event.stripeProductId,
       });
 
-      if (!foundCoupon) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Coupon does not exist",
-        });
-      }
-
-      const newPromotionCode = await ctx.stripe.promotionCodes.create({
-        coupon: foundCoupon?.stripeCouponId,
+      const stripePromotionCode = await ctx.stripe.promotionCodes.create({
+        coupon: newCoupon?.stripeCouponId,
         code: input.code,
       });
 
-      return await ctx.db
+      const newPromotionCode = await ctx.db
         .insert(promotionCodes)
         .values({
           id: createId(),
-          code: newPromotionCode.code,
-          couponId: input.couponId,
+          code: stripePromotionCode.code,
+          couponId: newCoupon.id,
           createdAt: new Date(),
           updatedAt: new Date(),
           userId: ctx.auth.userId,
           eventId: input.eventId,
           name: "Promotion Code",
-          stripePromotionCodeId: newPromotionCode.id,
+          stripePromotionCodeId: stripePromotionCode.id,
         })
         .returning()
         .get();
+
+      return {
+        promotionCode: newPromotionCode,
+        coupon: newCoupon,
+      };
     }),
 });

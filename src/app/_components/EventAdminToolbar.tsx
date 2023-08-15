@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  Cog8ToothIcon,
-  PencilIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { DialogClose } from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,12 +31,21 @@ export const EventAdminToolbar: FC<{
     });
 
   return (
-    <div>
+    <div className="flex gap-2 justify-center">
+      {(props.role === "admin" || props.role === "manager") && (
+        <Link href={`/events/${props.eventId}/edit`}>
+          <Button variant="secondary">
+            <PencilIcon className="w-4 h-4 mr-2" />
+            <p className="hidden sm:block">Edit</p>
+          </Button>
+        </Link>
+      )}
       <Dialog>
         <DialogTrigger asChild>
           {props.role === "admin" && (
-            <Button variant="ghost">
-              <TrashIcon className="w-4 h-4" />
+            <Button variant="secondary">
+              <TrashIcon className="w-4 h-4 mr-2" />
+              <p className="hidden sm:block">Delete</p>
             </Button>
           )}
         </DialogTrigger>
@@ -65,18 +70,6 @@ export const EventAdminToolbar: FC<{
           </div>
         </DialogContent>
       </Dialog>
-      <Link href={`/events/${props.eventId}/manage`}>
-        <Button variant="ghost">
-          <Cog8ToothIcon className="w-4 h-4" />
-        </Button>
-      </Link>
-      {props.role === "admin" && (
-        <Link href={`/events/${props.eventId}/edit`}>
-          <Button variant="ghost">
-            <PencilIcon className="w-4 h-4" />
-          </Button>
-        </Link>
-      )}
     </div>
   );
 };
