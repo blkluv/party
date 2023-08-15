@@ -9,11 +9,15 @@ import { tickets } from "~/db/schema";
  */
 export const getSoldTickets = async (eventId: string) => {
   const db = getDb();
-  const { ticketsSold } = await db
+  const result = await db
     .select({ ticketsSold: sql<number>`count(*)` })
     .from(tickets)
     .where(and(eq(tickets.eventId, eventId), eq(tickets.status, "success")))
     .get();
 
-  return ticketsSold;
+  if (!result) {
+    throw new Error("Error fetching sold tickets");
+  }
+
+  return result.ticketsSold;
 };

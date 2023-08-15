@@ -1,12 +1,15 @@
 import { createId } from "@paralleldrive/cuid2";
 import type { z } from "zod";
 import { getDb } from "~/db/client";
+import type { insertCouponSchema } from "~/db/schema";
 import { coupons } from "~/db/schema";
-import type { createEventSchema } from "./createEventSchema";
 import { getStripeClient } from "./stripe";
 
 export const createCoupon = async (args: {
-  data: z.infer<typeof createEventSchema>["coupons"][number];
+  data: Pick<
+    z.infer<typeof insertCouponSchema>,
+    "name" | "percentageDiscount"
+  > & { id?: string };
   eventId: string;
   userId: string;
   productId: string;
