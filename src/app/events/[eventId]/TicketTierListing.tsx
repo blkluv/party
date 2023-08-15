@@ -7,12 +7,6 @@ import { useState } from "react";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { LoginPrompt } from "~/app/_components/login-prompt";
 import { Button } from "~/app/_components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "~/app/_components/ui/dialog";
 import type { TicketPrice } from "~/db/schema";
 import { trpc } from "~/utils/trpc";
 
