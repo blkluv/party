@@ -445,6 +445,7 @@ const ManageEventDetails: FC<{ eventId: string }> = (props) => {
   return (
     <EditEventForm
       eventId={props.eventId}
+      type={eventData.type}
       initialValues={{
         ...eventData,
         startDate: new Date(eventData.startTime),

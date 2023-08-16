@@ -15,13 +15,13 @@ const Page = (props: { searchParams: { discussion?: string } }) => {
     redirect("/sign-in");
   }
 
-  const _eventType: EventType =
+  const eventType: EventType =
     props.searchParams.discussion !== undefined ? "discussion" : "event";
 
   return (
     <div className="mx-2 sm:mx-auto sm:w-full max-w-lg my-8">
       <h1 className="font-bold text-3xl mb-8 text-center">New Event</h1>
-      <CreateEventForm />
+      <CreateEventForm type={eventType} />
     </div>
   );
 };

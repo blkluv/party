@@ -1,15 +1,15 @@
 "use client";
 
-import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import type { ComponentProps, FC } from "react";
 import { DEFAULT_EVENT_IMAGE } from "~/config/default-image";
+import type { EventType } from "~/db/schema";
 import { trpc } from "~/utils/trpc";
 import { useUploadImages } from "~/utils/uploads";
 import type { EventMediaFileVariant, EventMediaUrlVariant } from "./EventForm";
 import { EventForm } from "./EventForm";
 
-export const CreateEventForm = () => {
+export const CreateEventForm: FC<{ type: EventType }> = (props) => {
   const { push, refresh } = useRouter();
 
   const uploadImages = useUploadImages();
@@ -20,13 +20,9 @@ export const CreateEventForm = () => {
 
   return (
     <EventForm
-      onSubmit={async ({ startDate, eventMedia, ...values }) => {
-        const [hour, minute] = values.startTime.split(":").map(Number);
-
-        const newEvent = await createEvent({
-          ...values,
-          startTime: dayjs(startDate).hour(hour).minute(minute).toDate(),
-        });
+      type={props.type}
+      onSubmit={async ({ eventMedia, ...values }) => {
+        const newEvent = await createEvent({ ...values, type: props.type });
 
         if (eventMedia.length === 0) {
           // No media files. Set default
@@ -72,6 +68,7 @@ export const CreateEventForm = () => {
 export const EditEventForm: FC<{
   initialValues: NonNullable<ComponentProps<typeof EventForm>["initialValues"]>;
   eventId: string;
+  type: EventType;
 }> = (props) => {
   const { push, refresh } = useRouter();
   const { mutateAsync: updateEvent } = trpc.events.updateEvent.useMutation();
@@ -85,17 +82,13 @@ export const EditEventForm: FC<{
 
   return (
     <EventForm
+      type={props.type}
       mode="edit"
       initialValues={props.initialValues}
-      onSubmit={async ({ startDate, eventMedia, ...values }) => {
-        const [hour, minute] = values.startTime.split(":").map(Number);
-
+      onSubmit={async ({ eventMedia, ...values }) => {
         const updatedEvent = await updateEvent({
           eventId: props.eventId,
-          data: {
-            ...values,
-            startTime: dayjs(startDate).hour(hour).minute(minute).toDate(),
-          },
+          data: values,
         });
 
         if (eventMedia.length === 0) {

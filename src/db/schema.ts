@@ -17,9 +17,7 @@ export const events = sqliteTable("events", {
   description: text("description").notNull(),
   startTime: int("start_time", { mode: "timestamp_ms" }).notNull(),
   location: text("location").notNull(),
-  locationDropTime: int("location_drop_time", {
-    mode: "timestamp_ms",
-  }).notNull(),
+  hideLocation: int("hide_location", { mode: "boolean" }).notNull(),
   userId: text("user_id").notNull(),
   type: text("type", { enum: EVENT_TYPES }).notNull(),
   stripeProductId: text("stripe_product_id").notNull(),

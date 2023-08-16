@@ -134,7 +134,7 @@ export const eventsRouter = router({
       }
     ),
   updateEvent: adminEventProcedure
-    .input(z.object({ data: createEventSchema }))
+    .input(z.object({ data: createEventSchema.omit({ type: true }) }))
     .mutation(
       async ({
         ctx,

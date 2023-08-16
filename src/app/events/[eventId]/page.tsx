@@ -14,7 +14,6 @@ import { ClientDate } from "~/app/_components/ClientDate";
 import { EventAdminToolbar } from "~/app/_components/EventAdminToolbar";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { Button } from "~/app/_components/ui/button";
-import { DEFAULT_EVENT_IMAGE } from "~/config/default-image";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { eventMedia, events, ticketPrices, tickets } from "~/db/schema";
@@ -40,6 +39,7 @@ const getEventData = cache(async (id: string) => {
       capacity: true,
       location: true,
       type: true,
+      hideLocation: true,
     },
     with: {
       eventMedia: {
@@ -190,9 +190,7 @@ const EventView = async (props: { eventId: string }) => {
         width={1200}
         height={1200}
         alt=""
-        className="relative z-10 rounded-xl overflow-hidden"
-        placeholder="blur"
-        blurDataURL={DEFAULT_EVENT_IMAGE.dataUrl}
+        className="rounded-xl max-h-[700px] w-auto mx-auto"
       />
       <AdminToolbarView eventId={props.eventId} />
       <div className="space-y-4">
@@ -235,21 +233,30 @@ const TicketTiersView = async (props: { eventId: string }) => {
 
   const isAtCapacity = !eventData || ticketsSold >= eventData.capacity;
 
+  // We show location if the location isn't hidden and the event is of type "event"
+  // Or if the event type is "discussion" and the window to chat has not passed
+  const showLocation = Boolean(
+    eventData &&
+      ((eventData.type === "event" && eventData.hideLocation === false) ||
+        (eventData.type === "discussion" && isChatVisible(eventData.startTime)))
+  );
+
   return (
     <div className="flex flex-col gap-2 items-center justify-center">
       {/* Event is unhosted, just make sure that we can see chat */}
+      {showLocation && eventData && (
+        <>
+          <LocationDialog location={eventData.location} variant="ghost" />
+        </>
+      )}
       {eventData?.type === "discussion" &&
-        isChatVisible(eventData.startTime) &&
-        currentTicketPrice === null && (
-          <>
-            <LocationDialog location={eventData.location} variant="ghost" />
-            <Link href={`/events/${props.eventId}/chat`}>
-              <Button>
-                <ChatBubbleBottomCenterTextIcon className="mr-2 h-4 w-4" />
-                <p>Join Discussion</p>
-              </Button>
-            </Link>
-          </>
+        isChatVisible(eventData.startTime) && (
+          <Link href={`/events/${props.eventId}/chat`}>
+            <Button>
+              <ChatBubbleBottomCenterTextIcon className="mr-2 h-4 w-4" />
+              <p>Join Discussion</p>
+            </Button>
+          </Link>
         )}
 
       {eventData?.type === "event" && (
@@ -258,7 +265,9 @@ const TicketTiersView = async (props: { eventId: string }) => {
           {isAtCapacity && !foundTicket && (
             <div className="px-4 py-2 text-black rounded-full bg-white flex gap-2 items-center justify-center">
               <ExclamationCircleIcon className="w-6 h-6" />
-              <p className="text-center font-medium">Event is at capacity</p>
+              <p className="text-center font-medium text-sm">
+                Event is at capacity
+              </p>
             </div>
           )}
 
@@ -267,10 +276,10 @@ const TicketTiersView = async (props: { eventId: string }) => {
             foundTicket === null &&
             currentTicketPrice !== null && (
               <>
-                <p className="text-gray-100 font-semibold text-lg text-center">
+                {/* <p className="text-gray-100 font-semibold text-lg text-center">
                   Ticket Tiers
-                </p>
-                <div className="flex justify-center gap-2 flex-wrap">
+                </p> */}
+                <div className="flex justify-center">
                   <TicketTierListing
                     eventId={props.eventId}
                     data={currentTicketPrice}

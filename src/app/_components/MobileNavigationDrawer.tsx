@@ -33,6 +33,17 @@ export const MobileNavigationDrawer = () => {
                 </Button>
               </DialogClose>
             </Link>
+            <Link href="/events/new?discussion=true">
+              <DialogClose asChild>
+                <Button
+                  variant="ghost"
+                  className="flex gap-8 justify-start w-full"
+                >
+                  <PlusIcon className="w-8 h-8" />
+                  <p className="font-medium text-lg">Create Discussion</p>
+                </Button>
+              </DialogClose>
+            </Link>
             <Link href="/tickets">
               <DialogClose asChild>
                 <Button

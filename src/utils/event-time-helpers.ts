@@ -11,8 +11,10 @@ export const isEventOver = (startTime: Date) => {
     .isBefore(dayjs());
 };
 
-export const isLocationVisible = (startTime: Date) => {
-  return dayjs().add(SHOW_LOCATION_HOURS_THRESHOLD, "hour").isAfter(startTime);
+export const isLocationVisible = (startTime: Date, hideLocation: boolean) => {
+  return hideLocation
+    ? dayjs().add(SHOW_LOCATION_HOURS_THRESHOLD, "hour").isAfter(startTime)
+    : true;
 };
 
 export const isChatVisible = (startTime: Date) => {

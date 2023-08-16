@@ -32,11 +32,9 @@ import {
   FormMessage,
 } from "~/app/_components/ui/form";
 import { Input } from "~/app/_components/ui/input";
-import type { EventMedia } from "~/db/schema";
-import {
-  createEventSchema,
-  createTicketPriceFormSchema,
-} from "~/utils/createEventSchema";
+import { SHOW_LOCATION_HOURS_THRESHOLD } from "~/config/constants";
+import type { EventMedia, EventType } from "~/db/schema";
+import { createEventSchema } from "~/utils/createEventSchema";
 import { cn } from "~/utils/shadcn-ui";
 import type { PublicUserMetadata } from "~/utils/userMetadataSchema";
 import { Calendar } from "./ui/calendar";
@@ -63,21 +61,24 @@ type MoveDirection = "left" | "right";
 const formSchema = createEventSchema
   .omit({
     startTime: true,
+    type: true,
   })
   .extend({
     startDate: z.date(),
     startTime: z.string(),
-    ticketPrices: createTicketPriceFormSchema.array(),
   });
 export type EventFormData = z.infer<typeof formSchema>;
 
 export const EventForm: FC<{
   mode?: "create" | "edit";
-  initialValues?: Omit<EventFormData, "isHosted"> & {
+  type: EventType;
+  initialValues?: EventFormData & {
     eventMedia: EventMediaFile[];
   };
   onSubmit: (
-    values: EventFormData & { eventMedia: EventMediaFile[] }
+    values: Omit<z.infer<typeof createEventSchema>, "type"> & {
+      eventMedia: EventMediaFile[];
+    }
   ) => Promise<void> | void;
 }> = (props) => {
   const user = useUser();
@@ -110,6 +111,7 @@ export const EventForm: FC<{
           ticketPrices: [],
           // HH:MM
           startTime: dayjs().format("HH:mm"),
+          hideLocation: false,
         },
   });
 
@@ -175,9 +177,21 @@ export const EventForm: FC<{
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit((values) => {
+          const [hour, minute] = values.startTime.split(":").map(Number);
+
+          const startTime = dayjs(values.startDate)
+            .hour(hour)
+            .minute(minute)
+            .toDate();
+
           return props.onSubmit({
             ...values,
+            startTime,
             eventMedia: mediaFiles,
+            capacity: ticketPrices.reduce(
+              (sum, current) => sum + current.limit,
+              0
+            ),
           });
         })}
         className="space-y-8"
@@ -212,17 +226,19 @@ export const EventForm: FC<{
           )}
         />
 
-        <Button
-          variant="outline"
-          type="button"
-          className="w-full"
-          onClick={() => setShowAdditionalSettings((o) => !o)}
-        >
-          <Cog6ToothIcon className="mr-2 w-4 h-4" />
-          <p>{`${
-            showAdditionalSettings ? "Hide" : "Show"
-          } Additional Settings`}</p>
-        </Button>
+        {props.type === "event" && (
+          <Button
+            variant="outline"
+            type="button"
+            className="w-full"
+            onClick={() => setShowAdditionalSettings((o) => !o)}
+          >
+            <Cog6ToothIcon className="mr-2 w-4 h-4" />
+            <p>{`${
+              showAdditionalSettings ? "Hide" : "Show"
+            } Additional Settings`}</p>
+          </Button>
+        )}
         {showAdditionalSettings && (
           <>
             <FormField
@@ -239,17 +255,15 @@ export const EventForm: FC<{
               )}
             />
 
-            {/* <FormField
+            <FormField
               control={form.control}
-              name="isPublic"
+              name="hideLocation"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex flex-row items-center justify-between gap-2 rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Public</FormLabel>
+                    <FormLabel className="text-base">Hide Location</FormLabel>
                     <FormDescription>
-                      Public events are searchable on the home page, while
-                      non-public events can still be accessed via a direct link
-                      to their event page.
+                      {`If selected, the event's location appears to ticketholders ${SHOW_LOCATION_HOURS_THRESHOLD}h before it starts; if not, the location is immediately visible on the event page.`}
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -260,30 +274,7 @@ export const EventForm: FC<{
                   </FormControl>
                 </FormItem>
               )}
-            /> */}
-            {/* {isAdmin && (
-              <FormField
-                control={form.control}
-                name="isFeatured"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Featured</FormLabel>
-                      <FormDescription>
-                        Featured events are shown at the top of the home page
-                        and are generally promoted better than regular events.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            )} */}
+            />
             {mediaPreviewUrls.length > 0 && (
               <div className="space-y-2">
                 <FormLabel>Media</FormLabel>
@@ -339,23 +330,6 @@ export const EventForm: FC<{
               </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="capacity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Event Capacity</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Capacity" type="number" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Maximum ticket limit prevents further purchases after
-                    reaching the specified number.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             {isAdmin && (
               <>
                 <div className="space-y-2">

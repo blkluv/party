@@ -1,4 +1,4 @@
-export const SHOW_LOCATION_HOURS_THRESHOLD = 24;
+export const SHOW_LOCATION_HOURS_THRESHOLD = 3;
 
 /**
  * The default duration of an event in hours. This is also used to close the chat room associated with an event.

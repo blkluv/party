@@ -34,26 +34,26 @@ export const EventAdminToolbar: FC<{
     <div className="flex gap-2 justify-center">
       {(props.role === "admin" || props.role === "manager") && (
         <Link href={`/events/${props.eventId}/edit`}>
-          <Button variant="secondary">
-            <PencilIcon className="w-4 h-4 mr-2" />
-            <p className="hidden sm:block">Edit</p>
+          <Button variant="secondary" className="gap-2">
+            <PencilIcon className="w-4 h-4" />
+            <p>Edit</p>
           </Button>
         </Link>
       )}
       <Dialog>
         <DialogTrigger asChild>
           {props.role === "admin" && (
-            <Button variant="secondary">
-              <TrashIcon className="w-4 h-4 mr-2" />
-              <p className="hidden sm:block">Delete</p>
+            <Button variant="secondary" className="gap-2">
+              <TrashIcon className="w-4 h-4" />
+              <p>Delete</p>
             </Button>
           )}
         </DialogTrigger>
         <DialogContent>
           <DialogTitle>Delete Event</DialogTitle>
           <DialogDescription>
-            This action is irreversible and deletes all tickets, coupons, and
-            any other data related to this event.
+            This action is irreversible and deletes all tickets, promo codes,
+            and any other data related to this event.
           </DialogDescription>
 
           <div className="flex justify-end gap-2">

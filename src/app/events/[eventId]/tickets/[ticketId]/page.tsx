@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs";
 import { ChatBubbleBottomCenterTextIcon } from "@heroicons/react/24/outline";
+import dayjs from "dayjs";
 import { and, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -10,6 +11,7 @@ import { z } from "zod";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { Button } from "~/app/_components/ui/button";
+import { SHOW_LOCATION_HOURS_THRESHOLD } from "~/config/constants";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
@@ -83,6 +85,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
           name: true,
           startTime: true,
           location: true,
+          hideLocation: true,
         },
       },
     },
@@ -127,7 +130,18 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
     redirect(`/events/${ticketData.event.id}`);
   }
 
-  const showLocation = isLocationVisible(ticketData.event.startTime);
+  const showLocation = isLocationVisible(
+    ticketData.event.startTime,
+    ticketData.event.hideLocation
+  );
+  console.log(
+    dayjs()
+      .add(SHOW_LOCATION_HOURS_THRESHOLD, "hour")
+      .isAfter(ticketData.event.startTime)
+  );
+  console.log(showLocation);
+  console.log(ticketData.event.startTime);
+  console.log(dayjs().add(SHOW_LOCATION_HOURS_THRESHOLD, "hour").toDate());
   const showChat = isChatVisible(ticketData.event.startTime);
 
   return (
