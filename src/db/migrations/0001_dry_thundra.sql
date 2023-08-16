@@ -1,0 +1,1 @@
+ALTER TABLE events ADD `location_drop_time` integer NOT NULL;

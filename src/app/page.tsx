@@ -81,7 +81,7 @@ const Page = async () => {
         </div>
       </div>
       <div className="flex flex-col gap-16 max-w-6xl px-2 sm:mx-auto w-full relative pb-4">
-        <Link href="/events/new" className="mx-auto">
+        <Link href="/events/new?discussion=true" className="mx-auto">
           <Button>
             <PlusIcon className="w-4 h-4 mr-2" />
             <p>Create Discussion</p>

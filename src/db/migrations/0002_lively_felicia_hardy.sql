@@ -1,1 +1,0 @@
-ALTER TABLE chat_messages ADD `created_at` integer NOT NULL;

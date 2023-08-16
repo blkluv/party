@@ -184,9 +184,9 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
         <TableBody>
           {codes.map((e) => (
             <TableRow key={`promo code ${e.id}`}>
-              <TableCell>{e.coupon.name}</TableCell>
+              <TableCell>{e.name}</TableCell>
               <TableCell>{e.code}</TableCell>
-              <TableCell>{e.coupon.percentageDiscount}%</TableCell>
+              <TableCell>{e.percentageDiscount}%</TableCell>
               <TableCell className="hidden sm:table-cell">
                 {dayjs(e.createdAt).format("D/MM/YYYY")}
               </TableCell>

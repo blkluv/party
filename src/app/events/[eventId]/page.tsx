@@ -39,6 +39,7 @@ const getEventData = cache(async (id: string) => {
       userId: true,
       capacity: true,
       location: true,
+      type: true,
     },
     with: {
       eventMedia: {
@@ -84,7 +85,7 @@ const getTicketTiers = cache(async (eventId: string) => {
     if (existingTicket) {
       return {
         foundTicket: existingTicket,
-        ticketPrices: [],
+        currentTicketPrice: null,
       };
     }
   }
@@ -96,13 +97,28 @@ const getTicketTiers = cache(async (eventId: string) => {
       name: true,
       price: true,
       id: true,
+      limit: true,
     },
-    orderBy: asc(ticketPrices.price),
+    orderBy: asc(ticketPrices.order),
   });
+
+  const ticketsSold = await Promise.all(
+    foundTicketPrices.map((price) => getSoldTickets(eventId, price.id))
+  );
+
+  for (let i = 0; i < foundTicketPrices.length; i++) {
+    const price = foundTicketPrices[i];
+    if (ticketsSold[i] < price.limit) {
+      return {
+        foundTicket: null,
+        currentTicketPrice: price,
+      };
+    }
+  }
 
   return {
     foundTicket: null,
-    ticketPrices: foundTicketPrices,
+    currentTicketPrice: null,
   };
 });
 
@@ -210,22 +226,21 @@ const AdminToolbarView = async (props: { eventId: string }) => {
 };
 
 const TicketTiersView = async (props: { eventId: string }) => {
-  const [eventData, foundTicketPrices, ticketsSold] = await Promise.all([
-    getEventData(props.eventId),
-    getTicketTiers(props.eventId),
-    getSoldTickets(props.eventId),
-  ]);
+  const [eventData, { foundTicket, currentTicketPrice }, ticketsSold] =
+    await Promise.all([
+      getEventData(props.eventId),
+      getTicketTiers(props.eventId),
+      getSoldTickets(props.eventId),
+    ]);
 
   const isAtCapacity = !eventData || ticketsSold >= eventData.capacity;
-  const eventType = eventData?.capacity === 0 ? "discussion" : "event";
 
   return (
     <div className="flex flex-col gap-2 items-center justify-center">
       {/* Event is unhosted, just make sure that we can see chat */}
-      {eventType === "discussion" &&
-        eventData &&
+      {eventData?.type === "discussion" &&
         isChatVisible(eventData.startTime) &&
-        foundTicketPrices.ticketPrices.length === 0 && (
+        currentTicketPrice === null && (
           <>
             <LocationDialog location={eventData.location} variant="ghost" />
             <Link href={`/events/${props.eventId}/chat`}>
@@ -237,10 +252,10 @@ const TicketTiersView = async (props: { eventId: string }) => {
           </>
         )}
 
-      {eventType === "event" && (
+      {eventData?.type === "event" && (
         <>
           {/* Event is at capacity and user has not purchased a ticket */}
-          {isAtCapacity && !foundTicketPrices.foundTicket && (
+          {isAtCapacity && !foundTicket && (
             <div className="px-4 py-2 text-black rounded-full bg-white flex gap-2 items-center justify-center">
               <ExclamationCircleIcon className="w-6 h-6" />
               <p className="text-center font-medium">Event is at capacity</p>
@@ -249,34 +264,27 @@ const TicketTiersView = async (props: { eventId: string }) => {
 
           {/* No ticket, but have ticket prices. Show ticket prices */}
           {!isAtCapacity &&
-            foundTicketPrices.foundTicket === null &&
-            foundTicketPrices.ticketPrices.length > 0 && (
+            foundTicket === null &&
+            currentTicketPrice !== null && (
               <>
                 <p className="text-gray-100 font-semibold text-lg text-center">
                   Ticket Tiers
                 </p>
                 <div className="flex justify-center gap-2 flex-wrap">
-                  {foundTicketPrices.ticketPrices.map((price) => (
-                    <TicketTierListing
-                      key={`ticket price ${price.id}`}
-                      eventId={props.eventId}
-                      data={price}
-                    />
-                  ))}
+                  <TicketTierListing
+                    eventId={props.eventId}
+                    data={currentTicketPrice}
+                  />
                 </div>
               </>
             )}
 
           {/* Found a ticket */}
-          {foundTicketPrices.foundTicket && (
-            <Link
-              href={`/events/${props.eventId}/tickets/${foundTicketPrices.foundTicket.id}`}
-            >
+          {foundTicket && (
+            <Link href={`/events/${props.eventId}/tickets/${foundTicket.id}`}>
               <Button>
                 <TicketIcon className="mr-2 h-4 w-4" />
-                <p>{`My Ticket${
-                  foundTicketPrices.foundTicket.quantity > 1 ? "s" : ""
-                }`}</p>
+                <p>{`My Ticket${foundTicket.quantity > 1 ? "s" : ""}`}</p>
               </Button>
             </Link>
           )}

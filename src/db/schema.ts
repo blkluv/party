@@ -4,17 +4,27 @@ import { int, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const EVENT_TYPES = ["event", "discussion"] as const;
+export type EventType = (typeof EVENT_TYPES)[number];
+
+/**
+ * This table contains both events and discussions. They are differentiated by the "type" column
+ * Discussions don't have tickets prices, tickets, and their capacity should be 0
+ */
 export const events = sqliteTable("events", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
   startTime: int("start_time", { mode: "timestamp_ms" }).notNull(),
   location: text("location").notNull(),
+  locationDropTime: int("location_drop_time", {
+    mode: "timestamp_ms",
+  }).notNull(),
   userId: text("user_id").notNull(),
+  type: text("type", { enum: EVENT_TYPES }).notNull(),
   stripeProductId: text("stripe_product_id").notNull(),
   isPublic: int("is_public", { mode: "boolean" }).notNull(),
   isFeatured: int("is_featured", { mode: "boolean" }).notNull(),
-  // If capacity=0, the event is considered a "discussion" of an event rather than a hosted event
   capacity: int("capacity").notNull(),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
@@ -24,8 +34,8 @@ export const eventsRelations = relations(events, ({ many }) => ({
   tickets: many(tickets),
   ticketPrices: many(ticketPrices),
   eventMedia: many(eventMedia),
-  coupons: many(coupons),
   roles: many(eventRoles),
+  promotionCodes: many(promotionCodes),
 }));
 
 export type Event = InferModel<typeof events, "select">;
@@ -52,39 +62,14 @@ export const insertEventSchema = createInsertSchema(events, {
       ),
 });
 
-export const coupons = sqliteTable("coupons", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  stripeCouponId: text("stripe_coupon_id").notNull(),
-  eventId: text("event_id").notNull(),
-  userId: text("user_id").notNull(),
-  createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
-  updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
-  percentageDiscount: int("percentage_discount").notNull(),
-});
-
-export const couponRelations = relations(coupons, ({ one, many }) => ({
-  event: one(events, {
-    fields: [coupons.eventId],
-    references: [events.id],
-  }),
-  promotionCodes: many(promotionCodes),
-}));
-
-export type Coupon = InferModel<typeof coupons, "select">;
-export type NewCoupon = InferModel<typeof coupons, "insert">;
-export const selectCouponSchema = createSelectSchema(coupons);
-export const insertCouponSchema = createInsertSchema(coupons, {
-  percentageDiscount: z.coerce.number(),
-});
-
 export const promotionCodes = sqliteTable("promotion_codes", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   stripePromotionCodeId: text("stripe_promotion_code_id").notNull(),
-  couponId: text("coupon_id").notNull(),
   code: text("code").notNull(),
   eventId: text("event_id").notNull(),
+  percentageDiscount: int("percentage_discount").notNull(),
+  stripeCouponId: text("stripe_coupon_id").notNull(),
   // The creator of this promotion code
   userId: text("user_id").notNull(),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
@@ -92,9 +77,9 @@ export const promotionCodes = sqliteTable("promotion_codes", {
 });
 
 export const promotionCodeRelations = relations(promotionCodes, ({ one }) => ({
-  coupon: one(coupons, {
-    fields: [promotionCodes.couponId],
-    references: [coupons.id],
+  event: one(events, {
+    fields: [promotionCodes.eventId],
+    references: [events.id],
   }),
 }));
 
@@ -111,6 +96,7 @@ export const insertPromotionCodeSchema = createInsertSchema(promotionCodes, {
       .refine((val) => new RegExp(/[A-z0-9]+/).test(val), {
         message: "Promotion code does not match expected format. (ex. FALL20)",
       }),
+  percentageDiscount: z.coerce.number(),
 });
 
 export const tickets = sqliteTable("tickets", {
@@ -148,7 +134,8 @@ export const ticketPrices = sqliteTable("ticket_prices", {
   userId: text("user_id").notNull(),
   isFree: int("is_free", { mode: "boolean" }).notNull(),
   // The maximum number of tickets that are allowed to be sold for this price
-  limit: int("limit").notNull().default(0),
+  limit: int("limit").notNull(),
+  order: int("order").notNull(),
 });
 
 export const ticketPriceRelations = relations(

@@ -5,50 +5,15 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1690896174521,
-      "tag": "0000_zippy_sister_grimm",
+      "when": 1692145304250,
+      "tag": "0000_brave_stone_men",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "5",
-      "when": 1691102651803,
-      "tag": "0001_sparkling_nightmare",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1691102742411,
-      "tag": "0002_lively_felicia_hardy",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1691532288034,
-      "tag": "0003_married_wilson_fisk",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1691781182053,
-      "tag": "0004_nifty_harry_osborn",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "5",
-      "when": 1691958389792,
-      "tag": "0005_yellow_jack_flag",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "5",
-      "when": 1692020299299,
-      "tag": "0006_closed_mandroid",
+      "when": 1692145595197,
+      "tag": "0001_dry_thundra",
       "breakpoints": true
     }
   ]

@@ -6,11 +6,14 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { match } from "ts-pattern";
+import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import { MobileNavigationDrawer } from "./MobileNavigationDrawer";
+import { CreateDropdownMenu } from "./create-dropdown-menu";
 import { Button } from "./ui/button";
 
-export const Navigation = () => {
+export const Navigation = async () => {
   const userAuth = auth();
+  const isAdmin = await isUserPlatformAdmin();
 
   return (
     <>
@@ -42,12 +45,16 @@ export const Navigation = () => {
             ))
             .with(true, () => (
               <div className="flex items-center gap-4">
-                <Link href="/events/new">
-                  <Button size="sm">
-                    <PlusIcon className="mr-2 w-4 h-4" />
-                    <p>Create Discussion</p>
-                  </Button>
-                </Link>
+                {isAdmin && <CreateDropdownMenu />}
+
+                {!isAdmin && (
+                  <Link href="/discussions/new">
+                    <Button size="sm">
+                      <PlusIcon className="w-4 h-4 mr-2" />
+                      <p>Create Discussion</p>
+                    </Button>
+                  </Link>
+                )}
                 <UserButton afterSignOutUrl="/" />
               </div>
             ))

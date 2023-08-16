@@ -7,12 +7,21 @@ import { tickets } from "~/db/schema";
  * @param eventId
  * @returns
  */
-export const getSoldTickets = async (eventId: string) => {
+export const getSoldTickets = async (
+  eventId: string,
+  ticketPriceId?: string
+) => {
   const db = getDb();
   const result = await db
     .select({ ticketsSold: sql<number>`count(*)` })
     .from(tickets)
-    .where(and(eq(tickets.eventId, eventId), eq(tickets.status, "success")))
+    .where(
+      and(
+        eq(tickets.eventId, eventId),
+        eq(tickets.status, "success"),
+        ticketPriceId ? eq(tickets.ticketPriceId, ticketPriceId) : undefined
+      )
+    )
     .get();
 
   if (!result) {

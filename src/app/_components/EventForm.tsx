@@ -33,7 +33,10 @@ import {
 } from "~/app/_components/ui/form";
 import { Input } from "~/app/_components/ui/input";
 import type { EventMedia } from "~/db/schema";
-import { createEventSchema } from "~/utils/createEventSchema";
+import {
+  createEventSchema,
+  createTicketPriceFormSchema,
+} from "~/utils/createEventSchema";
 import { cn } from "~/utils/shadcn-ui";
 import type { PublicUserMetadata } from "~/utils/userMetadataSchema";
 import { Calendar } from "./ui/calendar";
@@ -64,7 +67,7 @@ const formSchema = createEventSchema
   .extend({
     startDate: z.date(),
     startTime: z.string(),
-    isHosted: z.boolean().optional().default(false),
+    ticketPrices: createTicketPriceFormSchema.array(),
   });
 export type EventFormData = z.infer<typeof formSchema>;
 
@@ -96,14 +99,13 @@ export const EventForm: FC<{
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: props.initialValues
-      ? { ...props.initialValues, isHosted: props.initialValues.capacity > 0 }
+      ? props.initialValues
       : {
           name: "",
           description: "",
           startDate: dayjs().add(1, "day").toDate(),
           capacity: 0,
           location: "",
-          isHosted: false,
           // Ticket price is in dollars CAD
           ticketPrices: [],
           // HH:MM
@@ -111,7 +113,7 @@ export const EventForm: FC<{
         },
   });
 
-  const [ticketPrices, isHosted] = form.watch(["ticketPrices", "isHosted"]);
+  const [ticketPrices] = form.watch(["ticketPrices"]);
 
   const onDrop = useCallback((files: File[]) => {
     setMediaFiles((prev) => [
@@ -176,7 +178,6 @@ export const EventForm: FC<{
           return props.onSubmit({
             ...values,
             eventMedia: mediaFiles,
-            capacity: values.isHosted ? values.capacity : 0,
           });
         })}
         className="space-y-8"
@@ -340,43 +341,21 @@ export const EventForm: FC<{
 
             <FormField
               control={form.control}
-              name="isHosted"
+              name="capacity"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Hosted</FormLabel>
-                    <FormDescription>
-                      Are you hosting this event?
-                    </FormDescription>
-                  </div>
+                <FormItem>
+                  <FormLabel>Event Capacity</FormLabel>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Input placeholder="Capacity" type="number" {...field} />
                   </FormControl>
+                  <FormDescription>
+                    Maximum ticket limit prevents further purchases after
+                    reaching the specified number.
+                  </FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-            {isHosted && (
-              <FormField
-                control={form.control}
-                name="capacity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Event Capacity</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Capacity" type="number" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Maximum ticket limit prevents further purchases after
-                      reaching the specified number.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
             {isAdmin && (
               <>
                 <div className="space-y-2">
@@ -445,6 +424,7 @@ export const EventForm: FC<{
                           </FormItem>
                         )}
                       />
+
                       <FormField
                         control={form.control}
                         name={`ticketPrices.${i}.isFree`}
@@ -491,7 +471,13 @@ export const EventForm: FC<{
                       const values = form.getValues();
                       form.setValue("ticketPrices", [
                         ...values.ticketPrices,
-                        { isFree: false, name: "Regular", price: 10 },
+                        {
+                          isFree: false,
+                          name: "Regular",
+                          price: 10,
+                          limit: 10,
+                          order: form.getValues("ticketPrices").length + 1,
+                        },
                       ]);
                     }}
                   >

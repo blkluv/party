@@ -11,7 +11,7 @@ import type { TicketPrice } from "~/db/schema";
 import { trpc } from "~/utils/trpc";
 
 export const TicketTierListing: FC<{
-  data: Pick<TicketPrice, "name" | "price" | "isFree" | "id">;
+  data: Pick<TicketPrice, "name" | "price" | "isFree" | "id" | "limit">;
   eventId: string;
 }> = (props) => {
   const { mutateAsync: createTicketCheckoutSession, isLoading } =

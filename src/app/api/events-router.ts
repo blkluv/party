@@ -8,7 +8,6 @@ import type { TicketPrice } from "~/db/schema";
 import dayjs from "dayjs";
 import { MAX_EVENT_DURATION_HOURS } from "~/config/constants";
 import {
-  coupons,
   eventMedia,
   events,
   promotionCodes,
@@ -52,10 +51,10 @@ export const eventsRouter = router({
       where: and(eq(events.id, input.eventId)),
       with: {
         eventMedia: true,
-        coupons: true,
         ticketPrices: true,
         tickets: true,
         roles: true,
+        promotionCodes: true,
       },
     });
   }),
@@ -302,11 +301,7 @@ export const eventsRouter = router({
     const event = await ctx.db.query.events.findFirst({
       where: and(eq(events.id, input.eventId)),
       with: {
-        coupons: {
-          with: {
-            promotionCodes: true,
-          },
-        },
+        promotionCodes: true,
         eventMedia: true,
         ticketPrices: true,
         tickets: true,
@@ -323,11 +318,6 @@ export const eventsRouter = router({
     await ctx.db
       .delete(promotionCodes)
       .where(eq(promotionCodes.eventId, input.eventId))
-      .run();
-
-    await ctx.db
-      .delete(coupons)
-      .where(eq(coupons.eventId, input.eventId))
       .run();
 
     const media = await ctx.db

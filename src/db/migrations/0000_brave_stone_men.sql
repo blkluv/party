@@ -1,12 +1,18 @@
-CREATE TABLE `coupons` (
+CREATE TABLE `chat_message_attachments` (
 	`id` text PRIMARY KEY NOT NULL,
-	`name` text NOT NULL,
-	`stripe_coupon_id` text NOT NULL,
 	`event_id` text NOT NULL,
 	`user_id` text NOT NULL,
-	`created_at` integer NOT NULL,
-	`updated_at` integer NOT NULL,
-	`percentage_discount` integer NOT NULL
+	`image_id` text NOT NULL,
+	`url` text NOT NULL,
+	`message_id` text NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `chat_messages` (
+	`id` text PRIMARY KEY NOT NULL,
+	`event_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`message` text NOT NULL,
+	`created_at` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `event_media` (
@@ -19,6 +25,15 @@ CREATE TABLE `event_media` (
 	`image_id` text NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE `event_roles` (
+	`id` text PRIMARY KEY NOT NULL,
+	`event_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`role` text NOT NULL,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `events` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
@@ -26,6 +41,7 @@ CREATE TABLE `events` (
 	`start_time` integer NOT NULL,
 	`location` text NOT NULL,
 	`user_id` text NOT NULL,
+	`type` text NOT NULL,
 	`stripe_product_id` text NOT NULL,
 	`is_public` integer NOT NULL,
 	`is_featured` integer NOT NULL,
@@ -38,9 +54,10 @@ CREATE TABLE `promotion_codes` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`stripe_promotion_code_id` text NOT NULL,
-	`coupon_id` text NOT NULL,
 	`code` text NOT NULL,
 	`event_id` text NOT NULL,
+	`percentage_discount` integer NOT NULL,
+	`stripe_coupon_id` text NOT NULL,
 	`user_id` text NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL
@@ -53,7 +70,9 @@ CREATE TABLE `ticket_prices` (
 	`event_id` text NOT NULL,
 	`stripe_price_id` text,
 	`user_id` text NOT NULL,
-	`is_free` integer NOT NULL
+	`is_free` integer NOT NULL,
+	`limit` integer NOT NULL,
+	`order` integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `tickets` (

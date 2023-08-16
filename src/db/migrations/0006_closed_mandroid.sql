@@ -1,1 +1,0 @@
-ALTER TABLE ticket_prices ADD `limit` integer DEFAULT 0 NOT NULL;
