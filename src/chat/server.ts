@@ -149,7 +149,6 @@ const server: PartyKitServer = {
     }
 
     if (typeof event === "string") {
-      console.log(event);
       const validatedMessage = socketEventSchema.safeParse(JSON.parse(event));
 
       if (!validatedMessage.success) {
