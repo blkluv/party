@@ -4,9 +4,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import type { FC } from "react";
+import { Suspense, cache } from "react";
 import { getDb } from "~/db/client";
 import { eventMedia, events, tickets } from "~/db/schema";
+import { isEventOver } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { ClientDate } from "../_components/ClientDate";
 
@@ -39,12 +41,12 @@ const EventsLoadingSkeleton = () => {
   );
 };
 
-const EventsList = async () => {
+const getEvents = cache(async () => {
   const userAuth = auth();
   const db = getDb();
 
   if (!userAuth.userId) {
-    redirect("/sign-in");
+    return [];
   }
 
   const foundEvents = await db.query.events.findMany({
@@ -68,40 +70,76 @@ const EventsList = async () => {
 
   foundEvents.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
+  return foundEvents;
+});
+
+const EventsList = async () => {
+  const userAuth = auth();
+
+  if (!userAuth.userId) {
+    redirect("/sign-in");
+  }
+
+  const foundEvents = await getEvents();
+
+  const upcomingEvents = foundEvents.filter((e) => !isEventOver(e.startTime));
+  const pastEvents = foundEvents.filter((e) => isEventOver(e.startTime));
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       {foundEvents.length === 0 && (
         <p className="font-medium text-sm text-center text-neutral-400">
           No events
         </p>
       )}
-      {foundEvents.map((e) => (
-        <Link
-          key={e.id}
-          href={`/events/${e.id}`}
-          className="relative hover:scale-105 transition"
-        >
-          <div className="absolute rounded-lg overflow-hidden inset-0 w-full brightness-[60%] dark:bg-neutral-900">
-            <div className="absolute -inset-24 backdrop-blur-lg z-10" />
-            <div className="absolute inset-0">
-              <Image
-                src={e.eventMedia[0]?.url ?? ""}
-                alt=""
-                width={300}
-                height={300}
-                className="w-full h-full object-cover z-0"
-              />
-            </div>
-          </div>
-          <div className="relative z-20 p-4 sm:p-8 text-white">
-            <h2 className="font-bold text-xl overflow-hidden">{e.name}</h2>
-            <p className="text-sm">
-              <ClientDate date={e.startTime} />
-            </p>
-          </div>
-        </Link>
-      ))}
+      {upcomingEvents.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold text-center">Upcoming Events</p>
+          {upcomingEvents.map((e) => (
+            <EventListing key={e.id} data={e} />
+          ))}
+        </div>
+      )}
+
+      {pastEvents.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="font-semibold text-center">Past events</p>
+          {pastEvents.map((e) => (
+            <EventListing key={e.id} data={e} />
+          ))}
+        </div>
+      )}
     </div>
+  );
+};
+
+const EventListing: FC<{
+  data: Awaited<ReturnType<typeof getEvents>>[number];
+}> = (props) => {
+  return (
+    <Link
+      href={`/events/${props.data.id}`}
+      className="relative hover:scale-105 transition"
+    >
+      <div className="absolute rounded-lg overflow-hidden inset-0 w-full brightness-[60%] dark:bg-neutral-900">
+        <div className="absolute -inset-24 backdrop-blur-lg z-10" />
+        <div className="absolute inset-0">
+          <Image
+            src={props.data.eventMedia[0]?.url ?? ""}
+            alt=""
+            width={300}
+            height={300}
+            className="w-full h-full object-cover z-0"
+          />
+        </div>
+      </div>
+      <div className="relative z-20 p-4 sm:p-8 text-white">
+        <h2 className="font-bold text-xl overflow-hidden">{props.data.name}</h2>
+        <p className="text-sm">
+          <ClientDate date={props.data.startTime} />
+        </p>
+      </div>
+    </Link>
   );
 };
 

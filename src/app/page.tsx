@@ -61,7 +61,7 @@ const EventsListLoadingSkeleton = () => {
       {[...Array.from({ length: 3 })].map((_, i) => (
         <div
           key={`events list skeleton ${i}`}
-          className="bg-neutral-800 animate-pulse w-full sm:h-64 rounded-lg"
+          className="h-64 rounded-xl overflow-hidden md:w-[45%] lg:w-[30%] shrink-0 w-full bg-neutral-800 animate-pulse"
         ></div>
       ))}
     </>
