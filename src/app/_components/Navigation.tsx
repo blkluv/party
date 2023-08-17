@@ -26,7 +26,7 @@ export const Navigation = async () => {
             {userAuth.userId && (
               <>
                 <Link href="/events">
-                  <Button variant="ghost">My Discussions & Events</Button>
+                  <Button variant="ghost">My Conversations & Events</Button>
                 </Link>
                 <Link href="/tickets">
                   <Button variant="ghost">My Tickets</Button>

@@ -49,7 +49,7 @@ export const TicketTierListing: FC<{
           handleClaimTicket();
         }}
       >
-        <p>Claim Ticket</p>
+        <p>Get Tickets</p>
         {isLoading && <LoadingSpinner className="ml-2" />}
       </Button>
       {showLoginPrompt && <LoginPrompt onOpenChange={setShowLoginPrompt} />}

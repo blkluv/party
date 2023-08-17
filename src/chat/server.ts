@@ -68,6 +68,7 @@ const server: PartyKitServer = {
       console.log("Missing auth token");
       return;
     }
+    let userId = "";
 
     try {
       const headers = new Headers();
@@ -78,7 +79,11 @@ const server: PartyKitServer = {
       }).then((res) => res.json());
 
       const jwks = createLocalJWKSet(data);
-      await jwtVerify(token, jwks);
+      const res = await jwtVerify(token, jwks);
+
+      if (res.payload.sub) {
+        userId = res.payload.sub;
+      }
     } catch (error) {
       if (error instanceof Error) {
         console.log(error.message);
@@ -106,6 +111,24 @@ const server: PartyKitServer = {
       limit: 50,
     });
 
+    const eventData = await db.query.events.findFirst({
+      where: eq(schema.events.id, room.id),
+    });
+
+    if (!eventData) {
+      return;
+    }
+
+    if (eventData.type === "event") {
+      const ticketData = await db.query.tickets.findFirst({
+        where: eq(schema.tickets.userId, userId),
+      });
+
+      if (!ticketData) {
+        return;
+      }
+    }
+
     messages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     const event: InitialMessagesEvent = {
@@ -126,6 +149,7 @@ const server: PartyKitServer = {
     }
 
     if (typeof event === "string") {
+      console.log(event);
       const validatedMessage = socketEventSchema.safeParse(JSON.parse(event));
 
       if (!validatedMessage.success) {

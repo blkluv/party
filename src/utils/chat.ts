@@ -28,9 +28,20 @@ export const errorEventSchema = z.object({
 });
 export type ChatErrorEvent = z.infer<typeof errorEventSchema>;
 
+export const userTypingEventSchema = z.object({
+  __type: z.literal("USER_TYPING"),
+  data: z.object({
+    userId: z.string(),
+    status: z.enum(["start", "stop"]),
+    startedAt: z.coerce.date(),
+  }),
+});
+export type UserTypingEvent = z.infer<typeof userTypingEventSchema>;
+
 export const socketEventSchema = chatMessageEventSchema
   .or(initialMessagesEventSchema)
   .or(errorEventSchema)
+  .or(userTypingEventSchema)
   .or(userJoinedEventSchema);
 
 export type ChatSocketEvent = z.infer<typeof socketEventSchema>;

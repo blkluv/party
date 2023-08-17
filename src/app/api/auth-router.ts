@@ -1,7 +1,7 @@
 import { clerkClient } from "@clerk/nextjs";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { getUser } from "~/utils/getUser";
+import { getUser, getUsers } from "~/utils/getUser";
 import { isUserPlatformAdmin } from "~/utils/isUserPlatformAdmin";
 import {
   publicUserMetadataSchema,
@@ -29,6 +29,21 @@ export const authRouter = router({
         imageUrl: data.imageUrl,
         role: (admin ? "admin" : "user") as PlatformRole,
       };
+    }),
+  getUsers: protectedProcedure
+    .input(z.object({ userIds: z.string().array() }))
+    .query(async ({ input }) => {
+      if (input.userIds.length === 0) {
+        return [];
+      }
+      const users = await getUsers(input.userIds);
+
+      return users.map((data) => ({
+        name: `${data.firstName} ${data.lastName}`,
+        id: data.id,
+        imageUrl: data.imageUrl,
+        role: data.publicMetadata.platformRole,
+      }));
     }),
   searchUsers: protectedProcedure
     .input(z.object({ query: z.string() }))

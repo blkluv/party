@@ -6,10 +6,12 @@ import { cache } from "react";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { eventMedia, events, tickets } from "~/db/schema";
-import { isChatVisible } from "~/utils/event-time-helpers";
+import { isChatVisible, isLocationVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { getUserEventRole } from "~/utils/getUserEventRole";
 import { ChatRoom } from "./chat-room";
+
+export const dynamic = "force-dynamic";
 
 type PageProps = { params: { eventId: string } };
 const getEventData = cache(async (eventId: string) => {
@@ -20,6 +22,9 @@ const getEventData = cache(async (eventId: string) => {
       capacity: true,
       startTime: true,
       name: true,
+      hideLocation: true,
+      location: true,
+      type: true,
     },
     with: {
       eventMedia: {
@@ -46,8 +51,8 @@ export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
     images.push({ url: poster.url, width: 1200, height: 630 });
   }
 
-  const title = getPageTitle(`Discussion for ${eventData.name}`);
-  const description = `This is a chat room to discuss ${eventData.name}`;
+  const title = getPageTitle(`Conversation for ${eventData.name}`);
+  const description = `This is a conversation about ${eventData.name}`;
 
   return {
     title,
@@ -87,7 +92,7 @@ const Page = async (props: PageProps) => {
     redirect("/");
   }
 
-  if (eventData.capacity > 0) {
+  if (eventData.type === "event") {
     const ticketData = await db.query.tickets.findFirst({
       where: and(
         eq(tickets.eventId, props.params.eventId),
@@ -101,10 +106,16 @@ const Page = async (props: PageProps) => {
     }
   }
 
+  const showLocation = isLocationVisible(
+    eventData.startTime,
+    eventData.hideLocation
+  );
+
   return (
     <ChatRoom
       eventId={props.params.eventId}
       eventName={eventData.name}
+      eventLocation={showLocation ? eventData.location : null}
       startTime={eventData.startTime}
       role={eventRole}
       authToken={token ?? ""}
