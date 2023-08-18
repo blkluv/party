@@ -44,15 +44,16 @@ export const TicketInfoButton = () => {
 export const LocationDialog: FC<{
   location: string;
   variant?: ComponentProps<typeof Button>["variant"];
-}> = (props) => {
+  showLabel?: boolean;
+}> = ({ showLabel = true, ...props }) => {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={props.variant}>
-          <MapPinIcon className="mr-2 w-4 h-4" />
-          <p>View Location</p>
+        <Button variant={props.variant} className="gap-2">
+          <MapPinIcon className="w-4 h-4" />
+          {showLabel && <p>View Location</p>}
         </Button>
       </DialogTrigger>
       <DialogContent>
