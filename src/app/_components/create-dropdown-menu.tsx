@@ -26,15 +26,15 @@ export const CreateDropdownMenu = () => {
       <DropdownMenuTrigger asChild>
         <Button size="sm">
           <PlusIcon className="w-4 h-4 mr-2" />
-          <p>Create</p>
+          <p>New</p>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem>
-          <Link href="/events/new">Create Event</Link>
+          <Link href="/events/new">New Event</Link>
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <Link href="/events/new?discussion=true">Create Discussion</Link>
+          <Link href="/events/new?discussion=true">New Event Discussion</Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -26,7 +26,7 @@ export const Navigation = async () => {
             {userAuth.userId && (
               <>
                 <Link href="/events">
-                  <Button variant="ghost">My Conversations & Events</Button>
+                  <Button variant="ghost">My Discussions & Events</Button>
                 </Link>
                 <Link href="/tickets">
                   <Button variant="ghost">My Tickets</Button>
@@ -51,7 +51,7 @@ export const Navigation = async () => {
                   <Link href="/discussions/new">
                     <Button size="sm">
                       <PlusIcon className="w-4 h-4 mr-2" />
-                      <p>Create Discussion</p>
+                      <p>New Event Discussion</p>
                     </Button>
                   </Link>
                 )}

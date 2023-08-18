@@ -84,7 +84,7 @@ const Page = async () => {
         <Link href="/events/new?discussion=true" className="mx-auto">
           <Button>
             <PlusIcon className="w-4 h-4 mr-2" />
-            <p>Create Conversation</p>
+            <p>Start an Event Discussion</p>
           </Button>
         </Link>
         <div className="space-y-2">
