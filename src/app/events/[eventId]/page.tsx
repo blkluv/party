@@ -10,6 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense, cache } from "react";
+import { match } from "ts-pattern";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { EventAdminToolbar } from "~/app/_components/EventAdminToolbar";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
@@ -21,6 +22,7 @@ import { isChatVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { getSoldTickets } from "~/utils/getSoldTickets";
 import { getUserEventRole } from "~/utils/getUserEventRole";
+import { cn } from "~/utils/shadcn-ui";
 import { TicketTierListing } from "./TicketTierListing";
 import { LocationDialog } from "./tickets/[ticketId]/ticket-helpers";
 
@@ -252,6 +254,15 @@ const TicketTiersView = async (props: { eventId: string }) => {
         (eventData.type === "discussion" && isChatVisible(eventData.startTime)))
   );
 
+  const isDiscussionEnabled =
+    eventData &&
+    match(eventData?.type)
+      .with("discussion", () => isChatVisible(eventData.startTime))
+      .with(
+        "event",
+        () => isChatVisible(eventData.startTime) && foundTicket !== null
+      );
+
   return (
     <div className="flex flex-col gap-4 items-center justify-center">
       {/* Event is unhosted, just make sure that we can see chat */}
@@ -260,15 +271,18 @@ const TicketTiersView = async (props: { eventId: string }) => {
           <LocationDialog location={eventData.location} variant="ghost" />
         </>
       )}
-      {eventData?.type === "discussion" &&
-        isChatVisible(eventData.startTime) && (
-          <Link href={`/events/${props.eventId}/chat`}>
-            <Button>
-              <ChatBubbleBottomCenterTextIcon className="mr-2 h-4 w-4" />
-              <p>Join Discussion</p>
-            </Button>
-          </Link>
-        )}
+      <Link
+        href={`/events/${props.eventId}/chat`}
+        className={cn(!isDiscussionEnabled && "pointer-events-none")}
+      >
+        <Button disabled={!isDiscussionEnabled}>
+          <div className="mr-2 relative">
+            <ChatBubbleBottomCenterTextIcon className="h-4 w-4" />
+            <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/3 -translate-y-1/3" />
+          </div>
+          <p>Join Discussion</p>
+        </Button>
+      </Link>
 
       {eventData?.type === "event" && (
         <>
@@ -286,20 +300,15 @@ const TicketTiersView = async (props: { eventId: string }) => {
           {!isAtCapacity &&
             foundTicket === null &&
             currentTicketPrices.length > 0 && (
-              <>
-                {/* <p className="text-gray-100 font-semibold text-lg text-center">
-                  Ticket Tiers
-                </p> */}
-                <div className="flex justify-center flex-wrap gap-2">
-                  {currentTicketPrices.map((price) => (
-                    <TicketTierListing
-                      eventId={props.eventId}
-                      data={price}
-                      key={price.id}
-                    />
-                  ))}
-                </div>
-              </>
+              <div className="flex justify-center flex-wrap gap-2">
+                {currentTicketPrices.map((price) => (
+                  <TicketTierListing
+                    eventId={props.eventId}
+                    data={price}
+                    key={price.id}
+                  />
+                ))}
+              </div>
             )}
 
           {/* Found a ticket */}
