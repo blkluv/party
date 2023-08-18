@@ -9,10 +9,12 @@ import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { LoginPrompt } from "~/app/_components/login-prompt";
 import { Button } from "~/app/_components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/app/_components/ui/popover";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "~/app/_components/ui/dialog";
 import type { TicketPrice } from "~/db/schema";
 import { trpc } from "~/utils/trpc";
 
@@ -49,14 +51,20 @@ export const TicketTierListing: FC<{
   return (
     <div className="relative border border-neutral-800 bg-neutral-800/25 shadow-lg rounded-xl p-4 sm:p-6 gap-4 items-center w-56 h-auto flex flex-col justify-between">
       {props.data.description.length > 0 && (
-        <Popover>
-          <PopoverTrigger className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2">
+        <Dialog>
+          <DialogTrigger className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2">
             <InformationCircleIcon className="w-6 h-6 fill-primary text-primary-foreground hover:fill-primary/90 rounded-full" />
-          </PopoverTrigger>
-          <PopoverContent>
-            <p>{props.data.description}</p>
-          </PopoverContent>
-        </Popover>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogTitle>Ticket Tier Information</DialogTitle>
+            <DialogDescription>
+              Here&apos;s what this ticket tier unlocks.
+            </DialogDescription>
+            <div className="mt-4">
+              <p>{props.data.description}</p>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
       <p className="font-semibold text-center">{props.data.name}</p>
       <p className="font-bold text-4xl">
