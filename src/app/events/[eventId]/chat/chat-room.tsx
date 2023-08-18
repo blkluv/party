@@ -399,7 +399,7 @@ const MessageEventView: FC<{
           </div>
         )}
       </div>
-      <div className="flex flex-col gap-px">
+      <div className="flex flex-col gap-px flex-1 overflow-hidden">
         <div className="flex items-center gap-4">
           <p className="font-semibold">{senderData?.name}</p>
           <p className="text-neutral-200 text-xs">
@@ -410,7 +410,7 @@ const MessageEventView: FC<{
             />
           </p>
         </div>
-        <div className="text-white prose-invert prose-sm">
+        <div className="text-white prose-invert prose-sm overflow-hidden break-words">
           <ReactMarkdown
             components={{
               a: ({ className, ...p }) => (

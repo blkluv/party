@@ -80,6 +80,7 @@ export const EventForm: FC<{
     }
   ) => Promise<void> | void;
 }> = (props) => {
+  const { mode = "create" } = props;
   const user = useUser();
   const isAdmin = Boolean(
     user.user &&
@@ -328,7 +329,14 @@ export const EventForm: FC<{
                           <FormItem>
                             <FormLabel>Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="Regular" {...field} />
+                              <Input
+                                placeholder="Regular"
+                                {...field}
+                                disabled={
+                                  Boolean(ticketPrices[i].id) &&
+                                  props.mode === "edit"
+                                }
+                              />
                             </FormControl>
                             <FormDescription>
                               The name of this ticket tier.
@@ -366,6 +374,10 @@ export const EventForm: FC<{
                                   placeholder="Price"
                                   type="number"
                                   {...field}
+                                  disabled={
+                                    Boolean(ticketPrices[i].id) &&
+                                    props.mode === "edit"
+                                  }
                                 />
                               </FormControl>
                               <FormDescription>
@@ -442,6 +454,10 @@ export const EventForm: FC<{
                               <Switch
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
+                                disabled={
+                                  Boolean(ticketPrices[i].id) &&
+                                  props.mode === "edit"
+                                }
                               />
                             </FormControl>
                           </FormItem>
@@ -451,6 +467,7 @@ export const EventForm: FC<{
                         type="button"
                         className="ml-auto"
                         variant="ghost"
+                        disabled={props.mode === "edit"}
                         onClick={() => {
                           form.setValue(
                             "ticketPrices",
@@ -539,7 +556,7 @@ export const EventForm: FC<{
           </>
         )}
         <Button type="submit" className="w-full">
-          <p>{`${props.mode === "edit" ? "Edit" : "Create"} ${
+          <p>{`${mode === "edit" ? "Edit" : "Create"} ${
             props.type === "event" ? "Event" : "Conversation"
           }`}</p>
           {form.formState.isSubmitting && (

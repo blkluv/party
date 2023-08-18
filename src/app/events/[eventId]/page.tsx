@@ -69,6 +69,8 @@ const getTicketTiers = cache(async (eventId: string) => {
   const db = getDb();
   const userAuth = auth();
 
+  const currentTicketPrices: typeof foundTicketPrices = [];
+
   if (userAuth.userId) {
     const existingTicket = await db.query.tickets.findFirst({
       where: and(
@@ -85,7 +87,7 @@ const getTicketTiers = cache(async (eventId: string) => {
     if (existingTicket) {
       return {
         foundTicket: existingTicket,
-        currentTicketPrice: null,
+        currentTicketPrices,
       };
     }
   }
@@ -98,6 +100,8 @@ const getTicketTiers = cache(async (eventId: string) => {
       price: true,
       id: true,
       limit: true,
+      visibility: true,
+      description: true,
     },
     orderBy: asc(ticketPrices.order),
   });
@@ -106,19 +110,23 @@ const getTicketTiers = cache(async (eventId: string) => {
     foundTicketPrices.map((price) => getSoldTickets(eventId, price.id))
   );
 
-  for (let i = 0; i < foundTicketPrices.length; i++) {
-    const price = foundTicketPrices[i];
-    if (ticketsSold[i] < price.limit) {
-      return {
-        foundTicket: null,
-        currentTicketPrice: price,
-      };
-    }
+  const firstLimitedTicketPrice = foundTicketPrices.find(
+    (price, i) => ticketsSold[i] < price.limit
+  );
+
+  // Only show one limited tier at a time
+  if (firstLimitedTicketPrice) {
+    currentTicketPrices.push(firstLimitedTicketPrice);
   }
+
+  // Add the always visible tiers
+  currentTicketPrices.push(
+    ...foundTicketPrices.filter((price) => price.visibility === "always")
+  );
 
   return {
     foundTicket: null,
-    currentTicketPrice: null,
+    currentTicketPrices,
   };
 });
 
@@ -224,7 +232,7 @@ const AdminToolbarView = async (props: { eventId: string }) => {
 };
 
 const TicketTiersView = async (props: { eventId: string }) => {
-  const [eventData, { foundTicket, currentTicketPrice }, ticketsSold] =
+  const [eventData, { foundTicket, currentTicketPrices }, ticketsSold] =
     await Promise.all([
       getEventData(props.eventId),
       getTicketTiers(props.eventId),
@@ -242,7 +250,7 @@ const TicketTiersView = async (props: { eventId: string }) => {
   );
 
   return (
-    <div className="flex flex-col gap-2 items-center justify-center">
+    <div className="flex flex-col gap-4 items-center justify-center">
       {/* Event is unhosted, just make sure that we can see chat */}
       {showLocation && eventData && (
         <>
@@ -274,16 +282,19 @@ const TicketTiersView = async (props: { eventId: string }) => {
           {/* No ticket, but have ticket prices. Show ticket prices */}
           {!isAtCapacity &&
             foundTicket === null &&
-            currentTicketPrice !== null && (
+            currentTicketPrices.length > 0 && (
               <>
                 {/* <p className="text-gray-100 font-semibold text-lg text-center">
                   Ticket Tiers
                 </p> */}
-                <div className="flex justify-center">
-                  <TicketTierListing
-                    eventId={props.eventId}
-                    data={currentTicketPrice}
-                  />
+                <div className="flex justify-center flex-wrap gap-2">
+                  {currentTicketPrices.map((price) => (
+                    <TicketTierListing
+                      eventId={props.eventId}
+                      data={price}
+                      key={price.id}
+                    />
+                  ))}
                 </div>
               </>
             )}

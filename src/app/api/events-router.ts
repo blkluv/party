@@ -193,8 +193,17 @@ export const eventsRouter = router({
 
             updatedTicketPrices.push(p);
           } else {
-            // TODO update ticket prices
-            continue;
+            await ctx.db
+              .update(ticketPrices)
+              .set({
+                name: price.name,
+                description: price.description,
+                limit: price.limit,
+                order: price.order,
+                visibility: price.visibility,
+              })
+              .where(eq(ticketPrices.id, price.id))
+              .run();
           }
         }
 

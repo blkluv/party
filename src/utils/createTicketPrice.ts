@@ -15,14 +15,10 @@ export const createTicketPrice = async (args: {
   const db = getDb();
   const stripe = getStripeClient();
   const priceData: NewTicketPrice = {
+    ...args.data,
     id: createId(),
-    eventId: args.eventId,
-    name: args.data.name,
-    price: args.data.price,
-    isFree: args.data.isFree,
     userId: args.userId,
-    limit: args.data.limit,
-    order: args.data.order,
+    eventId: args.eventId,
   };
 
   // Not free, must create a Stripe price to accept payment

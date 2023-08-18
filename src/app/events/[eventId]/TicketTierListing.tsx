@@ -1,17 +1,26 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
+import { InformationCircleIcon } from "@heroicons/react/20/solid";
 import { useRouter } from "next/navigation";
 import type { FC } from "react";
 import { useState } from "react";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { LoginPrompt } from "~/app/_components/login-prompt";
 import { Button } from "~/app/_components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/app/_components/ui/popover";
 import type { TicketPrice } from "~/db/schema";
 import { trpc } from "~/utils/trpc";
 
 export const TicketTierListing: FC<{
-  data: Pick<TicketPrice, "name" | "price" | "isFree" | "id" | "limit">;
+  data: Pick<
+    TicketPrice,
+    "name" | "price" | "isFree" | "id" | "limit" | "description"
+  >;
   eventId: string;
 }> = (props) => {
   const { mutateAsync: createTicketCheckoutSession, isLoading } =
@@ -38,8 +47,18 @@ export const TicketTierListing: FC<{
     }
   };
   return (
-    <div className="border border-neutral-800 bg-neutral-800/25 shadow-lg rounded-xl p-4 sm:p-6 gap-4 items-center w-56 h-auto flex flex-col justify-between">
-      <p className="font-semibold">{props.data.name}</p>
+    <div className="relative border border-neutral-800 bg-neutral-800/25 shadow-lg rounded-xl p-4 sm:p-6 gap-4 items-center w-56 h-auto flex flex-col justify-between">
+      {props.data.description.length > 0 && (
+        <Popover>
+          <PopoverTrigger className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2">
+            <InformationCircleIcon className="w-6 h-6 fill-primary text-primary-foreground hover:fill-primary/90 rounded-full" />
+          </PopoverTrigger>
+          <PopoverContent>
+            <p>{props.data.description}</p>
+          </PopoverContent>
+        </Popover>
+      )}
+      <p className="font-semibold text-center">{props.data.name}</p>
       <p className="font-bold text-4xl">
         {props.data.isFree ? "Free" : `$${props.data.price.toFixed(2)}`}
       </p>
