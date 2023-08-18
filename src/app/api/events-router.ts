@@ -8,6 +8,7 @@ import type { TicketPrice } from "~/db/schema";
 import dayjs from "dayjs";
 import { MAX_EVENT_DURATION_HOURS } from "~/config/constants";
 import {
+  chatMessages,
   eventMedia,
   events,
   promotionCodes,
@@ -336,6 +337,11 @@ export const eventsRouter = router({
     await ctx.db
       .delete(ticketPrices)
       .where(eq(ticketPrices.eventId, input.eventId))
+      .run();
+
+    await ctx.db
+      .delete(chatMessages)
+      .where(eq(chatMessages.eventId, input.eventId))
       .run();
 
     await ctx.db.delete(events).where(eq(events.id, input.eventId)).run();

@@ -8,7 +8,6 @@ import {
   CalendarIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  Cog6ToothIcon,
   PhotoIcon,
   PlusIcon,
   XMarkIcon,
@@ -86,7 +85,6 @@ export const EventForm: FC<{
     user.user &&
       (user.user.publicMetadata as PublicUserMetadata).platformRole === "admin"
   );
-  const [showAdditionalSettings, setShowAdditionalSettings] = useState(false);
 
   const [mediaPreviewUrls, setMediaPreviewUrls] = useState<PreviewUrl[]>(
     props.initialValues?.eventMedia
@@ -203,7 +201,7 @@ export const EventForm: FC<{
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="New event" {...field} />
+                <Input placeholder={`New ${props.type}`} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -218,28 +216,12 @@ export const EventForm: FC<{
               <FormControl>
                 <Input placeholder="Location" {...field} />
               </FormControl>
-              <FormDescription>
-                The location where this event will take place.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
 
         {props.type === "event" && (
-          <Button
-            variant="outline"
-            type="button"
-            className="w-full"
-            onClick={() => setShowAdditionalSettings((o) => !o)}
-          >
-            <Cog6ToothIcon className="mr-2 w-4 h-4" />
-            <p>{`${
-              showAdditionalSettings ? "Hide" : "Show"
-            } Additional Settings`}</p>
-          </Button>
-        )}
-        {showAdditionalSettings && (
           <>
             <FormField
               control={form.control}
@@ -355,6 +337,23 @@ export const EventForm: FC<{
                           </FormItem>
                         )}
                       />
+                      <FormField
+                        control={form.control}
+                        name={`ticketPrices.${i}.description`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Description" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              Describe any perks provided or anything else
+                              people should know.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       {!ticketPrices[i].isFree && (
                         <FormField
                           control={form.control}
@@ -399,6 +398,35 @@ export const EventForm: FC<{
                         )}
                       />
 
+                      <FormField
+                        control={form.control}
+                        name={`ticketPrices.${i}.visibility`}
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">
+                                Always Visible
+                              </FormLabel>
+                              <FormDescription>
+                                If checked, this ticket tier will always be
+                                visible.
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value === "always"}
+                                onCheckedChange={() =>
+                                  field.onChange(
+                                    field.value === "default"
+                                      ? "always"
+                                      : "default"
+                                  )
+                                }
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
                       <FormField
                         control={form.control}
                         name={`ticketPrices.${i}.isFree`}
@@ -451,6 +479,8 @@ export const EventForm: FC<{
                           price: 10,
                           limit: 10,
                           order: form.getValues("ticketPrices").length + 1,
+                          visibility: "default",
+                          description: "",
                         },
                       ]);
                     }}
@@ -509,7 +539,9 @@ export const EventForm: FC<{
           </>
         )}
         <Button type="submit" className="w-full">
-          <p>{props.mode === "edit" ? "Edit" : "Create"} Event</p>
+          <p>{`${props.mode === "edit" ? "Edit" : "Create"} ${
+            props.type === "event" ? "Event" : "Conversation"
+          }`}</p>
           {form.formState.isSubmitting && (
             <ArrowPathIcon className="ml-2 animate-spin w-4 h-4" />
           )}

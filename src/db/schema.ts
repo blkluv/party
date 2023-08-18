@@ -122,9 +122,17 @@ export type NewTicket = InferModel<typeof tickets, "insert">;
 export const selectTicketSchema = createSelectSchema(tickets);
 export const insertTicketSchema = createInsertSchema(tickets);
 
+export const TICKET_PRICE_VISIBILITY = ["default", "always"] as const;
+export type TicketPriceVisibility = (typeof TICKET_PRICE_VISIBILITY)[number];
+
 export const ticketPrices = sqliteTable("ticket_prices", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  // If "default", ticket is only shown when it's predecessor (order - 1) has sold out. If "always", this ticket tier is always visible, no matter the state of its predecessors.
+  visibility: text("visibility", { enum: TICKET_PRICE_VISIBILITY })
+    .notNull()
+    .default("default"),
   // Cost of ticket in cents CAD
   price: real("price").notNull(),
   eventId: text("event_id").notNull(),
