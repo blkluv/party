@@ -28,6 +28,7 @@ import { isEventOver } from "~/utils/event-time-helpers";
 import { getImageUrl } from "~/utils/getImageUrl";
 import { cn } from "~/utils/shadcn-ui";
 import { trpc } from "~/utils/trpc";
+import { LocationDialog } from "../tickets/[ticketId]/ticket-helpers";
 
 const urlRegex = new RegExp(/^http(s)?:\/\/.{2,}$/);
 const imageExtensions = ["jpg", "png", "jpeg", "webp", "gif", "avif"];
@@ -216,7 +217,16 @@ export const ChatRoom: FC<{
     <div className="flex-1 flex flex-col mx-auto w-full max-w-4xl relative">
       <div className="py-2">
         <h1 className="font-bold text-lg text-center">{props.eventName}</h1>
-        <p className="text-center">{props.eventLocation}</p>
+        {props.eventLocation && (
+          <div className="flex justify-center items-center gap-1">
+            <p className="text-center">{props.eventLocation}</p>
+            <LocationDialog
+              showLabel={false}
+              location={props.eventLocation}
+              variant="ghost"
+            />
+          </div>
+        )}
       </div>
       <div className="flex-1 relative flex flex-col gap-1 text-sm">
         <div className="flex-1 relative">
