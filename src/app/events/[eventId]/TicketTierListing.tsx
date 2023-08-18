@@ -60,7 +60,7 @@ export const TicketTierListing: FC<{
             <DialogDescription>
               Here&apos;s what this ticket tier unlocks.
             </DialogDescription>
-            <div className="mt-4">
+            <div>
               <p>{props.data.description}</p>
             </div>
           </DialogContent>
