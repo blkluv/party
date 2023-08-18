@@ -110,18 +110,21 @@ const getTicketTiers = cache(async (eventId: string) => {
     foundTicketPrices.map((price) => getSoldTickets(eventId, price.id))
   );
 
-  const firstLimitedTicketPrice = foundTicketPrices.find(
-    (price, i) => ticketsSold[i] < price.limit
+  const firstDefaultTicketPrice = foundTicketPrices.find(
+    (price, i) => ticketsSold[i] < price.limit && price.visibility === "default"
   );
 
   // Only show one limited tier at a time
-  if (firstLimitedTicketPrice) {
-    currentTicketPrices.push(firstLimitedTicketPrice);
+  if (firstDefaultTicketPrice) {
+    currentTicketPrices.push(firstDefaultTicketPrice);
   }
 
   // Add the always visible tiers
   currentTicketPrices.push(
-    ...foundTicketPrices.filter((price) => price.visibility === "always")
+    ...foundTicketPrices.filter(
+      (price, i) =>
+        price.visibility === "always" && ticketsSold[i] < price.limit
+    )
   );
 
   return {
