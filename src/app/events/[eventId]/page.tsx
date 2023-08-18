@@ -254,14 +254,15 @@ const TicketTiersView = async (props: { eventId: string }) => {
         (eventData.type === "discussion" && isChatVisible(eventData.startTime)))
   );
 
-  const isDiscussionEnabled =
+  const isDiscussionEnabled = Boolean(
     eventData &&
-    match(eventData?.type)
-      .with("discussion", () => isChatVisible(eventData.startTime))
-      .with(
-        "event",
-        () => isChatVisible(eventData.startTime) && foundTicket !== null
-      );
+      match(eventData.type)
+        .with("discussion", () => isChatVisible(eventData.startTime))
+        .with(
+          "event",
+          () => isChatVisible(eventData.startTime) && foundTicket !== null
+        )
+  );
 
   return (
     <div className="flex flex-col gap-4 items-center justify-center">
