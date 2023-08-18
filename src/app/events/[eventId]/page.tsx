@@ -262,15 +262,14 @@ const TicketTiersView = async (props: { eventId: string }) => {
           "event",
           () => isChatVisible(eventData.startTime) && foundTicket !== null
         )
+        .run()
   );
 
   return (
     <div className="flex flex-col gap-4 items-center justify-center">
       {/* Event is unhosted, just make sure that we can see chat */}
       {showLocation && eventData && (
-        <>
-          <LocationDialog location={eventData.location} variant="ghost" />
-        </>
+        <LocationDialog location={eventData.location} variant="ghost" />
       )}
       <Link
         href={`/events/${props.eventId}/chat`}
