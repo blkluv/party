@@ -250,27 +250,16 @@ const TicketTiersView = async (props: { eventId: string }) => {
         (eventData.type === "discussion" && isChatVisible(eventData.startTime)))
   );
 
-  const isDiscussionEnabled = Boolean(
-    eventData &&
-      match(eventData.type)
-        .with("discussion", () => isChatVisible(eventData.startTime))
-        .with(
-          "event",
-          () => isChatVisible(eventData.startTime) && foundTicket !== null
-        )
-        .run()
-  );
-
   return (
     <div className="flex flex-col gap-4 items-center justify-center">
       {/* Event is unhosted, just make sure that we can see chat */}
       {showLocation && eventData && (
         <LocationDialog location={eventData.location} variant="ghost" />
       )}
-      <JoinDiscussionButton
-        eventId={props.eventId}
-        disabled={!isDiscussionEnabled}
-      />
+
+      <Suspense fallback={<LoadingSpinner className="mx-auto" />}>
+        <DiscussionButtonWrapper eventId={props.eventId} />
+      </Suspense>
 
       {eventData?.type === "event" && (
         <>
@@ -311,6 +300,32 @@ const TicketTiersView = async (props: { eventId: string }) => {
         </>
       )}
     </div>
+  );
+};
+
+const DiscussionButtonWrapper = async (props: { eventId: string }) => {
+  const [eventData, { foundTicket }, eventRole] = await Promise.all([
+    getEventData(props.eventId),
+    getTicketTiers(props.eventId),
+    getUserEventRole(props.eventId),
+  ]);
+  const isDiscussionEnabled = Boolean(
+    eventData &&
+      match(eventData.type)
+        .with("discussion", () => isChatVisible(eventData.startTime))
+        .with(
+          "event",
+          () =>
+            isChatVisible(eventData.startTime) &&
+            (foundTicket !== null || eventRole === "admin")
+        )
+        .run()
+  );
+  return (
+    <JoinDiscussionButton
+      eventId={props.eventId}
+      disabled={!isDiscussionEnabled}
+    />
   );
 };
 

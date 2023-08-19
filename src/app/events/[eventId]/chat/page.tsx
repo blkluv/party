@@ -77,10 +77,6 @@ const Page = async (props: PageProps) => {
     redirect("/sign-in");
   }
 
-  if (!env.NEXT_PUBLIC_FEATURE_CHAT_MESSAGES) {
-    redirect(`/events/${props.params.eventId}`);
-  }
-
   const db = getDb();
 
   const [eventData, eventRole] = await Promise.all([
@@ -92,7 +88,7 @@ const Page = async (props: PageProps) => {
     redirect("/");
   }
 
-  if (eventData.type === "event") {
+  if (eventData.type === "event" && eventRole !== "admin") {
     const ticketData = await db.query.tickets.findFirst({
       where: and(
         eq(tickets.eventId, props.params.eventId),
@@ -102,7 +98,7 @@ const Page = async (props: PageProps) => {
     });
 
     if (!ticketData) {
-      redirect("/");
+      redirect(`/events/${props.params.eventId}`);
     }
   }
 

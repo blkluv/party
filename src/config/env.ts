@@ -23,11 +23,6 @@ export const env = createEnv({
     NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: z.string(),
     NEXT_PUBLIC_WEBSITE_URL: z.string(),
     NEXT_PUBLIC_MAPBOX_TOKEN: z.string(),
-    NEXT_PUBLIC_FEATURE_CHAT_MESSAGES: z
-      .enum(["true", "false"])
-      .transform((e) => e === "true")
-      .optional()
-      .default("false"),
   },
   runtimeEnv: {
     NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL:
@@ -51,7 +46,5 @@ export const env = createEnv({
     UPSTASH_REDIS_TOKEN: process.env.UPSTASH_REDIS_TOKEN,
     UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL,
     NEXT_PUBLIC_CHAT_HOST: process.env.NEXT_PUBLIC_CHAT_HOST,
-    NEXT_PUBLIC_FEATURE_CHAT_MESSAGES:
-      process.env.NEXT_PUBLIC_FEATURE_CHAT_MESSAGES,
   },
 });

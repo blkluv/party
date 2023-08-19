@@ -2,13 +2,14 @@ import { createClient } from "@libsql/client/web";
 import { createId } from "@paralleldrive/cuid2";
 import { MultiRegionRatelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis/cloudflare";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { createLocalJWKSet, jwtVerify } from "jose";
 import type { PartyKitRoom, PartyKitServer } from "partykit/server";
 import { z } from "zod";
 import type { ChatErrorEvent, InitialMessagesEvent } from "~/utils/chat";
 import { socketEventSchema } from "~/utils/chat";
+import type { PlatformRole } from "~/utils/userMetadataSchema";
 import * as schema from "../db/schema";
 
 const cache = new Map();
@@ -70,10 +71,10 @@ const server: PartyKitServer = {
     }
     let userId = "";
 
-    try {
-      const headers = new Headers();
-      headers.set("authorization", `Bearer ${env.data.CLERK_SECRET_KEY}`);
+    const headers = new Headers();
+    headers.set("authorization", `Bearer ${env.data.CLERK_SECRET_KEY}`);
 
+    try {
       const data = await fetch("https://api.clerk.com/v1/jwks", {
         headers,
       }).then((res) => res.json());
@@ -113,19 +114,51 @@ const server: PartyKitServer = {
 
     const eventData = await db.query.events.findFirst({
       where: eq(schema.events.id, room.id),
+      columns: {
+        type: true,
+        userId: true,
+      },
     });
 
     if (!eventData) {
       return;
     }
 
-    if (eventData.type === "event") {
-      const ticketData = await db.query.tickets.findFirst({
-        where: eq(schema.tickets.userId, userId),
+    const userData = (await fetch(`https://api.clerk.com/v1/users/${userId}`, {
+      headers,
+    }).then((res) => res.json())) as {
+      public_metadata: { platformRole: PlatformRole };
+    };
+
+    const platformRole = userData.public_metadata.platformRole;
+
+    // If the user is not a platform admin or event admin, return if they don't have a ticket
+    if (
+      eventData.type === "event" &&
+      platformRole !== "admin" &&
+      eventData.userId !== userId
+    ) {
+      const eventRole = await db.query.eventRoles.findFirst({
+        where: eq(schema.eventRoles.userId, userId),
+        columns: {
+          role: true,
+        },
       });
 
-      if (!ticketData) {
-        return;
+      if (eventRole?.role !== "admin") {
+        const ticketData = await db.query.tickets.findFirst({
+          where: and(
+            eq(schema.tickets.userId, userId),
+            eq(schema.tickets.status, "success")
+          ),
+          columns: {
+            id: true,
+          },
+        });
+
+        if (!ticketData) {
+          return;
+        }
       }
     }
 
