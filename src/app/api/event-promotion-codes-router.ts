@@ -1,6 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq } from "drizzle-orm";
 
+import { z } from "zod";
 import { promotionCodes } from "~/db/schema";
 import { createPromotionCodeFormSchema } from "~/utils/createPromotionCodeFormSchema";
 import { managerEventProcedure, router } from "./trpc/trpc-config";
@@ -49,7 +50,7 @@ export const eventPromotionCodesRouter = router({
           updatedAt: new Date(),
           userId: ctx.auth.userId,
           eventId: input.eventId,
-          name: "Promotion Code",
+          name: input.name,
           stripePromotionCodeId: stripePromotionCode.id,
           percentageDiscount: input.percentageDiscount,
         })
@@ -57,5 +58,28 @@ export const eventPromotionCodesRouter = router({
         .get();
 
       return newPromotionCode;
+    }),
+  deletePromotionCode: managerEventProcedure
+    .input(z.object({ promotionCodeId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Make sure this user owns the promo code or is an admin when we're deleting
+      const deletedPromotionCode = await ctx.db
+        .delete(promotionCodes)
+        .where(
+          and(
+            eq(promotionCodes.id, input.promotionCodeId),
+            ctx.eventRole === "admin"
+              ? undefined
+              : eq(promotionCodes.userId, ctx.auth.userId)
+          )
+        )
+        .returning()
+        .get();
+
+      if (deletedPromotionCode?.stripeCouponId) {
+        await ctx.stripe.coupons.del(deletedPromotionCode?.stripeCouponId);
+      }
+
+      return deletedPromotionCode;
     }),
 });

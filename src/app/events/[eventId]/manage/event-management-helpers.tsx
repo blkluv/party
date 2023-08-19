@@ -6,6 +6,7 @@ import {
   ClipboardIcon,
   LinkIcon,
   PlusIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { inferProcedureOutput } from "@trpc/server";
@@ -216,6 +217,8 @@ const PromotionCodeRow: FC<{
     trpc.events.getOpenTicketPrices.useQuery({
       eventId: props.eventId,
     });
+  const { mutateAsync: deletePromotionCode, isLoading: isDeleteLoading } =
+    trpc.events.promotionCodes.deletePromotionCode.useMutation();
   const { toast } = useToast();
 
   const handleTicketPriceSelect = (id: string) => {
@@ -235,34 +238,66 @@ const PromotionCodeRow: FC<{
         {dayjs(props.data.createdAt).format("D/MM/YYYY")}
       </TableCell>
       <TableCell>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="secondary" size="sm">
-              <LinkIcon className="w-4 h-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogTitle>Create Purchase Link</DialogTitle>
-            <DialogDescription>
-              Generate a link for customers to purchase tickets directly using
-              this promotion code.
-            </DialogDescription>
-
-            {ticketPrices.map((price) => (
-              <Button
-                key={price.id}
-                variant="outline"
-                className="justify-between gap-2"
-                size="sm"
-                onClick={() => handleTicketPriceSelect(price.id)}
-              >
-                <p>{price.name}</p>
-                <ClipboardIcon className="w-4 h-4" />
+        <div className="flex justify-center items-center gap-1 flex-col sm:flex-row">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="secondary" size="sm">
+                <LinkIcon className="w-4 h-4" />
               </Button>
-            ))}
-            {isLoading && <LoadingSpinner size={20} className="mx-auto" />}
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogTitle>Create Purchase Link</DialogTitle>
+              <DialogDescription>
+                Generate a link for customers to purchase tickets directly using
+                this promotion code.
+              </DialogDescription>
+
+              {ticketPrices.map((price) => (
+                <Button
+                  key={price.id}
+                  variant="outline"
+                  className="justify-between gap-2"
+                  size="sm"
+                  onClick={() => handleTicketPriceSelect(price.id)}
+                >
+                  <p>{price.name}</p>
+                  <ClipboardIcon className="w-4 h-4" />
+                </Button>
+              ))}
+              {isLoading && <LoadingSpinner size={20} className="mx-auto" />}
+            </DialogContent>
+          </Dialog>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="secondary" size="sm">
+                <TrashIcon className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogTitle>Delete Promotion Code</DialogTitle>
+              <DialogDescription>
+                Deleting this promotion code prevents it from being used.
+              </DialogDescription>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost">Go Back</Button>
+                <Button
+                  variant="destructive"
+                  className="gap-2"
+                  onClick={async () => {
+                    await deletePromotionCode({
+                      eventId: props.eventId,
+                      promotionCodeId: props.data.id,
+                    });
+                  }}
+                >
+                  <p>Delete</p>
+                  {isDeleteLoading && <LoadingSpinner />}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </TableCell>
     </TableRow>
   );
