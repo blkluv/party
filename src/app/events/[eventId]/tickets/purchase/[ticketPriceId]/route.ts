@@ -45,6 +45,6 @@ export const GET = async (req: Request, props: RouteProps) => {
       );
     }
 
-    return NextResponse.redirect("/");
+    return NextResponse.redirect(env.NEXT_PUBLIC_WEBSITE_URL);
   }
 };

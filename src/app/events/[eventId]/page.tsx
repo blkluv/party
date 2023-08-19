@@ -1,9 +1,5 @@
 import { auth } from "@clerk/nextjs";
-import {
-  ChatBubbleBottomCenterTextIcon,
-  ExclamationCircleIcon,
-  TicketIcon,
-} from "@heroicons/react/24/outline";
+import { ExclamationCircleIcon, TicketIcon } from "@heroicons/react/24/outline";
 import { and, asc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -22,8 +18,8 @@ import { isChatVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { getSoldTickets } from "~/utils/getSoldTickets";
 import { getUserEventRole } from "~/utils/getUserEventRole";
-import { cn } from "~/utils/shadcn-ui";
 import { TicketTierListing } from "./TicketTierListing";
+import { JoinDiscussionButton } from "./join-discussion-button";
 import { LocationDialog } from "./tickets/[ticketId]/ticket-helpers";
 
 export const dynamic = "force-dynamic";
@@ -271,18 +267,10 @@ const TicketTiersView = async (props: { eventId: string }) => {
       {showLocation && eventData && (
         <LocationDialog location={eventData.location} variant="ghost" />
       )}
-      <Link
-        href={`/events/${props.eventId}/chat`}
-        className={cn(!isDiscussionEnabled && "pointer-events-none")}
-      >
-        <Button disabled={!isDiscussionEnabled}>
-          <div className="mr-2 relative">
-            <ChatBubbleBottomCenterTextIcon className="h-4 w-4" />
-            <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/3 -translate-y-1/3" />
-          </div>
-          <p>Join Discussion</p>
-        </Button>
-      </Link>
+      <JoinDiscussionButton
+        eventId={props.eventId}
+        disabled={!isDiscussionEnabled}
+      />
 
       {eventData?.type === "event" && (
         <>
