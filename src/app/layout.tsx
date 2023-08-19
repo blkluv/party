@@ -8,6 +8,7 @@ import { cn } from "~/utils/shadcn-ui";
 import { Navigation } from "./_components/Navigation";
 import { TrpcProvider } from "./_components/trpc-provider";
 import "./globals.css";
+import { Toaster } from "./_components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,6 +40,7 @@ export default function RootLayout({
               <Navigation />
               <div className="flex flex-col flex-1">{children}</div>
             </div>
+            <Toaster />
           </TrpcProvider>
         </ClerkProvider>
         <Analytics />

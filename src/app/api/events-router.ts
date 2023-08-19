@@ -2,7 +2,6 @@ import { createId } from "@paralleldrive/cuid2";
 import { TRPCError } from "@trpc/server";
 import { and, asc, eq, gt, gte, like, or } from "drizzle-orm";
 import { z } from "zod";
-import { env } from "~/config/env";
 import type { TicketPrice } from "~/db/schema";
 
 import dayjs from "dayjs";
@@ -17,6 +16,7 @@ import {
 } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { createTicketPrice } from "~/utils/createTicketPrice";
+import { createTicketPurchaseUrl } from "~/utils/createTicketPurchaseUrl";
 import { getSoldTickets } from "~/utils/getSoldTickets";
 import { deleteImage } from "~/utils/images";
 import { isTextSafe } from "~/utils/isTextSafe";
@@ -25,6 +25,7 @@ import { eventPromotionCodesRouter } from "./event-promotion-codes-router";
 import { eventRolesRouter } from "./event-roles-router";
 import {
   adminEventProcedure,
+  managerEventProcedure,
   protectedProcedure,
   publicProcedure,
   router,
@@ -212,99 +213,37 @@ export const eventsRouter = router({
         };
       }
     ),
+  getOpenTicketPrices: managerEventProcedure.query(async ({ ctx, input }) => {
+    const prices = await ctx.db.query.ticketPrices.findMany({
+      where: eq(ticketPrices.eventId, input.eventId),
+    });
+
+    const ticketsSold = await Promise.all(
+      prices.map((price) => getSoldTickets(input.eventId, price.id))
+    );
+
+    return prices.filter((price, i) => ticketsSold[i] < price.limit);
+  }),
   createTicketPurchaseUrl: protectedProcedure
     .input(z.object({ ticketPriceId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const ticketPriceData = await ctx.db.query.ticketPrices.findFirst({
-        where: eq(ticketPrices.id, input.ticketPriceId),
-        with: {
-          event: {
-            columns: {
-              id: true,
-              capacity: true,
-            },
-          },
-        },
-      });
-
-      if (!ticketPriceData) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Ticket price not found",
-        });
-      }
-
-      const ticketsSold = await getSoldTickets(ticketPriceData.eventId);
-
-      if (ticketsSold >= ticketPriceData.event.capacity) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Event is at capacity",
-        });
-      }
-
-      // Does the user already have a ticket for this event?
-      const existingTicket = await ctx.db.query.tickets.findFirst({
-        where: and(
-          eq(tickets.eventId, ticketPriceData.eventId),
-          eq(tickets.userId, ctx.auth.userId),
-          eq(tickets.status, "success")
-        ),
-      });
-
-      // Send the user to their existing ticket
-      if (existingTicket) {
-        return `/events/${ticketPriceData.event.id}/tickets/${existingTicket.id}`;
-      }
-
-      const ticketId = createId();
-
-      let stripeSessionId: string | null = null;
-
-      // The URL the user will be redirected to for next steps
-      // If the ticket price is free, this will be their ticket URL
-      // If the ticket is paid, this will be a checkout URL
-      let url = `/events/${ticketPriceData.event.id}/tickets/${ticketId}`;
-
-      if (!ticketPriceData.isFree && ticketPriceData.stripePriceId) {
-        const checkout = await ctx.stripe.checkout.sessions.create({
-          success_url: `${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketPriceData.event.id}/tickets/${ticketId}`,
-          line_items: [
-            {
-              quantity: 1,
-              adjustable_quantity: { enabled: true, minimum: 1 },
-              price: ticketPriceData?.stripePriceId,
-            },
-          ],
-          mode: "payment",
-          allow_promotion_codes: true,
-        });
-
-        stripeSessionId = checkout.id;
-
-        // If checkout.url is ever null, we have a problem
-        if (checkout.url) {
-          url = checkout.url;
-        }
-      }
-
-      await ctx.db
-        .insert(tickets)
-        .values({
-          id: ticketId,
-          createdAt: new Date(),
-          eventId: ticketPriceData.eventId,
-          quantity: 1,
-          updatedAt: new Date(),
-          ticketPriceId: input.ticketPriceId,
+      try {
+        const url = await createTicketPurchaseUrl({
           userId: ctx.auth.userId,
-          stripeSessionId,
-          status: ticketPriceData.isFree ? "success" : "pending",
-        })
-        .returning()
-        .get();
+          ticketPriceId: input.ticketPriceId,
+        });
 
-      return url;
+        return url;
+      } catch (e) {
+        if (e instanceof Error) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: e.message });
+        }
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unknown error",
+        });
+      }
     }),
   deleteEvent: adminEventProcedure.mutation(async ({ ctx, input }) => {
     // Delete promo codes
@@ -325,10 +264,11 @@ export const eventsRouter = router({
       });
     }
 
-    await ctx.db
+    const codes = await ctx.db
       .delete(promotionCodes)
       .where(eq(promotionCodes.eventId, input.eventId))
-      .run();
+      .returning()
+      .all();
 
     const media = await ctx.db
       .delete(eventMedia)
@@ -359,6 +299,19 @@ export const eventsRouter = router({
     await ctx.stripe.products.update(event.stripeProductId, {
       active: false,
     });
+
+    const stripeCouponIds = Array.from(
+      new Set(
+        codes
+          .map((e) => e.stripeCouponId)
+          .filter((e): e is NonNullable<typeof e> => Boolean(e))
+      )
+    );
+
+    // Delete coupons (which should delete all promotion codes in turn)
+    await Promise.allSettled(
+      stripeCouponIds.map((id) => ctx.stripe.coupons.del(id))
+    );
 
     return event;
   }),

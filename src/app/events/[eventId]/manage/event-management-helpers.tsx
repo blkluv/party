@@ -1,8 +1,15 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { ArrowPathIcon, PlusIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowPathIcon,
+  ClipboardIcon,
+  LinkIcon,
+  PlusIcon,
+} from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { inferProcedureOutput } from "@trpc/server";
+import copy from "copy-to-clipboard";
 import dayjs from "dayjs";
 import Image from "next/image";
 import type { FC } from "react";
@@ -59,6 +66,9 @@ import {
   TabsList,
   TabsTrigger,
 } from "~/app/_components/ui/tabs";
+import { useToast } from "~/app/_components/ui/use-toast";
+import type { AppRouter } from "~/app/api/trpc/trpc-router";
+import { env } from "~/config/env";
 import type { EVENT_ROLES, EventRole } from "~/db/schema";
 import { createPromotionCodeFormSchema } from "~/utils/createPromotionCodeFormSchema";
 import { trpc } from "~/utils/trpc";
@@ -183,19 +193,78 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
         </TableHeader>
         <TableBody>
           {codes.map((e) => (
-            <TableRow key={`promo code ${e.id}`}>
-              <TableCell>{e.name}</TableCell>
-              <TableCell>{e.code}</TableCell>
-              <TableCell>{e.percentageDiscount}%</TableCell>
-              <TableCell className="hidden sm:table-cell">
-                {dayjs(e.createdAt).format("D/MM/YYYY")}
-              </TableCell>
-            </TableRow>
+            <PromotionCodeRow
+              key={`promo code ${e.id}`}
+              data={e}
+              eventId={props.eventId}
+            />
           ))}
         </TableBody>
       </Table>
       {isLoading && <LoadingSpinner className="mx-auto mt-8" size={30} />}
     </div>
+  );
+};
+
+const PromotionCodeRow: FC<{
+  data: inferProcedureOutput<
+    AppRouter["events"]["promotionCodes"]["getAllPromotionCodes"]
+  >[number];
+  eventId: string;
+}> = (props) => {
+  const { data: ticketPrices = [], isLoading } =
+    trpc.events.getOpenTicketPrices.useQuery({
+      eventId: props.eventId,
+    });
+  const { toast } = useToast();
+
+  const handleTicketPriceSelect = (id: string) => {
+    const url = `${env.NEXT_PUBLIC_WEBSITE_URL}/events/${props.eventId}/tickets/purchase/${id}?code=${props.data.code}`;
+    copy(url);
+    toast({
+      title: "Copied purchase link to clipboard",
+    });
+  };
+
+  return (
+    <TableRow>
+      <TableCell>{props.data.name}</TableCell>
+      <TableCell>{props.data.code}</TableCell>
+      <TableCell>{props.data.percentageDiscount}%</TableCell>
+      <TableCell className="hidden sm:table-cell">
+        {dayjs(props.data.createdAt).format("D/MM/YYYY")}
+      </TableCell>
+      <TableCell>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="secondary" size="sm">
+              <LinkIcon className="w-4 h-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogTitle>Create Purchase Link</DialogTitle>
+            <DialogDescription>
+              Generate a link for customers to purchase tickets directly using
+              this promotion code.
+            </DialogDescription>
+
+            {ticketPrices.map((price) => (
+              <Button
+                key={price.id}
+                variant="outline"
+                className="justify-between gap-2"
+                size="sm"
+                onClick={() => handleTicketPriceSelect(price.id)}
+              >
+                <p>{price.name}</p>
+                <ClipboardIcon className="w-4 h-4" />
+              </Button>
+            ))}
+            {isLoading && <LoadingSpinner size={20} className="mx-auto" />}
+          </DialogContent>
+        </Dialog>
+      </TableCell>
+    </TableRow>
   );
 };
 

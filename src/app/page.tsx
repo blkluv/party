@@ -15,7 +15,7 @@ import { MAX_EVENT_DURATION_HOURS } from "~/config/constants";
 import { getDb } from "~/db/client";
 import { eventMedia, events } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
-import { getUpcomingPublicEvents } from "~/utils/getUpcomingPublicEvents";
+import { getUpcomingPublicEvents as getEventDiscussions } from "~/utils/getUpcomingPublicEvents";
 import { ClientDate } from "./_components/ClientDate";
 import { EventTimer } from "./_components/search-events";
 import { Button } from "./_components/ui/button";
@@ -99,7 +99,7 @@ const Page = async () => {
         </div>
 
         <div className="mt-16">
-          <UpcomingEvents />
+          <EventDiscussions />
         </div>
       </div>
     </div>
@@ -147,8 +147,8 @@ const FeaturedEventsList = async () => {
   );
 };
 
-const UpcomingEvents = async () => {
-  const data = await getUpcomingPublicEvents();
+const EventDiscussions = async () => {
+  const data = await getEventDiscussions();
 
   if (data.length === 0) {
     return null;
@@ -156,18 +156,20 @@ const UpcomingEvents = async () => {
 
   return (
     <div className="flex flex-col">
-      <p className="font-semibold text-white text-lg text-center">Events</p>
+      <p className="font-semibold text-white text-lg text-center">
+        Event Discussions
+      </p>
       <div className="flex flex-col gap-2 mt-4 w-full max-w-xl mx-auto">
         {data.map((e) => (
-          <UpcomingEventListing data={e} key={e.id} />
+          <EventDiscussionListing data={e} key={e.id} />
         ))}
       </div>
     </div>
   );
 };
 
-const UpcomingEventListing: FC<{
-  data: Awaited<ReturnType<typeof getUpcomingPublicEvents>>[number];
+const EventDiscussionListing: FC<{
+  data: Awaited<ReturnType<typeof getEventDiscussions>>[number];
 }> = (props) => {
   return (
     <div className="bg-black rounded-2xl relative h-16 sm:h-20 hover:bg-black/50 transition overflow-hidden border border-neutral-800">

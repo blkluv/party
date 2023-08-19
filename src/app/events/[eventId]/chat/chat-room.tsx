@@ -278,17 +278,17 @@ const TypingUsersList: FC<{ typingUsers: UserTypingEvent[] }> = (props) => {
   const user = useUser();
   const { data: users = [] } = trpc.auth.getUsers.useQuery(
     {
-      userIds: props.typingUsers.map((e) => e.data.userId),
+      userIds: props.typingUsers
+        .map((e) => e.data.userId)
+        .filter((id) => id !== user.user?.id),
     },
     {
       keepPreviousData: true,
       select: (data) =>
-        data
-          .filter((e) => e.id !== user.user?.id)
-          .map((e) => ({
-            user: e,
-            event: props.typingUsers.find((u) => u.data.userId === e.id),
-          })),
+        data.map((e) => ({
+          user: e,
+          event: props.typingUsers.find((u) => u.data.userId === e.id),
+        })),
     }
   );
 
