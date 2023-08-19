@@ -71,13 +71,18 @@ const EventsListLoadingSkeleton = () => {
 const Page = async () => {
   return (
     <div className="flex-1 flex flex-col relative overflow-x-hidden gap-32">
-      <div className="w-full mt-32">
-        <div className="text-white flex gap-4 items-center justify-center relative">
-          <div className="bg-white/10 blur-[100px] rounded-[100%] absolute w-[600px] h-96 left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2 z-0" />
-          <CubeIcon className="w-12 h:12 sm:w-16 sm:h-16 relative z-10" />
-          <h1 className="font-bold text-5xl sm:text-6xl whitespace-nowrap relative z-10">
-            Party Box
-          </h1>
+      <div className="w-full mt-32 flex justify-center items-center">
+        <div className="flex flex-col items-center justify-center gap-1">
+          <div className="text-white flex gap-4 items-center justify-center relative">
+            <div className="bg-white/10 blur-[100px] rounded-[100%] absolute w-[600px] h-96 left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2 z-0" />
+            <CubeIcon className="w-12 h:12 sm:w-16 sm:h-16 relative z-10" />
+            <h1 className="font-bold text-5xl sm:text-6xl whitespace-nowrap relative z-10">
+              Party Box
+            </h1>
+          </div>
+          <p className="font-semibold ml-auto text-sm text-branding-spidr">
+            by The Spidr Community
+          </p>
         </div>
       </div>
       <div className="flex flex-col gap-16 max-w-6xl px-2 sm:mx-auto w-full relative pb-4">
