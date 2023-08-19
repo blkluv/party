@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { ticketPrices } from "~/db/schema";
 import { createTicketPurchaseUrl } from "~/utils/createTicketPurchaseUrl";
@@ -15,7 +16,7 @@ export const GET = async (req: Request, props: RouteProps) => {
   const userAuth = auth();
 
   if (!userAuth.userId) {
-    return NextResponse.redirect("/sign-in");
+    return NextResponse.redirect(`${env.NEXT_PUBLIC_WEBSITE_URL}/sign-in`);
   }
 
   const { searchParams } = new URL(req.url);
@@ -39,7 +40,9 @@ export const GET = async (req: Request, props: RouteProps) => {
     });
 
     if (ticketPrice?.eventId) {
-      return NextResponse.redirect(`/events/${ticketPrice.eventId}`);
+      return NextResponse.redirect(
+        `${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketPrice.eventId}`
+      );
     }
 
     return NextResponse.redirect("/");
