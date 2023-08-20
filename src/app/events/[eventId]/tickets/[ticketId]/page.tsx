@@ -84,6 +84,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
           startTime: true,
           location: true,
           hideLocation: true,
+          type: true,
         },
       },
     },
@@ -133,7 +134,10 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
     ticketData.event.hideLocation
   );
 
-  const showChat = isChatVisible(ticketData.event.startTime);
+  const showChat = isChatVisible({
+    startTime: ticketData.event.startTime,
+    eventType: ticketData.event.type,
+  });
 
   return (
     <div className="border rounded-lg bg-neutral-900/50 relative z-10 px-8 py-8 flex flex-col gap-4">
