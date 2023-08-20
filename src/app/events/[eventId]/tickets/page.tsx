@@ -1,4 +1,5 @@
 import { clerkClient } from "@clerk/nextjs";
+import type { User } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { Suspense, cache } from "react";
@@ -14,6 +15,7 @@ import {
   TableRow,
 } from "~/app/_components/ui/table";
 import { getDb } from "~/db/client";
+import type { Ticket } from "~/db/schema";
 import { tickets } from "~/db/schema";
 import { getUserEventRole } from "~/utils/getUserEventRole";
 
@@ -31,10 +33,17 @@ const getTickets = cache(async (eventId: string) => {
     userId: foundTickets.map((e) => e.userId),
   });
 
-  return foundTickets.map((e) => ({
-    ...e,
-    user: users.find((u) => u.id === e.userId),
-  }));
+  return foundTickets
+    .map((e) => ({
+      ...e,
+      user: users.find((u) => u.id === e.userId),
+    }))
+    .filter((e): e is Ticket & { user: User } => Boolean(e.user))
+    .sort((a, b) =>
+      `${a.user.firstName} ${a.user.lastName}`.localeCompare(
+        `${b.user.firstName} ${b.user.lastName}`
+      )
+    );
 });
 
 const Page = async (props: PageProps) => {
@@ -45,8 +54,8 @@ const Page = async (props: PageProps) => {
   }
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-xl mx-auto">
-      <h1>Tickets</h1>
+    <div className="flex flex-col gap-8 sm:py-8 py-4 w-full max-w-xl mx-auto">
+      <h1 className="font-semibold text-xl text-center">Tickets</h1>
       <Suspense fallback={<LoadingSpinner size={35} className="mx-auto" />}>
         <TicketsTable eventId={props.params.eventId} />
       </Suspense>
@@ -59,7 +68,7 @@ const TicketsTable = async (props: { eventId: string }) => {
 
   return (
     <Table>
-      <TableCaption>A list of promotion codes for your event.</TableCaption>
+      <TableCaption>A list of tickets purchased for this event.</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
@@ -71,7 +80,7 @@ const TicketsTable = async (props: { eventId: string }) => {
         {foundTickets.map((e) => (
           <TableRow key={e.id}>
             <TableCell>
-              {e.user?.firstName} {e.user?.lastName}
+              {e.user.firstName} {e.user.lastName}
             </TableCell>
             <TableCell>{e.quantity}</TableCell>
             <TableCell>
