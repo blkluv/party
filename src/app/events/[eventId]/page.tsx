@@ -160,28 +160,52 @@ export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
 
 const Page = async (props: PageProps) => {
   return (
-    <div className="mx-auto w-full max-w-3xl p-2 flex flex-col gap-8">
-      <Suspense
-        fallback={<LoadingSpinner size={75} className="mt-24 mx-auto" />}
-      >
-        <EventView eventId={props.params.eventId} />
+    <div className="mx-auto w-full max-w-7xl p-2 flex flex-col md:grid md:grid-cols-2 gap-8 flex-1">
+      <Suspense>
+        <EventPoster eventId={props.params.eventId} />
       </Suspense>
+      <div className="flex flex-col gap-4 md:gap-8">
+        <AdminToolbarView eventId={props.params.eventId} />
+        <Suspense
+          fallback={<LoadingSpinner size={75} className="mt-24 mx-auto" />}
+        >
+          <EventView eventId={props.params.eventId} />
+        </Suspense>
 
-      <Suspense
-        fallback={
-          <div className="flex justify-center flex-wrap items-center gap-2">
-            {[...Array.from({ length: 3 })].map((_, i) => (
-              <div
-                key={`placeholder ticket tier ${i}`}
-                className="border border-neutral-800 bg-neutral-800/25 shadow-lg rounded-xl w-56 h-56"
-              />
-            ))}
-          </div>
-        }
-      >
-        <TicketTiersView eventId={props.params.eventId} />
-      </Suspense>
+        <Suspense
+          fallback={
+            <div className="flex justify-center flex-wrap items-center gap-2">
+              {[...Array.from({ length: 3 })].map((_, i) => (
+                <div
+                  key={`placeholder ticket tier ${i}`}
+                  className="border border-neutral-800 bg-neutral-800/25 shadow-lg rounded-xl w-56 h-56"
+                />
+              ))}
+            </div>
+          }
+        >
+          <TicketTiersView eventId={props.params.eventId} />
+        </Suspense>
+      </div>
     </div>
+  );
+};
+
+const EventPoster = async (props: { eventId: string }) => {
+  const eventData = await getEventData(props.eventId);
+
+  if (!eventData) {
+    redirect("/");
+  }
+
+  return (
+    <Image
+      src={eventData.eventMedia.find((e) => e.isPoster)?.url ?? ""}
+      width={1200}
+      height={1200}
+      alt=""
+      className="rounded-xl max-h-[700px] md:max-h-[900px] w-auto mx-auto"
+    />
   );
 };
 
@@ -194,26 +218,18 @@ const EventView = async (props: { eventId: string }) => {
 
   return (
     <>
-      <Image
-        src={eventData.eventMedia.find((e) => e.isPoster)?.url ?? ""}
-        width={1200}
-        height={1200}
-        alt=""
-        className="rounded-xl max-h-[700px] w-auto mx-auto"
-      />
-      <AdminToolbarView eventId={props.eventId} />
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <h1 className="font-bold text-2xl text-center">{eventData.name}</h1>
-          <p className="text-sm text-center text-gray-200">
-            <ClientDate date={eventData.startTime} />
-          </p>
-        </div>
-
-        {eventData.description.length > 0 && (
-          <p className="text-center">{eventData.description}</p>
-        )}
+      <div className="space-y-2">
+        <h1 className="font-bold text-2xl md:text-4xl text-center md:text-left">
+          {eventData.name}
+        </h1>
+        <p className="text-sm text-center text-gray-200 md:text-left">
+          <ClientDate date={eventData.startTime} />
+        </p>
       </div>
+
+      {eventData.description.length > 0 && (
+        <p className="text-center md:text-left">{eventData.description}</p>
+      )}
     </>
   );
 };
@@ -226,7 +242,7 @@ const AdminToolbarView = async (props: { eventId: string }) => {
   }
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center md:justify-start">
       <EventAdminToolbar eventId={props.eventId} role={eventRole} />
     </div>
   );
@@ -239,6 +255,8 @@ const TicketTiersView = async (props: { eventId: string }) => {
       getTicketTiers(props.eventId),
       getSoldTickets(props.eventId),
     ]);
+
+  const userAuth = auth();
 
   const isAtCapacity = !eventData || ticketsSold >= eventData.capacity;
 
@@ -255,18 +273,18 @@ const TicketTiersView = async (props: { eventId: string }) => {
   );
 
   return (
-    <div className="flex flex-col gap-4 items-center justify-center">
-      {/* Event is unhosted, just make sure that we can see chat */}
-      {showLocation && eventData && (
-        <LocationDialog location={eventData.location} variant="ghost" />
-      )}
-
-      <Suspense fallback={<LoadingSpinner className="mx-auto" />}>
-        <DiscussionButtonWrapper eventId={props.eventId} />
-      </Suspense>
-
+    <>
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-center md:justify-start">
+        <Suspense fallback={<LoadingSpinner className="mx-auto md:mx-0" />}>
+          <DiscussionButtonWrapper eventId={props.eventId} />
+        </Suspense>
+        {/* Event is unhosted, just make sure that we can see chat */}
+        {showLocation && eventData && (
+          <LocationDialog location={eventData.location} variant="outline" />
+        )}
+      </div>
       {eventData?.type === "event" && (
-        <>
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-center md:justify-start">
           {/* Event is at capacity and user has not purchased a ticket */}
           {isAtCapacity && !foundTicket && (
             <div className="px-4 py-2 text-black rounded-full bg-white flex gap-2 items-center justify-center">
@@ -287,6 +305,7 @@ const TicketTiersView = async (props: { eventId: string }) => {
                     eventId={props.eventId}
                     data={price}
                     key={price.id}
+                    disabled={userAuth?.userId === eventData.userId}
                   />
                 ))}
               </div>
@@ -301,9 +320,9 @@ const TicketTiersView = async (props: { eventId: string }) => {
               </Button>
             </Link>
           )}
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 

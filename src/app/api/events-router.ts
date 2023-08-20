@@ -16,13 +16,13 @@ import {
 } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { createTicketPrice } from "~/utils/createTicketPrice";
-import { createTicketPurchaseUrl } from "~/utils/createTicketPurchaseUrl";
 import { getSoldTickets } from "~/utils/getSoldTickets";
 import { deleteImage } from "~/utils/images";
 import { isTextSafe } from "~/utils/isTextSafe";
 import { eventMediaRouter } from "./event-media-router";
 import { eventPromotionCodesRouter } from "./event-promotion-codes-router";
 import { eventRolesRouter } from "./event-roles-router";
+import { eventTicketsRouter } from "./event-tickets-router";
 import {
   adminEventProcedure,
   managerEventProcedure,
@@ -35,6 +35,7 @@ export const eventsRouter = router({
   roles: eventRolesRouter,
   media: eventMediaRouter,
   promotionCodes: eventPromotionCodesRouter,
+  tickets: eventTicketsRouter,
 
   getAllEvents: publicProcedure.query(async ({ ctx }) => {
     const foundEvents = await ctx.db.query.events.findMany({
@@ -224,27 +225,7 @@ export const eventsRouter = router({
 
     return prices.filter((price, i) => ticketsSold[i] < price.limit);
   }),
-  createTicketPurchaseUrl: protectedProcedure
-    .input(z.object({ ticketPriceId: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      try {
-        const url = await createTicketPurchaseUrl({
-          userId: ctx.auth.userId,
-          ticketPriceId: input.ticketPriceId,
-        });
 
-        return url;
-      } catch (e) {
-        if (e instanceof Error) {
-          throw new TRPCError({ code: "BAD_REQUEST", message: e.message });
-        }
-
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Unknown error",
-        });
-      }
-    }),
   deleteEvent: adminEventProcedure.mutation(async ({ ctx, input }) => {
     // Delete promo codes
     const event = await ctx.db.query.events.findFirst({

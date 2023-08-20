@@ -24,9 +24,10 @@ export const TicketTierListing: FC<{
     "name" | "price" | "isFree" | "id" | "limit" | "description"
   >;
   eventId: string;
+  disabled?: boolean;
 }> = (props) => {
   const { mutateAsync: createTicketCheckoutSession, isLoading } =
-    trpc.events.createTicketPurchaseUrl.useMutation();
+    trpc.events.tickets.createTicketPurchaseUrl.useMutation();
 
   const { push, refresh } = useRouter();
   const user = useUser();
@@ -72,6 +73,7 @@ export const TicketTierListing: FC<{
       </p>
       <Button
         className="w-full"
+        disabled={props.disabled}
         onClick={() => {
           handleClaimTicket();
         }}
