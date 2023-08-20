@@ -160,7 +160,7 @@ export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
 
 const Page = async (props: PageProps) => {
   return (
-    <div className="mx-auto w-full max-w-7xl p-2 flex flex-col md:grid md:grid-cols-2 gap-8 flex-1">
+    <div className="mx-auto w-full max-w-7xl px-4 py-4 md:py-8 flex flex-col md:grid md:grid-cols-2 gap-8 flex-1">
       <Suspense>
         <EventPoster eventId={props.params.eventId} />
       </Suspense>
