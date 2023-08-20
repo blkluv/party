@@ -24,6 +24,14 @@ export const metadata: Metadata = {
     description:
       "Party Box is a cutting-edge web platform that aims to revolutionize the way university students discover and share parties and events. Party Box caters to the spontaneous nature of parties and other gatherings, empowering users to stay socially connected.",
   },
+  keywords: [
+    "University of Guelph parties",
+    "Student events Guelph",
+    "Guelph campus parties",
+    "College parties Guelph",
+    "Social events on campus",
+    "Party Box Guelph",
+  ],
 };
 
 export default function RootLayout({

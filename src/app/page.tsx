@@ -24,14 +24,6 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: getPageTitle("Home"),
-  keywords: [
-    "University of Guelph parties",
-    "Student events Guelph",
-    "Guelph campus parties",
-    "College parties Guelph",
-    "Social events on campus",
-    "Party Box Guelph",
-  ],
 };
 
 const getFeaturedEvents = cache(async () => {
