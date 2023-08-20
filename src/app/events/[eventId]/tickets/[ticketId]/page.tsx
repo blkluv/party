@@ -117,6 +117,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
       await db
         .update(tickets)
         .set({ status: "success", quantity: ticketLineItem.quantity })
+        .where(eq(tickets.id, props.ticketId))
         .run();
 
       ticketData.quantity = ticketLineItem.quantity;
