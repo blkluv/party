@@ -247,7 +247,11 @@ const TicketTiersView = async (props: { eventId: string }) => {
   const showLocation = Boolean(
     eventData &&
       ((eventData.type === "event" && eventData.hideLocation === false) ||
-        (eventData.type === "discussion" && isChatVisible(eventData.startTime)))
+        (eventData.type === "discussion" &&
+          isChatVisible({
+            startTime: eventData.startTime,
+            eventType: eventData.type,
+          })))
   );
 
   return (
@@ -312,11 +316,19 @@ const DiscussionButtonWrapper = async (props: { eventId: string }) => {
   const isDiscussionEnabled = Boolean(
     eventData &&
       match(eventData.type)
-        .with("discussion", () => isChatVisible(eventData.startTime))
+        .with("discussion", () =>
+          isChatVisible({
+            startTime: eventData.startTime,
+            eventType: eventData.type,
+          })
+        )
         .with(
           "event",
           () =>
-            isChatVisible(eventData.startTime) &&
+            isChatVisible({
+              startTime: eventData.startTime,
+              eventType: eventData.type,
+            }) &&
             (foundTicket !== null || eventRole === "admin")
         )
         .run()

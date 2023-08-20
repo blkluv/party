@@ -1,9 +1,11 @@
 import dayjs from "dayjs";
+import { match } from "ts-pattern";
 import {
   MAX_EVENT_DURATION_HOURS,
   SHOW_CHAT_HOURS_THRESHOLD,
   SHOW_LOCATION_HOURS_THRESHOLD,
 } from "~/config/constants";
+import type { EventType } from "~/db/schema";
 
 export const isEventOver = (startTime: Date) => {
   return dayjs(startTime)
@@ -17,9 +19,21 @@ export const isLocationVisible = (startTime: Date, hideLocation: boolean) => {
     : true;
 };
 
-export const isChatVisible = (startTime: Date) => {
+export const isChatVisible = (args: {
+  startTime: Date;
+  eventType: EventType;
+}): boolean => {
   return (
-    dayjs().add(SHOW_CHAT_HOURS_THRESHOLD, "hour").isAfter(startTime) &&
-    !isEventOver(startTime)
+    match(args.eventType)
+      // Event chat rooms are visible as long as the event isn't over
+      .with("event", () => !isEventOver(args.startTime))
+      .with(
+        "discussion",
+        () =>
+          dayjs()
+            .add(SHOW_CHAT_HOURS_THRESHOLD, "hour")
+            .isAfter(args.startTime) && !isEventOver(args.startTime)
+      )
+      .exhaustive()
   );
 };

@@ -84,7 +84,13 @@ const Page = async (props: PageProps) => {
     getUserEventRole(props.params.eventId),
   ]);
 
-  if (!eventData || !isChatVisible(eventData.startTime)) {
+  if (
+    !eventData ||
+    !isChatVisible({
+      startTime: eventData.startTime,
+      eventType: eventData.type,
+    })
+  ) {
     redirect("/");
   }
 
