@@ -138,6 +138,9 @@ const FeaturedEventsList = async () => {
                 className="w-full h-full object-cover z-0"
               />
             </div>
+            <div className="absolute z-20 top-4 right-4 bg-black/60 backdrop-blur-sm rounded-full py-1 px-2">
+              <EventTimer startTime={e.startTime} />
+            </div>
           </div>
           <div className="relative z-20 p-4 sm:p-8 text-white flex flex-col">
             <h2 className="font-bold text-xl overflow-hidden">{e.name}</h2>

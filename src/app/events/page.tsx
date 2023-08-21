@@ -1,4 +1,8 @@
 import { auth } from "@clerk/nextjs";
+import {
+  ChatBubbleBottomCenterTextIcon,
+  TicketIcon,
+} from "@heroicons/react/24/outline";
 import { and, asc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -56,6 +60,7 @@ const getEvents = cache(async () => {
       name: true,
       description: true,
       startTime: true,
+      type: true,
     },
     with: {
       eventMedia: {
@@ -67,8 +72,6 @@ const getEvents = cache(async () => {
     },
     orderBy: asc(events.startTime),
   });
-
-  foundEvents.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
   return foundEvents;
 });
@@ -133,11 +136,20 @@ const EventListing: FC<{
           />
         </div>
       </div>
-      <div className="relative z-20 p-4 sm:p-8 text-white">
-        <h2 className="font-bold text-xl overflow-hidden">{props.data.name}</h2>
-        <p className="text-sm">
-          <ClientDate date={props.data.startTime} />
-        </p>
+      <div className="relative z-20 p-4 sm:p-8 text-white flex">
+        <div className="flex-1 overflow-hidden">
+          <h2 className="font-bold text-xl truncate">{props.data.name}</h2>
+          <p className="text-sm">
+            <ClientDate date={props.data.startTime} />
+          </p>
+        </div>
+        <div className="flex items-center justify-center text-white shrink-0">
+          {props.data.type === "event" ? (
+            <TicketIcon className="w-6 h-6" />
+          ) : (
+            <ChatBubbleBottomCenterTextIcon className="w-6 h-6" />
+          )}
+        </div>
       </div>
     </Link>
   );
