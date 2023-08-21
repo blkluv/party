@@ -57,10 +57,8 @@ export const TicketTierListing: FC<{
             <InformationCircleIcon className="w-6 h-6 fill-primary text-primary-foreground hover:fill-primary/90 rounded-full" />
           </DialogTrigger>
           <DialogContent>
-            <DialogTitle>Ticket Tier Information</DialogTitle>
-            <DialogDescription>
-              Here&apos;s what this ticket tier unlocks.
-            </DialogDescription>
+            <DialogTitle>{props.data.name}</DialogTitle>
+            <DialogDescription>Ticket Tier Information</DialogDescription>
             <div>
               <p>{props.data.description}</p>
             </div>
