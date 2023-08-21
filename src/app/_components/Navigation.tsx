@@ -76,7 +76,7 @@ export const Navigation = async () => {
           ))
           .with(true, () => (
             <>
-              <MobileNavigationDrawer />
+              <MobileNavigationDrawer isAdmin={isAdmin} />
 
               <div className="w-12 h-12 flex justify-center items-center">
                 <UserButton afterSignOutUrl="/" />

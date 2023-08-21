@@ -8,10 +8,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { DialogClose } from "@radix-ui/react-dialog";
 import Link from "next/link";
+import type { FC } from "react";
 import { Drawer } from "vaul";
 import { Button } from "./ui/button";
 
-export const MobileNavigationDrawer = () => {
+export const MobileNavigationDrawer: FC<{ isAdmin: boolean }> = (props) => {
   return (
     <Drawer.Root>
       <Drawer.Trigger className="w-12 h-12 flex justify-center items-center">
@@ -22,17 +23,19 @@ export const MobileNavigationDrawer = () => {
         <Drawer.Content className="bg-black flex flex-col z-50 rounded-t-xl fixed bottom-0 left-0 right-0">
           <div className="rounded-full bg-gray-300 mx-auto h-1.5 w-1/6 my-2"></div>
           <div className="p-8 flex flex-col gap-4">
-            <Link href="/events/new">
-              <DialogClose asChild>
-                <Button
-                  variant="ghost"
-                  className="flex gap-8 justify-start w-full"
-                >
-                  <PlusIcon className="w-8 h-8" />
-                  <p className="font-medium text-lg">New Event</p>
-                </Button>
-              </DialogClose>
-            </Link>
+            {props.isAdmin && (
+              <Link href="/events/new">
+                <DialogClose asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex gap-8 justify-start w-full"
+                  >
+                    <PlusIcon className="w-8 h-8" />
+                    <p className="font-medium text-lg">New Event</p>
+                  </Button>
+                </DialogClose>
+              </Link>
+            )}
             <Link href="/events/new?discussion=true">
               <DialogClose asChild>
                 <Button
