@@ -47,6 +47,10 @@ export default function RootLayout({
         <ClerkProvider
           appearance={{
             baseTheme: dark,
+            variables: {
+              colorPrimary: "white",
+              colorTextOnPrimaryBackground: "black",
+            },
           }}
         >
           <TrpcProvider>
