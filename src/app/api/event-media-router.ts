@@ -3,7 +3,11 @@ import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { EventMedia } from "~/db/schema";
 
-import { eventMedia, insertEventMediaSchema } from "~/db/schema";
+import {
+  eventMedia,
+  insertEventMediaSchema,
+  selectEventMediaSchema,
+} from "~/db/schema";
 import { createUploadUrls, deleteImage } from "~/utils/images";
 import { adminEventProcedure, router } from "./trpc/trpc-config";
 
@@ -46,7 +50,7 @@ export const eventMediaRouter = router({
   deleteEventMedia: adminEventProcedure
     .input(
       z.object({
-        ids: insertEventMediaSchema
+        ids: selectEventMediaSchema
           .pick({
             id: true,
           })
@@ -76,7 +80,7 @@ export const eventMediaRouter = router({
   updateEventMedia: adminEventProcedure
     .input(
       z.object({
-        media: insertEventMediaSchema
+        media: selectEventMediaSchema
           .pick({
             id: true,
             isPoster: true,

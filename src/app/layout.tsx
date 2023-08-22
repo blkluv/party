@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -7,8 +8,9 @@ import { getPageTitle } from "~/utils/getPageTitle";
 import { cn } from "~/utils/shadcn-ui";
 import { Navigation } from "./_components/Navigation";
 import { TrpcProvider } from "./_components/trpc-provider";
-import "./globals.css";
 import { Toaster } from "./_components/ui/toaster";
+
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,7 +44,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn(inter.className, "dark")}>
-        <ClerkProvider>
+        <ClerkProvider
+          appearance={{
+            baseTheme: dark,
+          }}
+        >
           <TrpcProvider>
             <div className="min-h-screen bg-white dark:bg-neutral-900 text-black dark:text-white flex flex-col pb-16 sm:pb-0">
               <Navigation />

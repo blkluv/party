@@ -1,4 +1,5 @@
-import type { InferModel } from "drizzle-orm";
+import { createId } from "@paralleldrive/cuid2";
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { relations } from "drizzle-orm";
 import { int, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -12,7 +13,9 @@ export type EventType = (typeof EVENT_TYPES)[number];
  * Discussions don't have tickets prices, tickets, and their capacity should be 0
  */
 export const events = sqliteTable("events", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
   name: text("name").notNull(),
   description: text("description").notNull(),
   startTime: int("start_time", { mode: "timestamp_ms" }).notNull(),
@@ -36,8 +39,8 @@ export const eventsRelations = relations(events, ({ many }) => ({
   promotionCodes: many(promotionCodes),
 }));
 
-export type Event = InferModel<typeof events, "select">;
-export type NewEvent = InferModel<typeof events, "insert">;
+export type Event = InferSelectModel<typeof events>;
+export type NewEvent = InferInsertModel<typeof events>;
 export const selectEventSchema = createSelectSchema(events);
 export const insertEventSchema = createInsertSchema(events, {
   capacity: z.coerce.number().gte(0, {
@@ -61,7 +64,9 @@ export const insertEventSchema = createInsertSchema(events, {
 });
 
 export const promotionCodes = sqliteTable("promotion_codes", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
   name: text("name").notNull(),
   stripePromotionCodeId: text("stripe_promotion_code_id").notNull(),
   code: text("code").notNull(),
@@ -81,8 +86,8 @@ export const promotionCodeRelations = relations(promotionCodes, ({ one }) => ({
   }),
 }));
 
-export type PromotionCode = InferModel<typeof promotionCodes, "select">;
-export type NewPromotionCode = InferModel<typeof promotionCodes, "insert">;
+export type PromotionCode = InferSelectModel<typeof promotionCodes>;
+export type NewPromotionCode = InferInsertModel<typeof promotionCodes>;
 export const selectPromotionCodeSchema = createSelectSchema(promotionCodes);
 export const insertPromotionCodeSchema = createInsertSchema(promotionCodes, {
   code: () =>
@@ -98,7 +103,9 @@ export const insertPromotionCodeSchema = createInsertSchema(promotionCodes, {
 });
 
 export const tickets = sqliteTable("tickets", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
   quantity: int("quantity").notNull(),
   userId: text("user_id").notNull(),
   eventId: text("event_id").notNull(),
@@ -117,8 +124,8 @@ export const ticketRelations = relations(tickets, ({ one }) => ({
   }),
 }));
 
-export type Ticket = InferModel<typeof tickets, "select">;
-export type NewTicket = InferModel<typeof tickets, "insert">;
+export type Ticket = InferSelectModel<typeof tickets>;
+export type NewTicket = InferInsertModel<typeof tickets>;
 export const selectTicketSchema = createSelectSchema(tickets);
 export const insertTicketSchema = createInsertSchema(tickets);
 
@@ -126,7 +133,9 @@ export const TICKET_PRICE_VISIBILITY = ["default", "always"] as const;
 export type TicketPriceVisibility = (typeof TICKET_PRICE_VISIBILITY)[number];
 
 export const ticketPrices = sqliteTable("ticket_prices", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
   name: text("name").notNull(),
   description: text("description").notNull().default(""),
   // If "default", ticket is only shown when it's predecessor (order - 1) has sold out. If "always", this ticket tier is always visible, no matter the state of its predecessors.
@@ -155,8 +164,8 @@ export const ticketPriceRelations = relations(
   })
 );
 
-export type TicketPrice = InferModel<typeof ticketPrices, "select">;
-export type NewTicketPrice = InferModel<typeof ticketPrices, "insert">;
+export type TicketPrice = InferSelectModel<typeof ticketPrices>;
+export type NewTicketPrice = InferInsertModel<typeof ticketPrices>;
 export const selectTicketPriceSchema = createSelectSchema(ticketPrices);
 export const insertTicketPriceSchema = createInsertSchema(ticketPrices, {
   price: z.coerce
@@ -166,7 +175,9 @@ export const insertTicketPriceSchema = createInsertSchema(ticketPrices, {
 });
 
 export const eventMedia = sqliteTable("event_media", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
   eventId: text("event_id").notNull(),
   url: text("url").notNull(),
   isPoster: int("is_poster", { mode: "boolean" }).notNull(),
@@ -181,13 +192,15 @@ export const eventMediaRelations = relations(eventMedia, ({ one }) => ({
   event: one(events, { fields: [eventMedia.eventId], references: [events.id] }),
 }));
 
-export type EventMedia = InferModel<typeof eventMedia, "select">;
-export type NewEventMedia = InferModel<typeof eventMedia, "insert">;
+export type EventMedia = InferSelectModel<typeof eventMedia>;
+export type NewEventMedia = InferInsertModel<typeof eventMedia>;
 export const selectEventMediaSchema = createSelectSchema(eventMedia);
 export const insertEventMediaSchema = createInsertSchema(eventMedia);
 
 export const chatMessages = sqliteTable("chat_messages", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
   eventId: text("event_id").notNull(),
   userId: text("user_id").notNull(),
   message: text("message").notNull(),
@@ -205,15 +218,17 @@ export const chatMessageRelations = relations(
   })
 );
 
-export type ChatMessage = InferModel<typeof chatMessages, "select">;
-export type NewChatMessage = InferModel<typeof chatMessages, "insert">;
+export type ChatMessage = InferSelectModel<typeof chatMessages>;
+export type NewChatMessage = InferInsertModel<typeof chatMessages>;
 export const selectChatMessageSchema = createSelectSchema(chatMessages);
 export const insertChatMessageSchema = createInsertSchema(chatMessages, {
   createdAt: () => z.coerce.date(),
 });
 
 export const chatMessageAttachments = sqliteTable("chat_message_attachments", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
   eventId: text("event_id").notNull(),
   userId: text("user_id").notNull(),
   // The ID within Cloudflare Images
@@ -234,13 +249,11 @@ export const chatMessageAttachmentRelations = relations(
   })
 );
 
-export type ChatMessageAttachment = InferModel<
-  typeof chatMessageAttachments,
-  "select"
+export type ChatMessageAttachment = InferSelectModel<
+  typeof chatMessageAttachments
 >;
-export type NewChatMessageAttachment = InferModel<
-  typeof chatMessageAttachments,
-  "insert"
+export type NewChatMessageAttachment = InferInsertModel<
+  typeof chatMessageAttachments
 >;
 export const selectChatMessageAttachmentSchema = createSelectSchema(
   chatMessageAttachments
@@ -251,7 +264,9 @@ export const insertChatMessageAttachmentSchema = createInsertSchema(
 
 export const EVENT_ROLES = ["admin", "manager", "promoter"] as const;
 export const eventRoles = sqliteTable("event_roles", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
   eventId: text("event_id").notNull(),
   userId: text("user_id").notNull(),
   role: text("role", { enum: EVENT_ROLES }).notNull(),
@@ -266,7 +281,7 @@ export const eventRolesRelations = relations(eventRoles, ({ one }) => ({
   }),
 }));
 
-export type EventRole = InferModel<typeof eventRoles, "select">;
-export type NewEventRole = InferModel<typeof eventRoles, "insert">;
+export type EventRole = InferSelectModel<typeof eventRoles>;
+export type NewEventRole = InferInsertModel<typeof eventRoles>;
 export const selectEventRoleSchema = createSelectSchema(eventRoles);
 export const insertEventRoleSchema = createInsertSchema(eventRoles);
