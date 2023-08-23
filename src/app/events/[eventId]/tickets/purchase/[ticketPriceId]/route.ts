@@ -1,50 +1,32 @@
-import { auth } from "@clerk/nextjs";
-import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { env } from "~/config/env";
-import { getDb } from "~/db/client";
-import { ticketPrices } from "~/db/schema";
-import { createTicketPurchaseUrl } from "~/utils/createTicketPurchaseUrl";
 
 export const dynamic = "force-dynamic";
 
+// TODO - remove after first event
+
 type RouteProps = {
-  params: { eventId: string; ticketPriceId: string };
+  params: { eventId: string };
 };
 
 export const GET = async (req: Request, props: RouteProps) => {
-  const userAuth = auth();
-
-  if (!userAuth.userId) {
-    return NextResponse.redirect(`${env.NEXT_PUBLIC_WEBSITE_URL}/sign-in`);
-  }
-
   const { searchParams } = new URL(req.url);
 
   try {
-    const url = await createTicketPurchaseUrl({
-      ticketPriceId: props.params.ticketPriceId,
-      userId: userAuth.userId,
-      promotionCode: searchParams.get("code") ?? undefined,
-    });
+    const code = searchParams.get("code");
 
-    return NextResponse.redirect(url);
-  } catch (error) {
-    const db = getDb();
-    // Redirect to event page in case of error
-    const ticketPrice = await db.query.ticketPrices.findFirst({
-      where: eq(ticketPrices.id, props.params.ticketPriceId),
-      columns: {
-        eventId: true,
-      },
-    });
-
-    if (ticketPrice?.eventId) {
-      return NextResponse.redirect(
-        `${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketPrice.eventId}`
-      );
+    const newUrl = new URL(
+      `${env.NEXT_PUBLIC_WEBSITE_URL}/events/${props.params.eventId}`
+    );
+    if (code) {
+      newUrl.searchParams.set("promotionCode", code);
     }
 
-    return NextResponse.redirect(env.NEXT_PUBLIC_WEBSITE_URL);
+    return NextResponse.redirect(newUrl.toString());
+  } catch (error) {
+    // Redirect to event page in case of error
+    return NextResponse.redirect(
+      `${env.NEXT_PUBLIC_WEBSITE_URL}/events/${props.params.eventId}`
+    );
   }
 };

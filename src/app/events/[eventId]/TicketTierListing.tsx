@@ -2,7 +2,7 @@
 
 import { useUser } from "@clerk/nextjs";
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { useState } from "react";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
@@ -30,6 +30,7 @@ export const TicketTierListing: FC<{
     trpc.events.tickets.createTicketPurchaseUrl.useMutation();
 
   const { push, refresh } = useRouter();
+  const searchParams = useSearchParams();
   const user = useUser();
 
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
@@ -42,6 +43,7 @@ export const TicketTierListing: FC<{
 
     const data = await createTicketCheckoutSession({
       ticketPriceId: props.data.id,
+      promotionCode: searchParams.get("promotionCode") ?? undefined,
     });
 
     if (data) {

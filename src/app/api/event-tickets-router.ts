@@ -11,12 +11,18 @@ import {
 
 export const eventTicketsRouter = router({
   createTicketPurchaseUrl: protectedProcedure
-    .input(z.object({ ticketPriceId: z.string() }))
+    .input(
+      z.object({
+        ticketPriceId: z.string(),
+        promotionCode: z.string().optional(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       try {
         const url = await createTicketPurchaseUrl({
           userId: ctx.auth.userId,
           ticketPriceId: input.ticketPriceId,
+          promotionCode: input.promotionCode,
         });
 
         return url;

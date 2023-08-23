@@ -23,7 +23,10 @@ import { JoinDiscussionButton } from "./join-discussion-button";
 import { LocationDialog } from "./tickets/[ticketId]/ticket-helpers";
 
 export const dynamic = "force-dynamic";
-type PageProps = { params: { eventId: string } };
+type PageProps = {
+  params: { eventId: string };
+  searchParams: { promotionCode?: string };
+};
 
 const getEventData = cache(async (id: string) => {
   const db = getDb();
