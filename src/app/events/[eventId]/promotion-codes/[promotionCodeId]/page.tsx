@@ -1,16 +1,22 @@
 import { auth } from "@clerk/nextjs";
 import { Card, Metric, Text } from "@tremor/react";
 import { eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { getDb } from "~/db/client";
 import { promotionCodes, tickets } from "~/db/schema";
+import { getPageTitle } from "~/utils/getPageTitle";
 import { getUserEventRole } from "~/utils/getUserEventRole";
 import { TicketPerformanceChart } from "./promotion-code-components";
 
 type PageProps = { params: { eventId: string; promotionCodeId: string } };
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: getPageTitle("Promotion Code Performance"),
+};
 
 const Page = async (props: PageProps) => {
   const userAuth = auth();

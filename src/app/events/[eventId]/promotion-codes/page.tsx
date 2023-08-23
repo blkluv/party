@@ -12,7 +12,7 @@ type PageProps = { params: { eventId: string } };
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: getPageTitle("Manage Event"),
+  title: getPageTitle("Promotion Codes"),
 };
 
 const Page = async (props: PageProps) => {

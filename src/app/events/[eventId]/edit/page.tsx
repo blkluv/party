@@ -21,13 +21,13 @@ const Page = async (props: PageProps) => {
 
   const eventRole = await getUserEventRole(props.params.eventId);
 
-  if (eventRole === null) {
+  if (eventRole !== "admin") {
     return redirect(`/events/${props.params.eventId}`);
   }
 
   return (
     <div className="mx-2 sm:mx-auto sm:w-full max-w-xl my-8">
-      <ManagementContainer eventId={props.params.eventId} role={eventRole} />
+      <ManagementContainer eventId={props.params.eventId} />
     </div>
   );
 };
