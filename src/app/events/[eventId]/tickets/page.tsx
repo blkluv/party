@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/nextjs";
 import type { User } from "@clerk/nextjs/server";
 import { and, eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense, cache } from "react";
 import { ClientDate } from "~/app/_components/ClientDate";
@@ -17,9 +18,13 @@ import {
 import { getDb } from "~/db/client";
 import type { Ticket } from "~/db/schema";
 import { tickets } from "~/db/schema";
+import { getPageTitle } from "~/utils/getPageTitle";
 import { getUserEventRole } from "~/utils/getUserEventRole";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: getPageTitle("Tickets"),
+};
 type PageProps = { params: { eventId: string } };
 
 const getTickets = cache(async (eventId: string) => {
