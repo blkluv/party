@@ -1,0 +1,1 @@
+ALTER TABLE tickets ADD `promotion_code_id` text;

@@ -3,6 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import {
   ArrowPathIcon,
+  ChartBarIcon,
   ClipboardIcon,
   LinkIcon,
   PlusIcon,
@@ -13,6 +14,7 @@ import type { inferProcedureOutput } from "@trpc/server";
 import copy from "copy-to-clipboard";
 import dayjs from "dayjs";
 import Image from "next/image";
+import Link from "next/link";
 import type { FC } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -70,7 +72,7 @@ import {
 import { useToast } from "~/app/_components/ui/use-toast";
 import type { AppRouter } from "~/app/api/trpc/trpc-router";
 import { env } from "~/config/env";
-import type { EVENT_ROLES, EventRole } from "~/db/schema";
+import type { EventRole } from "~/db/schema";
 import { createPromotionCodeFormSchema } from "~/utils/createPromotionCodeFormSchema";
 import { trpc } from "~/utils/trpc";
 
@@ -239,6 +241,13 @@ const PromotionCodeRow: FC<{
       </TableCell>
       <TableCell>
         <div className="flex justify-center items-center gap-1 flex-col sm:flex-row">
+          <Link
+            href={`/events/${props.eventId}/promotion-codes/${props.data.id}`}
+          >
+            <Button variant="secondary" size="sm">
+              <ChartBarIcon className="w-4 h-4" />
+            </Button>
+          </Link>
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="secondary" size="sm">
@@ -493,40 +502,23 @@ const ManageRoles: FC<{ eventId: string }> = (props) => {
 
 export const ManagementContainer: FC<{
   eventId: string;
-  role: (typeof EVENT_ROLES)[number];
 }> = (props) => {
   return (
     <div>
-      <Tabs
-        defaultValue={props.role === "admin" ? "details" : "promotion-codes"}
-      >
+      <Tabs defaultValue="details">
         <TabsList className="w-full flex">
-          {props.role === "admin" && (
-            <>
-              <TabsTrigger value="details" className="flex-1">
-                Details
-              </TabsTrigger>
-              <TabsTrigger value="roles" className="flex-1">
-                Roles
-              </TabsTrigger>
-            </>
-          )}
-          <TabsTrigger value="promotion-codes" className="flex-1">
-            Promotion Codes
+          <TabsTrigger value="details" className="flex-1">
+            Details
+          </TabsTrigger>
+          <TabsTrigger value="roles" className="flex-1">
+            Roles
           </TabsTrigger>
         </TabsList>
-        {props.role === "admin" && (
-          <>
-            <TabsContent value="roles">
-              <ManageRoles eventId={props.eventId} />
-            </TabsContent>
-            <TabsContent value="details">
-              <ManageEventDetails eventId={props.eventId} />
-            </TabsContent>
-          </>
-        )}
-        <TabsContent value="promotion-codes">
-          <ManagePromotionCodes eventId={props.eventId} />
+        <TabsContent value="roles">
+          <ManageRoles eventId={props.eventId} />
+        </TabsContent>
+        <TabsContent value="details">
+          <ManageEventDetails eventId={props.eventId} />
         </TabsContent>
       </Tabs>
     </div>

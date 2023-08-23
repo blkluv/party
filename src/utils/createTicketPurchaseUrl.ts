@@ -59,11 +59,10 @@ export const createTicketPurchaseUrl = async (args: {
   // If the ticket is paid, this will be a checkout URL
   let url = `/events/${ticketPriceData.event.id}/tickets/${ticketId}`;
 
+  let promotionCodeDetails:
+    | { stripePromotionCodeId: string; stripeCouponId: string; id: string }
+    | undefined = undefined;
   if (!ticketPriceData.isFree && ticketPriceData.stripePriceId) {
-    let promotionCodeDetails:
-      | { promotionCodeId: string; couponId: string }
-      | undefined = undefined;
-
     if (args.promotionCode) {
       const foundPromotionCode = await db.query.promotionCodes.findFirst({
         where: and(
@@ -73,6 +72,7 @@ export const createTicketPurchaseUrl = async (args: {
         columns: {
           stripePromotionCodeId: true,
           stripeCouponId: true,
+          id: true,
         },
       });
 
@@ -80,10 +80,7 @@ export const createTicketPurchaseUrl = async (args: {
         foundPromotionCode?.stripePromotionCodeId &&
         foundPromotionCode?.stripeCouponId
       ) {
-        promotionCodeDetails = {
-          couponId: foundPromotionCode.stripeCouponId,
-          promotionCodeId: foundPromotionCode.stripePromotionCodeId,
-        };
+        promotionCodeDetails = foundPromotionCode;
       }
     }
 
@@ -98,11 +95,11 @@ export const createTicketPurchaseUrl = async (args: {
       ],
       mode: "payment",
       // Only one of allow_promotion_codes and discounts is allowed. When one is defined, the other becomes undefined.
-      allow_promotion_codes: promotionCodeDetails ? undefined : true,
+      // allow_promotion_codes: promotionCodeDetails ? undefined : true,
       discounts: promotionCodeDetails
         ? [
             {
-              promotion_code: promotionCodeDetails.promotionCodeId,
+              promotion_code: promotionCodeDetails.stripePromotionCodeId,
             },
           ]
         : undefined,
@@ -130,6 +127,9 @@ export const createTicketPurchaseUrl = async (args: {
       userId: args.userId,
       stripeSessionId,
       status: ticketPriceData.isFree ? "success" : "pending",
+      promotionCodeId: promotionCodeDetails
+        ? promotionCodeDetails.id
+        : undefined,
     })
     .returning()
     .get();

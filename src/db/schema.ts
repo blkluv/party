@@ -79,12 +79,16 @@ export const promotionCodes = sqliteTable("promotion_codes", {
   updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
 
-export const promotionCodeRelations = relations(promotionCodes, ({ one }) => ({
-  event: one(events, {
-    fields: [promotionCodes.eventId],
-    references: [events.id],
-  }),
-}));
+export const promotionCodeRelations = relations(
+  promotionCodes,
+  ({ one, many }) => ({
+    event: one(events, {
+      fields: [promotionCodes.eventId],
+      references: [events.id],
+    }),
+    tickets: many(tickets),
+  })
+);
 
 export type PromotionCode = InferSelectModel<typeof promotionCodes>;
 export type NewPromotionCode = InferInsertModel<typeof promotionCodes>;
@@ -111,6 +115,7 @@ export const tickets = sqliteTable("tickets", {
   eventId: text("event_id").notNull(),
   ticketPriceId: text("ticket_price_id").notNull(),
   stripeSessionId: text("stripe_session_id"),
+  promotionCodeId: text("promotion_code_id"),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
   status: text("status", { enum: ["success", "pending"] }).notNull(),
@@ -121,6 +126,10 @@ export const ticketRelations = relations(tickets, ({ one }) => ({
   price: one(ticketPrices, {
     fields: [tickets.ticketPriceId],
     references: [ticketPrices.id],
+  }),
+  promotionCode: one(promotionCodes, {
+    fields: [tickets.promotionCodeId],
+    references: [promotionCodes.id],
   }),
 }));
 

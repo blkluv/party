@@ -1,6 +1,11 @@
 "use client";
 
-import { PencilIcon, TicketIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PencilIcon,
+  QrCodeIcon,
+  TicketIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { DialogClose } from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,7 +36,7 @@ export const EventAdminToolbar: FC<{
     });
 
   return (
-    <div className="flex gap-2 justify-center">
+    <div className="flex gap-2 justify-center flex-wrap">
       {(props.role === "admin" || props.role === "manager") && (
         <>
           <Link href={`/events/${props.eventId}/edit`}>
@@ -42,8 +47,14 @@ export const EventAdminToolbar: FC<{
           </Link>
           <Link href={`/events/${props.eventId}/tickets`}>
             <Button variant="secondary" className="gap-2">
-              <TicketIcon className="w-4 h-4" />
+              <QrCodeIcon className="w-4 h-4" />
               <p>Tickets</p>
+            </Button>
+          </Link>
+          <Link href={`/events/${props.eventId}/promotion-codes`}>
+            <Button variant="secondary" className="gap-2">
+              <TicketIcon className="w-4 h-4" />
+              <p>Promotions</p>
             </Button>
           </Link>
         </>
