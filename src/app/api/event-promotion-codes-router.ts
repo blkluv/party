@@ -20,6 +20,7 @@ export const eventPromotionCodesRouter = router({
         createdAt: true,
         percentageDiscount: true,
         name: true,
+        maxUses: true,
       },
     });
   }),
@@ -58,6 +59,35 @@ export const eventPromotionCodesRouter = router({
         .get();
 
       return newPromotionCode;
+    }),
+  updatePromotionCode: managerEventProcedure
+    .input(
+      z.object({
+        promotionCodeId: z.string(),
+        data: createPromotionCodeFormSchema.pick({ maxUses: true, name: true }),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updatedPromotionCode = await ctx.db
+        .update(promotionCodes)
+        .set({
+          updatedAt: new Date(),
+          name: input.data.name,
+          maxUses: input.data.maxUses,
+        })
+        .where(
+          and(
+            eq(promotionCodes.id, input.promotionCodeId),
+            eq(promotionCodes.eventId, input.eventId),
+            ctx.eventRole === "admin"
+              ? undefined
+              : eq(promotionCodes.userId, ctx.auth.userId)
+          )
+        )
+        .returning()
+        .get();
+
+      return updatedPromotionCode;
     }),
   deletePromotionCode: managerEventProcedure
     .input(z.object({ promotionCodeId: z.string() }))

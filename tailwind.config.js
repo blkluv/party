@@ -37,10 +37,10 @@ module.exports = {
             emphasis: "#374151", // gray-700
           },
           border: {
-            DEFAULT: "#e5e7eb", // gray-200
+            DEFAULT: "#262626", // neutral-800
           },
           ring: {
-            DEFAULT: "#e5e7eb", // gray-200
+            DEFAULT: "#262626", // neutral-800
           },
           content: {
             subtle: "#9ca3af", // gray-400
@@ -67,10 +67,10 @@ module.exports = {
             emphasis: "#d4d4d4", // neutral-300
           },
           border: {
-            DEFAULT: "#1f2937", // gray-800
+            DEFAULT: "#262626", // neutral-800
           },
           ring: {
-            DEFAULT: "#262626", // gray-800
+            DEFAULT: "#262626", // neutral-800
           },
           content: {
             subtle: "#4b5563", // gray-600

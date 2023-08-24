@@ -1,0 +1,1 @@
+ALTER TABLE promotion_codes ADD `max_uses` integer DEFAULT 100 NOT NULL;

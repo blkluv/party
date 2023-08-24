@@ -1,9 +1,8 @@
-import { z } from "zod";
+import { insertPromotionCodeSchema } from "~/db/schema";
 
-export const createPromotionCodeFormSchema = z.object({
-  name: z.string().min(3, { message: "Min " }),
-  code: z.string().min(3, { message: "Code must be longer than 3 characters" }),
-  percentageDiscount: z.coerce
-    .number()
-    .gt(0, { message: "Discount percentage must be greater than 0" }),
+export const createPromotionCodeFormSchema = insertPromotionCodeSchema.pick({
+  code: true,
+  maxUses: true,
+  percentageDiscount: true,
+  name: true,
 });

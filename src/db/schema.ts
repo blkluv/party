@@ -75,6 +75,7 @@ export const promotionCodes = sqliteTable("promotion_codes", {
   stripeCouponId: text("stripe_coupon_id").notNull(),
   // The creator of this promotion code
   userId: text("user_id").notNull(),
+  maxUses: int("max_uses").notNull().default(100),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
@@ -94,16 +95,17 @@ export type PromotionCode = InferSelectModel<typeof promotionCodes>;
 export type NewPromotionCode = InferInsertModel<typeof promotionCodes>;
 export const selectPromotionCodeSchema = createSelectSchema(promotionCodes);
 export const insertPromotionCodeSchema = createInsertSchema(promotionCodes, {
-  code: () =>
-    z
-      .string()
-      .min(3, {
-        message: "Promotion code must be at least 3 characters long.",
-      })
-      .refine((val) => new RegExp(/[A-z0-9]+/).test(val), {
-        message: "Promotion code does not match expected format. (ex. FALL20)",
-      }),
-  percentageDiscount: z.coerce.number(),
+  name: z.string().min(3, { message: "Minimum 3 characters" }),
+  code: z
+    .string()
+    .min(3, { message: "Minium 3 characters" })
+    .refine((val) => new RegExp(/[A-z0-9]+/).test(val), {
+      message: "Promotion code does not match expected format. (ex. FALL20)",
+    }),
+  percentageDiscount: z.coerce
+    .number()
+    .gt(0, { message: "Must be greater than 0" }),
+  maxUses: z.coerce.number().gt(0, { message: "Must be greater than 0" }),
 });
 
 export const tickets = sqliteTable("tickets", {

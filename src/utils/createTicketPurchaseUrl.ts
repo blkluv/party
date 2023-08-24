@@ -73,14 +73,31 @@ export const createTicketPurchaseUrl = async (args: {
           stripePromotionCodeId: true,
           stripeCouponId: true,
           id: true,
+          maxUses: true,
+        },
+        with: {
+          tickets: {
+            where: eq(tickets.status, "success"),
+            columns: {
+              quantity: true,
+            },
+          },
         },
       });
 
-      if (
-        foundPromotionCode?.stripePromotionCodeId &&
-        foundPromotionCode?.stripeCouponId
-      ) {
-        promotionCodeDetails = foundPromotionCode;
+      if (foundPromotionCode) {
+        const promotionCodeTicketsSold = foundPromotionCode.tickets.reduce(
+          (sum, e) => sum + e.quantity,
+          0
+        );
+
+        if (
+          foundPromotionCode?.stripePromotionCodeId &&
+          foundPromotionCode?.stripeCouponId &&
+          promotionCodeTicketsSold < foundPromotionCode.maxUses
+        ) {
+          promotionCodeDetails = foundPromotionCode;
+        }
       }
     }
 

@@ -10,10 +10,17 @@ import { match } from "ts-pattern";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { EventAdminToolbar } from "~/app/_components/EventAdminToolbar";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
+import { PromotionCodeExpiryNotification } from "~/app/_components/promotion-code-expiry";
 import { Button } from "~/app/_components/ui/button";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
-import { eventMedia, events, ticketPrices, tickets } from "~/db/schema";
+import {
+  eventMedia,
+  events,
+  promotionCodes,
+  ticketPrices,
+  tickets,
+} from "~/db/schema";
 import { isChatVisible } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { getSoldTickets } from "~/utils/getSoldTickets";
@@ -190,8 +197,55 @@ const Page = async (props: PageProps) => {
           <TicketTiersView eventId={props.params.eventId} />
         </Suspense>
       </div>
+      {props.searchParams.promotionCode && (
+        <PromotionCodeExpiryView
+          eventId={props.params.eventId}
+          promotionCode={props.searchParams.promotionCode}
+        />
+      )}
     </div>
   );
+};
+
+const PromotionCodeExpiryView = async (props: {
+  promotionCode: string;
+  eventId: string;
+}) => {
+  const db = getDb();
+
+  const foundPromotionCode = await db.query.promotionCodes.findFirst({
+    columns: {
+      maxUses: true,
+    },
+    where: and(
+      eq(promotionCodes.code, props.promotionCode),
+      eq(promotionCodes.eventId, props.eventId)
+    ),
+    with: {
+      tickets: {
+        where: eq(tickets.status, "success"),
+        columns: {
+          quantity: true,
+        },
+      },
+    },
+  });
+
+  if (!foundPromotionCode) {
+    return null;
+  }
+
+  const ticketsSold = foundPromotionCode.tickets.reduce(
+    (sum, e) => sum + e.quantity,
+    0
+  );
+  const isSoldOut = ticketsSold >= foundPromotionCode.maxUses;
+
+  if (!isSoldOut) {
+    return null;
+  }
+
+  return <PromotionCodeExpiryNotification />;
 };
 
 const EventPoster = async (props: { eventId: string }) => {

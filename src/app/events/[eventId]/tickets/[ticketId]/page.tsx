@@ -92,7 +92,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
   });
 
   if (!ticketData) {
-    redirect("/");
+    redirect(`/events/${props.eventId}`);
   }
 
   // Update status of ticket if pending
