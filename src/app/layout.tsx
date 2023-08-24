@@ -10,6 +10,7 @@ import { Navigation } from "./_components/Navigation";
 import { TrpcProvider } from "./_components/trpc-provider";
 import { Toaster } from "./_components/ui/toaster";
 
+import { Footer } from "./_components/footer";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -54,9 +55,12 @@ export default function RootLayout({
           }}
         >
           <TrpcProvider>
-            <div className="min-h-screen bg-white dark:bg-neutral-900 text-black dark:text-white flex flex-col pb-16 sm:pb-0">
-              <Navigation />
-              <div className="flex flex-col flex-1">{children}</div>
+            <div className="pb-16 sm:pb-0">
+              <div className="min-h-screen bg-white dark:bg-neutral-900 text-black dark:text-white flex flex-col">
+                <Navigation />
+                <div className="flex flex-col flex-1">{children}</div>
+              </div>
+              <Footer />
             </div>
             <Toaster />
           </TrpcProvider>
