@@ -68,6 +68,23 @@ export const eventRolesRouter = router({
 
       return updatedRole;
     }),
+  deleteRole: adminEventProcedure
+    .input(z.object({ roleId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.eventRole !== "admin") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You're not allowed to do this",
+        });
+      }
+      const deletedRole = await ctx.db
+        .delete(eventRoles)
+        .where(eq(eventRoles.id, input.roleId))
+        .returning()
+        .get();
+
+      return deletedRole;
+    }),
   getUserEventRole: protectedProcedure
     .input(z.object({ eventId: z.string() }))
     .query(async ({ ctx, input }) => {

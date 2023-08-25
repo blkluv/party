@@ -78,7 +78,7 @@ import {
 import { useToast } from "~/app/_components/ui/use-toast";
 import type { AppRouter } from "~/app/api/trpc/trpc-router";
 import { env } from "~/config/env";
-import type { EventRole } from "~/db/schema";
+import { EVENT_ROLES, type EventRole } from "~/db/schema";
 import { createPromotionCodeFormSchema } from "~/utils/createPromotionCodeFormSchema";
 import { trpc } from "~/utils/trpc";
 
@@ -414,8 +414,11 @@ const ManageRoles: FC<{ eventId: string }> = (props) => {
     variables: createEventRoleVariables,
   } = trpc.events.roles.createEventRole.useMutation();
 
-  const { data: existingRoles = [], isLoading: isRolesLoading } =
-    trpc.events.roles.getAllEventRoles.useQuery({ eventId: props.eventId });
+  const {
+    data: existingRoles = [],
+    isLoading: isRolesLoading,
+    refetch: refetchRoles,
+  } = trpc.events.roles.getAllEventRoles.useQuery({ eventId: props.eventId });
   const { data: users = [], isFetching } = trpc.auth.searchUsers.useQuery(
     {
       query: debouncedUsersQuery,
@@ -436,6 +439,15 @@ const ManageRoles: FC<{ eventId: string }> = (props) => {
     isLoading: isUpdateRoleLoading,
     variables: updateRoleVariables,
   } = trpc.events.roles.updateEventRole.useMutation();
+  const {
+    mutateAsync: deleteRole,
+    isLoading: isDeleteRoleLoading,
+    variables: deleteRoleVariables,
+  } = trpc.events.roles.deleteRole.useMutation({
+    onSuccess: () => {
+      refetchRoles();
+    },
+  });
 
   const handleUpdateEventRole = async (args: {
     roleId: string;
@@ -559,25 +571,35 @@ const ManageRoles: FC<{ eventId: string }> = (props) => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        handleUpdateEventRole({ roleId: e.id, role: "admin" })
-                      }
-                    >
-                      Admin
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        handleUpdateEventRole({ roleId: e.id, role: "manager" })
-                      }
-                    >
-                      Ticket Rep
-                    </DropdownMenuItem>
+                    {EVENT_ROLES.filter((r) => r !== e.role).map((r) => (
+                      <DropdownMenuItem
+                        className="capitalize"
+                        key={`role option ${r}`}
+                        onClick={() =>
+                          handleUpdateEventRole({ roleId: e.id, role: r })
+                        }
+                      >
+                        {translateRole(r)}
+                      </DropdownMenuItem>
+                    ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
               <TableCell className="hidden sm:table-cell">
                 {dayjs(e.createdAt).format("D/MM/YYYY")}
+              </TableCell>
+              <TableCell className="hidden sm:table-cell">
+                <Button
+                  onClick={() =>
+                    deleteRole({ roleId: e.id, eventId: props.eventId })
+                  }
+                  variant="ghost"
+                  className="gap-2"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                  {isDeleteRoleLoading &&
+                    deleteRoleVariables?.roleId === e.id && <LoadingSpinner />}
+                </Button>
               </TableCell>
             </TableRow>
           ))}
