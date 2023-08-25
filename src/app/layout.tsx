@@ -10,6 +10,7 @@ import { Navigation } from "./_components/Navigation";
 import { TrpcProvider } from "./_components/trpc-provider";
 import { Toaster } from "./_components/ui/toaster";
 
+import Script from "next/script";
 import { Footer } from "./_components/footer";
 import "./globals.css";
 
@@ -66,6 +67,12 @@ export default function RootLayout({
           </TrpcProvider>
         </ClerkProvider>
         <Analytics />
+        <Script
+          defer
+          src="https://unpkg.com/@tinybirdco/flock.js"
+          data-host="https://api.us-east.tinybird.co"
+          data-token="p.eyJ1IjogIjFiZTNhYTlkLWQxNWQtNDk0OS04NDUyLWJmNmU0MTgwM2VkMyIsICJpZCI6ICIwNGNjYWRkNS04ZDZlLTRlMGItYWRhZi0wZjAyMTAzOWMyYTAiLCAiaG9zdCI6ICJ1c19lYXN0In0.SSNsEzXNvbXNXQTRa3grygTgQuFymmadrKkG0z-uwyU"
+        />
       </body>
     </html>
   );
