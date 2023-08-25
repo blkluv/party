@@ -18,6 +18,7 @@ import Link from "next/link";
 import type { ComponentProps, FC } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { match } from "ts-pattern";
 import { useDebounce } from "use-debounce";
 import type { z } from "zod";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
@@ -394,6 +395,11 @@ const PromotionCodeOptionButtons: FC<
   );
 };
 
+const translateRole = (role: EventRole["role"]) =>
+  match(role)
+    .with("manager", () => "Ticket Rep")
+    .otherwise(() => role);
+
 const ManageRoles: FC<{ eventId: string }> = (props) => {
   const [usersQuery, setUsersQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -545,7 +551,7 @@ const ManageRoles: FC<{ eventId: string }> = (props) => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="capitalize gap-2">
-                      <p>{e.role}</p>
+                      <p>{translateRole(e.role)}</p>
                       {isUpdateRoleLoading &&
                         updateRoleVariables?.roleId === e.id && (
                           <LoadingSpinner />
