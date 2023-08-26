@@ -2,7 +2,7 @@
 
 import { ChatBubbleBottomCenterTextIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import type { FC } from "react";
+import type { FC, PropsWithChildren } from "react";
 import { Button } from "~/app/_components/ui/button";
 import {
   Popover,
@@ -16,13 +16,15 @@ import {
   TooltipTrigger,
 } from "~/app/_components/ui/tooltip";
 
-export const JoinDiscussionButton: FC<{
-  disabled?: boolean;
-  eventId: string;
-}> = (props) => {
-  const disabledText =
-    "Purchase a ticket for this event to join the live discussion.";
+const disabledText =
+  "Purchase a ticket for this event to join the live discussion.";
 
+export const JoinDiscussionButton: FC<
+  PropsWithChildren<{
+    disabled?: boolean;
+    eventId: string;
+  }>
+> = (props) => {
   // Show tooltip on large screens where hover is supported
   // Show popover on small screens
   if (props.disabled) {
@@ -32,7 +34,9 @@ export const JoinDiscussionButton: FC<{
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="sm:block hidden">
-                <JoinDiscussionButtonInner disabled={props.disabled} />
+                <JoinDiscussionButtonInner disabled={props.disabled}>
+                  {props.children}
+                </JoinDiscussionButtonInner>
               </div>
             </TooltipTrigger>
             <TooltipContent>{disabledText}</TooltipContent>
@@ -41,7 +45,9 @@ export const JoinDiscussionButton: FC<{
         <Popover>
           <PopoverTrigger asChild>
             <div className="sm:hidden">
-              <JoinDiscussionButtonInner disabled={props.disabled} />
+              <JoinDiscussionButtonInner disabled={props.disabled}>
+                {props.children}
+              </JoinDiscussionButtonInner>
             </div>
           </PopoverTrigger>
           <PopoverContent>{disabledText}</PopoverContent>
@@ -51,20 +57,24 @@ export const JoinDiscussionButton: FC<{
   }
   return (
     <Link href={`/events/${props.eventId}/chat`}>
-      <JoinDiscussionButtonInner />
+      <JoinDiscussionButtonInner>{props.children}</JoinDiscussionButtonInner>
     </Link>
   );
 };
-const JoinDiscussionButtonInner: FC<{
-  disabled?: boolean;
-}> = (props) => {
+const JoinDiscussionButtonInner: FC<
+  PropsWithChildren<{
+    disabled?: boolean;
+  }>
+> = (props) => {
   return (
-    <Button disabled={props.disabled}>
-      <div className="mr-2 relative">
-        <ChatBubbleBottomCenterTextIcon className="h-4 w-4" />
-        <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/3 -translate-y-1/3" />
-      </div>
-      <p>Join Discussion</p>
-    </Button>
+    props.children ?? (
+      <Button disabled={props.disabled}>
+        <div className="mr-2 relative">
+          <ChatBubbleBottomCenterTextIcon className="h-4 w-4" />
+          <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/3 -translate-y-1/3" />
+        </div>
+        <p>Join Discussion</p>
+      </Button>
+    )
   );
 };

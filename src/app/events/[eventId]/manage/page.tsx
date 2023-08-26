@@ -27,7 +27,7 @@ const Page = async (props: PageProps) => {
   }
 
   return (
-    <div className="max-w-2xl w-full my-8 px-2 mx-auto">
+    <div className="max-w-3xl w-full my-8 px-2 mx-auto">
       <ManagementContainer eventId={props.params.eventId} />
     </div>
   );

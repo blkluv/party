@@ -16,6 +16,7 @@ import {
 import { SHOW_LOCATION_HOURS_THRESHOLD } from "~/config/constants";
 import { env } from "~/config/env";
 import { getForwardGeocoding } from "~/utils/getForwardGeocoding";
+import { cn } from "~/utils/shadcn-ui";
 
 export const TicketInfoButton = () => {
   return (
@@ -67,7 +68,9 @@ export const LocationDialog: FC<{
   );
 };
 
-const MapView: FC<{ location: string }> = (props) => {
+export const MapView: FC<{ location: string; className?: string }> = (
+  props
+) => {
   const map = useRef<mapboxgl.Map | null>(null);
   const mapContainer = useRef<HTMLDivElement>(null);
   const [error, setError] = useState(false);
@@ -85,7 +88,7 @@ const MapView: FC<{ location: string }> = (props) => {
 
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/streets-v12",
+        style: "mapbox://styles/mapbox/dark-v11",
         center: [geocodingLat, geocodingLong],
         accessToken: env.NEXT_PUBLIC_MAPBOX_TOKEN,
         zoom: 14,
@@ -99,5 +102,12 @@ const MapView: FC<{ location: string }> = (props) => {
     })();
   }, [props.location]);
 
-  return !error && <div ref={mapContainer} className="w-full h-96 mb-8 mt-4" />;
+  return (
+    !error && (
+      <div
+        ref={mapContainer}
+        className={cn("w-full h-96 mb-8 mt-4", props.className)}
+      />
+    )
+  );
 };

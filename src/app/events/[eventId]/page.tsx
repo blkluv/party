@@ -1,8 +1,13 @@
 import { auth } from "@clerk/nextjs";
-import { ExclamationCircleIcon, TicketIcon } from "@heroicons/react/24/outline";
+import {
+  CalendarIcon,
+  ClockIcon,
+  ExclamationCircleIcon,
+  MapPinIcon,
+  TicketIcon,
+} from "@heroicons/react/24/outline";
 import { and, asc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense, cache } from "react";
@@ -26,8 +31,9 @@ import { getPageTitle } from "~/utils/getPageTitle";
 import { getSoldTickets } from "~/utils/getSoldTickets";
 import { getUserEventRole } from "~/utils/getUserEventRole";
 import { TicketTierListing } from "./TicketTierListing";
+import { EventDescription, MobileEventHeader } from "./event-components";
 import { JoinDiscussionButton } from "./join-discussion-button";
-import { LocationDialog } from "./tickets/[ticketId]/ticket-helpers";
+import { MapView } from "./tickets/[ticketId]/ticket-helpers";
 
 export const dynamic = "force-dynamic";
 type PageProps = {
@@ -168,19 +174,27 @@ export const generateMetadata = async (props: PageProps): Promise<Metadata> => {
   };
 };
 
-const Page = async (props: PageProps) => {
+const OldPagePage = async (props: PageProps) => {
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-4 md:py-8 flex flex-col md:grid md:grid-cols-2 gap-8 flex-1">
-      <Suspense>
-        <EventPoster eventId={props.params.eventId} />
-      </Suspense>
-      <div className="flex flex-col gap-4 md:gap-8">
-        <AdminToolbarView eventId={props.params.eventId} />
-        <Suspense
-          fallback={<LoadingSpinner size={75} className="mt-24 mx-auto" />}
-        >
-          <EventView eventId={props.params.eventId} />
+    <div className="mx-auto w-full max-w-7xl flex flex-col md:grid md:grid-cols-2 gap-8 flex-1">
+      <div className="w-full h-[900px] max-h-[700px] md:max-h-[800px] md:my-8 relative">
+        <div className="bg-gradient-to-t from-neutral-900 via-transparent to-transparent z-10 absolute inset-0 md:hidden" />
+        <Suspense>
+          <PosterEventView eventId={props.params.eventId} />
         </Suspense>
+        <Suspense>
+          <MobileEventHeaderView eventId={props.params.eventId} />
+        </Suspense>
+      </div>
+      <div className="flex flex-col gap-4 md:gap-8 px-4 py-4 md:py-8">
+        <AdminToolbarView eventId={props.params.eventId} />
+        <div className="hidden md:block">
+          <Suspense
+            fallback={<LoadingSpinner size={75} className="mt-24 mx-auto" />}
+          >
+            <EventView eventId={props.params.eventId} />
+          </Suspense>
+        </div>
 
         <Suspense
           fallback={
@@ -202,6 +216,62 @@ const Page = async (props: PageProps) => {
           eventId={props.params.eventId}
           promotionCode={props.searchParams.promotionCode}
         />
+      )}
+    </div>
+  );
+};
+
+const Page = async (props: PageProps) => {
+  return (
+    <div className="flex flex-col pb-4">
+      <Suspense>
+        <MobileEventHeaderView eventId={props.params.eventId} />
+      </Suspense>
+      <MobileEventBody eventId={props.params.eventId} />
+      <TicketTiersView eventId={props.params.eventId} />
+      {props.searchParams.promotionCode && (
+        <PromotionCodeExpiryView
+          eventId={props.params.eventId}
+          promotionCode={props.searchParams.promotionCode}
+        />
+      )}
+    </div>
+  );
+};
+
+const MobileEventBody = async (props: { eventId: string }) => {
+  const eventData = await getEventData(props.eventId);
+
+  if (!eventData) {
+    redirect("/");
+  }
+
+  // We show location if the location isn't hidden and the event is of type "event"
+  // Or if the event type is "discussion" and the window to chat has not passed
+  const showLocation = Boolean(
+    eventData &&
+      ((eventData.type === "event" && eventData.hideLocation === false) ||
+        (eventData.type === "discussion" &&
+          isChatVisible({
+            startTime: eventData.startTime,
+            eventType: eventData.type,
+          })))
+  );
+
+  return (
+    <div className="px-4 flex flex-col gap-4">
+      <EventDescription text={eventData?.description ?? ""} />
+      {showLocation && (
+        <div className="flex flex-col gap-px rounded-2xl bg-neutral-800/20 border border-neutral-800/50 overflow-hidden">
+          <MapView
+            location={eventData.location}
+            className="mb-0 w-full h-48 overflow-hidden mt-0 rounded-2xl"
+          />
+          <div className="flex items-center gap-2 px-4 py-2 w-full">
+            <MapPinIcon className="w-4 h-4" />
+            <p className="text-sm">{eventData.location}</p>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -248,20 +318,44 @@ const PromotionCodeExpiryView = async (props: {
   return <PromotionCodeExpiryNotification />;
 };
 
-const EventPoster = async (props: { eventId: string }) => {
-  const eventData = await getEventData(props.eventId);
+const MobileEventHeaderView = async (props: { eventId: string }) => {
+  const [eventData, { foundTicket }, eventRole] = await Promise.all([
+    getEventData(props.eventId),
+    getTicketTiers(props.eventId),
+    getUserEventRole(props.eventId),
+  ]);
+  const isDiscussionEnabled = Boolean(
+    eventData &&
+      match(eventData.type)
+        .with("discussion", () =>
+          isChatVisible({
+            startTime: eventData.startTime,
+            eventType: eventData.type,
+          })
+        )
+        .with(
+          "event",
+          () =>
+            isChatVisible({
+              startTime: eventData.startTime,
+              eventType: eventData.type,
+            }) &&
+            (foundTicket !== null || eventRole === "admin")
+        )
+        .run()
+  );
 
   if (!eventData) {
     redirect("/");
   }
 
   return (
-    <Image
-      src={eventData.eventMedia.find((e) => e.isPoster)?.url ?? ""}
-      width={1200}
-      height={1200}
-      alt=""
-      className="rounded-xl max-h-[700px] md:max-h-[900px] w-auto mx-auto"
+    <MobileEventHeader
+      name={eventData.name}
+      startTime={eventData.startTime}
+      posterUrl={eventData.eventMedia.find((e) => e.isPoster)?.url ?? ""}
+      eventId={props.eventId}
+      isDiscussionEnabled={isDiscussionEnabled}
     />
   );
 };
@@ -274,20 +368,56 @@ const EventView = async (props: { eventId: string }) => {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-8 ">
       <div className="space-y-2">
-        <h1 className="font-bold text-2xl md:text-4xl text-center md:text-left">
+        <h1 className="font-bold text-2xl md:text-4xl md:text-left">
           {eventData.name}
         </h1>
-        <p className="text-sm text-center text-gray-200 md:text-left">
+        <p className="text-sm text-gray-200 md:text-left">
           <ClientDate date={eventData.startTime} />
         </p>
       </div>
 
       {eventData.description.length > 0 && (
-        <p className="text-center md:text-left">{eventData.description}</p>
+        <div className="space-y-2">
+          <h3 className="font-bold text-sm">Description</h3>
+          <p className="text-left md:text-left whitespace-pre-wrap">
+            {eventData.description}
+          </p>
+        </div>
       )}
-    </>
+    </div>
+  );
+};
+const PosterEventView = async (props: { eventId: string }) => {
+  const eventData = await getEventData(props.eventId);
+
+  if (!eventData) {
+    redirect("/");
+  }
+
+  return (
+    <div className="absolute bottom-4 left-4 right-4 bg-transparent z-20 md:hidden">
+      <div className="space-y-2">
+        <h1 className="font-bold text-2xl md:text-4xl md:text-left">
+          {eventData.name}
+        </h1>
+        <div className="flex items-center justify-start gap-8">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-4 h-4" />
+            <p className="text-sm text-gray-200">
+              <ClientDate date={eventData.startTime} format="dddd, MMMM D" />
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <ClockIcon className="w-4 h-4" />
+            <p className="text-sm text-gray-200">
+              <ClientDate date={eventData.startTime} format="h:mm a" />
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -317,29 +447,9 @@ const TicketTiersView = async (props: { eventId: string }) => {
 
   const isAtCapacity = !eventData || ticketsSold >= eventData.capacity;
 
-  // We show location if the location isn't hidden and the event is of type "event"
-  // Or if the event type is "discussion" and the window to chat has not passed
-  const showLocation = Boolean(
-    eventData &&
-      ((eventData.type === "event" && eventData.hideLocation === false) ||
-        (eventData.type === "discussion" &&
-          isChatVisible({
-            startTime: eventData.startTime,
-            eventType: eventData.type,
-          })))
-  );
-
   return (
     <>
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-center md:justify-start">
-        <Suspense fallback={<LoadingSpinner className="mx-auto md:mx-0" />}>
-          <DiscussionButtonWrapper eventId={props.eventId} />
-        </Suspense>
-        {/* Event is unhosted, just make sure that we can see chat */}
-        {showLocation && eventData && (
-          <LocationDialog location={eventData.location} variant="outline" />
-        )}
-      </div>
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-center md:justify-start"></div>
       {eventData?.type === "event" && (
         <div className="flex flex-col md:flex-row gap-4 items-center justify-center md:justify-start">
           {/* Event is at capacity and user has not purchased a ticket */}

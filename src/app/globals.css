@@ -126,4 +126,8 @@
     );
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f09433', endColorstr='#bc1888',GradientType=1 );
   }
+
+  .visor {
+    box-shadow: 0 0 px 80px #171717 inset;
+  }
 }
