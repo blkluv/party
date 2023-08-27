@@ -2,6 +2,8 @@
 
 import { useUser } from "@clerk/nextjs";
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
+import { TicketIcon } from "@heroicons/react/24/outline";
+import { DialogClose } from "@radix-ui/react-dialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { useState } from "react";
@@ -52,34 +54,42 @@ export const TicketTierListing: FC<{
     }
   };
   return (
-    <div className="relative border border-neutral-800 bg-neutral-800/25 shadow-lg rounded-xl p-4 sm:p-6 gap-4 items-center w-56 h-auto flex flex-col justify-between">
+    <div className="relative border border border-neutral-800/50 bg-neutral-800/20 shadow-lg rounded-2xl p-4 sm:p-6 items-center flex w-full">
+      <p className="font-semibold text-center">{props.data.name}</p>
       {props.data.description.length > 0 && (
         <Dialog>
-          <DialogTrigger className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2">
-            <InformationCircleIcon className="w-6 h-6 fill-primary text-primary-foreground hover:fill-primary/90 rounded-full" />
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="ml-1">
+              <InformationCircleIcon className="w-4 h-4" />
+            </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="flex flex-col">
             <DialogTitle>{props.data.name}</DialogTitle>
             <DialogDescription>Ticket Tier Information</DialogDescription>
             <div>
-              <p>{props.data.description}</p>
+              <p className="whitespace-pre">{props.data.description}</p>
             </div>
+            <DialogClose asChild>
+              <Button className="w-full sm:w-max sm:ml-auto" variant="outline">
+                Close
+              </Button>
+            </DialogClose>
           </DialogContent>
         </Dialog>
       )}
-      <p className="font-semibold text-center">{props.data.name}</p>
-      <p className="font-bold text-4xl">
+      <p className="font-bold ml-auto">
         {props.data.isFree ? "Free" : `$${props.data.price.toFixed(2)}`}
       </p>
       <Button
-        className="w-full"
+        className="gap-2 ml-4"
         disabled={props.disabled}
         onClick={() => {
           handleClaimTicket();
         }}
       >
-        <p>Get Tickets</p>
-        {isLoading && <LoadingSpinner className="ml-2" />}
+        <TicketIcon className="w-4 h-4" />
+        <p>Buy</p>
+        {isLoading && <LoadingSpinner />}
       </Button>
       {showLoginPrompt && <LoginPrompt onOpenChange={setShowLoginPrompt} />}
     </div>

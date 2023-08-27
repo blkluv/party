@@ -5,7 +5,7 @@ import {
   SHOW_CHAT_HOURS_THRESHOLD,
   SHOW_LOCATION_HOURS_THRESHOLD,
 } from "~/config/constants";
-import type { EventType } from "~/db/schema";
+import type { EventRole, EventType } from "~/db/schema";
 
 export const isEventOver = (startTime: Date) => {
   return dayjs(startTime)
@@ -19,7 +19,10 @@ export const isLocationVisible = (startTime: Date, hideLocation: boolean) => {
     : true;
 };
 
-export const isChatVisible = (args: {
+/**
+ * @deprecated use `isDiscussionEnabled`
+ */
+export const isDiscussionVisible = (args: {
   startTime: Date;
   eventType: EventType;
 }): boolean => {
@@ -37,3 +40,27 @@ export const isChatVisible = (args: {
       .exhaustive()
   );
 };
+
+export const isDiscussionEnabled = (args: {
+  startTime: Date;
+  type: EventType;
+  role?: EventRole["role"] | null;
+  isTicketFound?: boolean;
+}) =>
+  Boolean(
+    match(args.type)
+      .with(
+        "discussion",
+        () =>
+          dayjs()
+            .add(SHOW_CHAT_HOURS_THRESHOLD, "hour")
+            .isAfter(args.startTime) && !isEventOver(args.startTime)
+      )
+      .with(
+        "event",
+        () =>
+          !isEventOver(args.startTime) &&
+          (args.isTicketFound || args.role === "admin")
+      )
+      .run()
+  );

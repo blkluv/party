@@ -2,6 +2,7 @@ import { UserButton, auth } from "@clerk/nextjs";
 import {
   ArrowRightOnRectangleIcon,
   CubeIcon,
+  HomeIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -17,7 +18,7 @@ export const Navigation = async () => {
 
   return (
     <>
-      <div className="w-full sticky top-0 border-b px-4 py-2 bg-neutral-900/90 backdrop-blur z-50 sm:block hidden">
+      <div className="w-full sticky top-0 border-b px-4 py-2 bg-neutral-900/90 backdrop-blur z-50 md:block hidden">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             <Link href="/">
@@ -61,9 +62,9 @@ export const Navigation = async () => {
             .exhaustive()}
         </div>
       </div>
-      <div className="bottom-0 border-t left-0 right-0 px-4 h-16 bg-neutral-900/90 backdrop-blur z-50 fixed sm:hidden flex justify-evenly items-start">
+      <div className="bottom-0 border-t left-0 right-0 px-4 h-16 bg-neutral-900/90 backdrop-blur z-50 fixed md:hidden flex justify-evenly items-start">
         <Link href="/" className="w-12 h-12 flex justify-center items-center">
-          <CubeIcon className="w-8 h-8" />
+          <HomeIcon className="w-8 h-8" />
         </Link>
         {match(Boolean(userAuth.userId))
           .with(false, () => (

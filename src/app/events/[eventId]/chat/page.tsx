@@ -6,7 +6,10 @@ import { cache } from "react";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { eventMedia, events, tickets } from "~/db/schema";
-import { isChatVisible, isLocationVisible } from "~/utils/event-time-helpers";
+import {
+  isDiscussionVisible,
+  isLocationVisible,
+} from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { getUserEventRole } from "~/utils/getUserEventRole";
 import { ChatRoom } from "./chat-room";
@@ -86,7 +89,7 @@ const Page = async (props: PageProps) => {
 
   if (
     !eventData ||
-    !isChatVisible({
+    !isDiscussionVisible({
       startTime: eventData.startTime,
       eventType: eventData.type,
     })

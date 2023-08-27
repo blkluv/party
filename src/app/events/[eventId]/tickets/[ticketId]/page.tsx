@@ -14,7 +14,10 @@ import { Button } from "~/app/_components/ui/button";
 import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
-import { isChatVisible, isLocationVisible } from "~/utils/event-time-helpers";
+import {
+  isDiscussionVisible,
+  isLocationVisible,
+} from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { getUserEventRole } from "~/utils/getUserEventRole";
 import { cn } from "~/utils/shadcn-ui";
@@ -136,7 +139,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
     ticketData.event.hideLocation
   );
 
-  const showChat = isChatVisible({
+  const showChat = isDiscussionVisible({
     startTime: ticketData.event.startTime,
     eventType: ticketData.event.type,
   });

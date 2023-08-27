@@ -56,7 +56,7 @@ export default function RootLayout({
           }}
         >
           <TrpcProvider>
-            <div className="pb-16 sm:pb-0">
+            <div className="pb-16 md:pb-0">
               <div className="min-h-screen bg-white dark:bg-neutral-900 text-black dark:text-white flex flex-col">
                 <Navigation />
                 <div className="flex flex-col flex-1">{children}</div>
