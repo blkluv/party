@@ -230,26 +230,32 @@ export const EventManagementDropdown: FC<{
         {props.role === "admin" && (
           <>
             <DropdownMenuItem asChild>
-              <Link href={`/events/${props.eventId}/manage`}>
+              <Link href={`/events/${props.eventId}/edit`}>
                 <PencilIcon className="w-4 h-4 mr-2" />
                 <p>Edit</p>
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <UserGroupIcon className="w-4 h-4 mr-2" />
-              <p>Roles</p>
+            <DropdownMenuItem asChild>
+              <Link href={`/events/${props.eventId}/roles`}>
+                <UserGroupIcon className="w-4 h-4 mr-2" />
+                <p>Roles</p>
+              </Link>
             </DropdownMenuItem>
           </>
         )}
         {(props.role === "manager" || props.role === "admin") && (
           <>
-            <DropdownMenuItem>
-              <TicketIcon className="w-4 h-4 mr-2" />
-              <p>Tickets</p>
+            <DropdownMenuItem asChild>
+              <Link href={`/events/${props.eventId}/tickets`}>
+                <TicketIcon className="w-4 h-4 mr-2" />
+                <p>Tickets</p>
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <LinkIcon className="w-4 h-4 mr-2" />
-              <p>Promotions</p>
+            <DropdownMenuItem asChild>
+              <Link href={`/events/${props.eventId}/promotion-codes`}>
+                <LinkIcon className="w-4 h-4 mr-2" />
+                <p>Promotions</p>
+              </Link>
             </DropdownMenuItem>
           </>
         )}

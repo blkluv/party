@@ -400,7 +400,7 @@ const translateRole = (role: EventRole["role"]) =>
     .with("manager", () => "Ticket Rep")
     .otherwise(() => role);
 
-const ManageRoles: FC<{ eventId: string }> = (props) => {
+export const ManageRoles: FC<{ eventId: string }> = (props) => {
   const [usersQuery, setUsersQuery] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -635,7 +635,7 @@ export const ManagementContainer: FC<{
   );
 };
 
-const ManageEventDetails: FC<{ eventId: string }> = (props) => {
+export const ManageEventDetails: FC<{ eventId: string }> = (props) => {
   const { data: eventData, isLoading } = trpc.events.getFullEvent.useQuery({
     eventId: props.eventId,
   });

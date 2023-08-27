@@ -6,7 +6,7 @@ import { getDb } from "~/db/client";
 import { events } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { getUserEventRole } from "~/utils/getUserEventRole";
-import { ManagePromotionCodes } from "../manage/event-management-helpers";
+import { ManagePromotionCodes } from "../../../_components/event-management-helpers";
 
 type PageProps = { params: { eventId: string } };
 

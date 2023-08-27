@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs";
 import {
+  ChatBubbleBottomCenterTextIcon,
   ExclamationCircleIcon,
   MapPinIcon,
   TicketIcon,
@@ -23,10 +24,10 @@ import { isDiscussionEnabled } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { getSoldTickets } from "~/utils/getSoldTickets";
 import { getUserEventRole as getRoleFn } from "~/utils/getUserEventRole";
-import { TicketTierListing } from "./TicketTierListing";
 import {
   EventDescription,
   EventManagementDropdown,
+  JoinDiscussionAlertDialog,
   MobileEventHeader,
 } from "./event-components";
 import { MapView } from "./tickets/[ticketId]/ticket-helpers";
@@ -216,11 +217,13 @@ const MobileEventBody = async (props: { eventId: string }) => {
 
   return (
     <div className="flex flex-col gap-4 relative px-4 lg:px-0">
-      <EventManagementDropdown
-        eventId={props.eventId}
-        className="absolute top-1 right-2 hidden lg:block"
-        role={eventRole}
-      />
+      {(eventRole === "manager" || eventRole === "admin") && (
+        <EventManagementDropdown
+          eventId={props.eventId}
+          className="absolute top-1 right-2 hidden lg:block"
+          role={eventRole}
+        />
+      )}
       <div className="block lg:hidden">
         <EventDescription text={eventData?.description ?? ""} />
       </div>
@@ -321,16 +324,29 @@ const MobileEventHeaderView = async (props: { eventId: string }) => {
 };
 
 const TicketTiersView = async (props: { eventId: string }) => {
-  const [eventData, { foundTicket, currentTicketPrices }, ticketsSold] =
-    await Promise.all([
-      getEventData(props.eventId),
-      getTicketTiers(props.eventId),
-      getSoldTickets(props.eventId),
-    ]);
-
-  const userAuth = auth();
+  const [
+    eventData,
+    { foundTicket, currentTicketPrices },
+    ticketsSold,
+    eventRole,
+  ] = await Promise.all([
+    getEventData(props.eventId),
+    getTicketTiers(props.eventId),
+    getSoldTickets(props.eventId),
+    getUserEventRole(props.eventId),
+  ]);
 
   const isAtCapacity = !eventData || ticketsSold >= eventData.capacity;
+
+  const discussionEnabled = Boolean(
+    eventData &&
+      isDiscussionEnabled({
+        startTime: eventData.startTime,
+        type: eventData.type,
+        isTicketFound: Boolean(foundTicket),
+        role: eventRole,
+      })
+  );
 
   return (
     <>
@@ -347,10 +363,10 @@ const TicketTiersView = async (props: { eventId: string }) => {
           )}
 
           {/* No ticket, but have ticket prices. Show ticket prices */}
-          {!isAtCapacity &&
+          {/* {!isAtCapacity &&
             foundTicket === null &&
             currentTicketPrices.length > 0 && (
-              <div className="flex flex-col gap-2 lg:grid lg:grid-cols-2">
+              <div className="flex flex-col gap-2">
                 {currentTicketPrices.map((price) => (
                   <TicketTierListing
                     eventId={props.eventId}
@@ -360,8 +376,40 @@ const TicketTiersView = async (props: { eventId: string }) => {
                   />
                 ))}
               </div>
+            )} */}
+          <div className="flex items-center gap-4 lg:flex-row flex-col">
+            {discussionEnabled ? (
+              <Link
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-lg transition flex-1 w-full"
+                href={`/events/${props.eventId}/chat`}
+              >
+                <div className="relative">
+                  <ChatBubbleBottomCenterTextIcon className="h-6 w-6" />
+                  <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/4 -translate-y-1/4" />
+                </div>
+                <p>Join Discussion</p>
+              </Link>
+            ) : (
+              <JoinDiscussionAlertDialog>
+                <button className="bg-secondary text-secondary-foreground px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-lg transition flex-1 opacity-50 w-full">
+                  <div className="relative">
+                    <ChatBubbleBottomCenterTextIcon className="h-6 w-6" />
+                    <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/4 -translate-y-1/4" />
+                  </div>
+                  <p>Join Discussion</p>
+                </button>
+              </JoinDiscussionAlertDialog>
             )}
-
+            {/* No ticket, but have ticket prices. Show ticket prices */}
+            {!isAtCapacity &&
+              foundTicket === null &&
+              currentTicketPrices.length > 0 && (
+                <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-white shadow-lg transition hover:shadow-neutral-300 flex-1 w-full">
+                  <TicketIcon className="h-6 w-6" />
+                  <p>Buy Tickets</p>
+                </button>
+              )}
+          </div>
           {/* Found a ticket */}
           {foundTicket && (
             <Link

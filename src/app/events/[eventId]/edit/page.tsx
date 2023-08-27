@@ -1,17 +1,18 @@
 import { auth } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { ManageEventDetails } from "~/app/_components/event-management-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { getUserEventRole } from "~/utils/getUserEventRole";
-import { ManagementContainer } from "../manage/event-management-helpers";
 
-export const metadata: Metadata = {
-  title: getPageTitle("Manage Event"),
-};
+type PageProps = { params: { eventId: string } };
 
 export const dynamic = "force-dynamic";
 
-type PageProps = { params: { eventId: string } };
+export const metadata: Metadata = {
+  title: getPageTitle("Edit Details"),
+};
+
 const Page = async (props: PageProps) => {
   const userAuth = auth();
 
@@ -19,15 +20,15 @@ const Page = async (props: PageProps) => {
     redirect("/sign-in");
   }
 
-  const eventRole = await getUserEventRole(props.params.eventId);
+  const userEventRole = await getUserEventRole(props.params.eventId);
 
-  if (eventRole !== "admin") {
-    return redirect(`/events/${props.params.eventId}`);
+  if (userEventRole !== "admin") {
+    redirect(`/events/${props.params.eventId}`);
   }
 
   return (
-    <div className="mx-2 sm:mx-auto sm:w-full max-w-xl my-8">
-      <ManagementContainer eventId={props.params.eventId} />
+    <div className="max-w-xl w-full my-8 px-2 mx-auto">
+      <ManageEventDetails eventId={props.params.eventId} />
     </div>
   );
 };
