@@ -66,7 +66,7 @@ export const TicketTierListing: FC<{
             <DialogTitle>{props.data.name}</DialogTitle>
             <DialogDescription>Ticket Tier Information</DialogDescription>
             <div>
-              <p className="whitespace-pre">{props.data.description}</p>
+              <p className="whitespace-pre-wrap">{props.data.description}</p>
             </div>
             <DialogClose asChild>
               <Button className="w-full sm:w-max sm:ml-auto" variant="outline">
