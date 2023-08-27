@@ -357,18 +357,30 @@ const TicketTiersView = async (props: { eventId: string }) => {
 
   return (
     <>
-      {eventData?.type === "discussion" && discussionEnabled && (
+      {eventData?.type === "discussion" && (
         <div className="flex flex-col mt-4">
-          <Link
-            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-lg transition flex-1 w-full"
-            href={`/events/${props.eventId}/chat`}
-          >
-            <div className="relative">
-              <ChatBubbleBottomCenterTextIcon className="h-6 w-6" />
-              <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/4 -translate-y-1/4" />
-            </div>
-            <p>Join Discussion</p>
-          </Link>
+          {discussionEnabled && userAuth.userId ? (
+            <Link
+              className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-lg transition flex-1 w-full"
+              href={`/events/${props.eventId}/chat`}
+            >
+              <div className="relative">
+                <ChatBubbleBottomCenterTextIcon className="h-6 w-6" />
+                <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/4 -translate-y-1/4" />
+              </div>
+              <p>Join Discussion</p>
+            </Link>
+          ) : (
+            <JoinDiscussionAlertDialog>
+              <button className="bg-secondary text-secondary-foreground px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-lg transition flex-1 opacity-50 w-full">
+                <div className="relative">
+                  <ChatBubbleBottomCenterTextIcon className="h-6 w-6" />
+                  <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/4 -translate-y-1/4" />
+                </div>
+                <p>Join Discussion</p>
+              </button>
+            </JoinDiscussionAlertDialog>
+          )}
         </div>
       )}
       {eventData?.type === "event" && (

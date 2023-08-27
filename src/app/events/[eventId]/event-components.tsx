@@ -4,7 +4,6 @@ import { useUser } from "@clerk/nextjs";
 import {
   ArrowLeftIcon,
   CalendarIcon,
-  ChatBubbleBottomCenterTextIcon,
   ClockIcon,
   Cog6ToothIcon,
   LinkIcon,
@@ -180,38 +179,39 @@ const AnimatedImageContainer: FC<PropsWithChildren<{ className?: string }>> = (
   );
 };
 
-const JoinDiscussionButton: FC<{ disabled: boolean }> = (props) => {
-  return (
-    <button
-      className={cn(
-        "p-2 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors",
-        props.disabled && "pointer-events-none opacity-50"
-      )}
-    >
-      <div className="relative">
-        <ChatBubbleBottomCenterTextIcon className="h-6 w-6" />
-        <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/4 -translate-y-1/4" />
-      </div>
-    </button>
-  );
-};
-
 export const JoinDiscussionAlertDialog: FC<PropsWithChildren> = (props) => {
+  const user = useUser();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showTicketWarning, setShowTicketWarning] = useState(false);
+
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>{props.children}</AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Ticket Required</AlertDialogTitle>
-          <AlertDialogDescription>
-            Purchase a ticket for this event to join the live discussion.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Close</AlertDialogCancel>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <>
+      {showLoginPrompt && <LoginPrompt onOpenChange={setShowLoginPrompt} />}
+      <AlertDialog
+        onOpenChange={(val) => {
+          if (val && !user.isSignedIn) {
+            setShowLoginPrompt(true);
+            return;
+          }
+
+          setShowTicketWarning(val);
+        }}
+        open={showTicketWarning}
+      >
+        <AlertDialogTrigger asChild>{props.children}</AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ticket Required</AlertDialogTitle>
+            <AlertDialogDescription>
+              Purchase a ticket for this event to join the live discussion.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
