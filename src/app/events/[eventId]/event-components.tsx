@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import {
   ArrowLeftIcon,
   CalendarIcon,
@@ -14,9 +15,10 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import type { PropsWithChildren } from "react";
+import type { ComponentProps, PropsWithChildren } from "react";
 import { useState, type FC } from "react";
 import { ClientDate } from "~/app/_components/ClientDate";
+import { LoginPrompt } from "~/app/_components/login-prompt";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -28,6 +30,13 @@ import {
   AlertDialogTrigger,
 } from "~/app/_components/ui/alert-dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "~/app/_components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -35,6 +44,7 @@ import {
 } from "~/app/_components/ui/dropdown-menu";
 import type { EventRole } from "~/db/schema";
 import { cn } from "~/utils/shadcn-ui";
+import { TicketTierListing } from "./TicketTierListing";
 
 export const EventDescription: FC<{ text: string; defaultOpen?: boolean }> = (
   props
@@ -74,7 +84,7 @@ export const EventDescription: FC<{ text: string; defaultOpen?: boolean }> = (
   );
 };
 
-export const MobileEventHeader: FC<{
+export const EventHeader: FC<{
   posterUrl: string;
   name: string;
   startTime: Date;
@@ -98,15 +108,6 @@ export const MobileEventHeader: FC<{
               eventId={props.eventId}
             />
           )}
-          {props.isDiscussionEnabled ? (
-            <Link href={`/events/${props.eventId}/chat`}>
-              <JoinDiscussionButton disabled={false} />
-            </Link>
-          ) : (
-            <JoinDiscussionAlertDialog>
-              <JoinDiscussionButton disabled={true} />
-            </JoinDiscussionAlertDialog>
-          )}
         </div>
       </div>
       <Image
@@ -114,7 +115,7 @@ export const MobileEventHeader: FC<{
         width={1200}
         height={1200}
         alt=""
-        className="rounded-2xl max-h-[700px] md:max-h-[900px] w-auto hidden lg:block"
+        className="rounded-2xl max-h-[700px] md:max-h-[700px] w-auto hidden lg:block mx-auto"
       />
       <div className="lg:block hidden mt-2 p-4 lg:shadow-lg">
         <EventDetails name={props.name} startTime={props.startTime} />
@@ -211,6 +212,45 @@ export const JoinDiscussionAlertDialog: FC<PropsWithChildren> = (props) => {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+};
+
+export const TicketTiersDialog: FC<
+  PropsWithChildren<{ data: ComponentProps<typeof TicketTierListing>[] }>
+> = (props) => {
+  const user = useUser();
+
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showTicketTiers, setShowTicketTiers] = useState(false);
+
+  return (
+    <>
+      {showLoginPrompt && <LoginPrompt onOpenChange={setShowLoginPrompt} />}
+      <Dialog
+        onOpenChange={(val) => {
+          if (val && !user.isSignedIn) {
+            setShowLoginPrompt(true);
+            return;
+          }
+
+          setShowTicketTiers(val);
+        }}
+        open={showTicketTiers}
+      >
+        <DialogTrigger asChild>{props.children}</DialogTrigger>
+        <DialogContent>
+          <DialogTitle>Get Tickets</DialogTitle>
+          <DialogDescription>
+            Grab some tickets for this event!
+          </DialogDescription>
+          <div className="flex flex-col gap-2">
+            {props.data.map((tier) => (
+              <TicketTierListing {...tier} key={tier.data.id} />
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

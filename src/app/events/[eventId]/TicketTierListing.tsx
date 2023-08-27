@@ -2,7 +2,6 @@
 
 import { useUser } from "@clerk/nextjs";
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
-import { TicketIcon } from "@heroicons/react/24/outline";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
@@ -54,8 +53,8 @@ export const TicketTierListing: FC<{
     }
   };
   return (
-    <div className="relative border border border-neutral-800/50 bg-neutral-800/20 shadow-lg rounded-2xl p-4 sm:p-6 items-center flex w-full">
-      <p className="font-semibold text-center">{props.data.name}</p>
+    <div className="relative border border border-neutral-800/50 rounded-2xl px-4 py-2 items-center flex w-full">
+      <p className="font-semibold text-sm text-center">{props.data.name}</p>
       {props.data.description.length > 0 && (
         <Dialog>
           <DialogTrigger asChild>
@@ -77,17 +76,17 @@ export const TicketTierListing: FC<{
           </DialogContent>
         </Dialog>
       )}
-      <p className="font-bold ml-auto">
+      <p className="font-bold ml-auto text-sm">
         {props.data.isFree ? "Free" : `$${props.data.price.toFixed(2)}`}
       </p>
       <Button
         className="gap-2 ml-4"
+        size="sm"
         disabled={props.disabled}
         onClick={() => {
           handleClaimTicket();
         }}
       >
-        <TicketIcon className="w-4 h-4" />
         <p>Buy</p>
         {isLoading && <LoadingSpinner />}
       </Button>

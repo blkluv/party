@@ -26,9 +26,10 @@ import { getSoldTickets } from "~/utils/getSoldTickets";
 import { getUserEventRole as getRoleFn } from "~/utils/getUserEventRole";
 import {
   EventDescription,
+  EventHeader,
   EventManagementDropdown,
   JoinDiscussionAlertDialog,
-  MobileEventHeader,
+  TicketTiersDialog,
 } from "./event-components";
 import { MapView } from "./tickets/[ticketId]/ticket-helpers";
 
@@ -177,10 +178,10 @@ const Page = async (props: PageProps) => {
   return (
     <div className="flex flex-col pb-4 lg:flex-row lg:gap-4 lg:rounded-2xl lg:pb-0 lg:max-w-6xl lg:w-full lg:mx-auto lg:my-8">
       <Suspense>
-        <MobileEventHeaderView eventId={props.params.eventId} />
+        <EventHeaderView eventId={props.params.eventId} />
       </Suspense>
       <div className="lg:w-2/3 flex flex-col">
-        <MobileEventBody eventId={props.params.eventId} />
+        <EventBodyView eventId={props.params.eventId} />
         <TicketTiersView eventId={props.params.eventId} />
       </div>
       {props.searchParams.promotionCode && (
@@ -193,7 +194,7 @@ const Page = async (props: PageProps) => {
   );
 };
 
-const MobileEventBody = async (props: { eventId: string }) => {
+const EventBodyView = async (props: { eventId: string }) => {
   const [eventData, eventRole] = await Promise.all([
     getEventData(props.eventId),
     getUserEventRole(props.eventId),
@@ -217,22 +218,26 @@ const MobileEventBody = async (props: { eventId: string }) => {
 
   return (
     <div className="flex flex-col gap-4 relative px-4 lg:px-0">
-      {(eventRole === "manager" || eventRole === "admin") && (
-        <EventManagementDropdown
-          eventId={props.eventId}
-          className="absolute top-1 right-2 hidden lg:block"
-          role={eventRole}
-        />
+      {eventData?.type === "event" && (
+        <>
+          {(eventRole === "manager" || eventRole === "admin") && (
+            <EventManagementDropdown
+              eventId={props.eventId}
+              className="absolute top-1 right-2 hidden lg:block"
+              role={eventRole}
+            />
+          )}
+          <div className="block lg:hidden">
+            <EventDescription text={eventData?.description ?? ""} />
+          </div>
+          <div className="hidden lg:block bg-neutral-800/20 rounded-2xl border border-neutral-800/50 overflow-hidden p-4 lg:shadow-lg">
+            <EventDescription
+              text={eventData?.description ?? ""}
+              defaultOpen={true}
+            />
+          </div>
+        </>
       )}
-      <div className="block lg:hidden">
-        <EventDescription text={eventData?.description ?? ""} />
-      </div>
-      <div className="hidden lg:block bg-neutral-800/20 rounded-2xl border border-neutral-800/50 overflow-hidden p-4 lg:shadow-lg">
-        <EventDescription
-          text={eventData?.description ?? ""}
-          defaultOpen={true}
-        />
-      </div>
       {showLocation && (
         <div className="flex flex-col gap-px rounded-2xl bg-neutral-800/20 border border-neutral-800/50 overflow-hidden lg:shadow-lg">
           <MapView
@@ -290,7 +295,7 @@ const PromotionCodeExpiryView = async (props: {
   return <PromotionCodeExpiryNotification />;
 };
 
-const MobileEventHeaderView = async (props: { eventId: string }) => {
+const EventHeaderView = async (props: { eventId: string }) => {
   const [eventData, { foundTicket }, eventRole] = await Promise.all([
     getEventData(props.eventId),
     getTicketTiers(props.eventId),
@@ -312,7 +317,7 @@ const MobileEventHeaderView = async (props: { eventId: string }) => {
   }
 
   return (
-    <MobileEventHeader
+    <EventHeader
       role={eventRole}
       name={eventData.name}
       startTime={eventData.startTime}
@@ -336,6 +341,8 @@ const TicketTiersView = async (props: { eventId: string }) => {
     getUserEventRole(props.eventId),
   ]);
 
+  const userAuth = auth();
+
   const isAtCapacity = !eventData || ticketsSold >= eventData.capacity;
 
   const discussionEnabled = Boolean(
@@ -350,6 +357,20 @@ const TicketTiersView = async (props: { eventId: string }) => {
 
   return (
     <>
+      {eventData?.type === "discussion" && discussionEnabled && (
+        <div className="flex flex-col mt-4">
+          <Link
+            className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-lg transition flex-1 w-full"
+            href={`/events/${props.eventId}/chat`}
+          >
+            <div className="relative">
+              <ChatBubbleBottomCenterTextIcon className="h-6 w-6" />
+              <div className="animate-pulse absolute bg-green-500 rounded-full w-2 h-2 top-0 right-0 translate-x-1/4 -translate-y-1/4" />
+            </div>
+            <p>Join Discussion</p>
+          </Link>
+        </div>
+      )}
       {eventData?.type === "event" && (
         <div className="flex flex-col px-4 lg:px-0 gap-4 mt-4">
           {/* Event is at capacity and user has not purchased a ticket */}
@@ -404,24 +425,30 @@ const TicketTiersView = async (props: { eventId: string }) => {
             {!isAtCapacity &&
               foundTicket === null &&
               currentTicketPrices.length > 0 && (
-                <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-white shadow-lg transition hover:shadow-neutral-300 flex-1 w-full">
-                  <TicketIcon className="h-6 w-6" />
-                  <p>Buy Tickets</p>
-                </button>
+                <TicketTiersDialog
+                  data={currentTicketPrices.map((e) => ({
+                    data: e,
+                    disabled: userAuth?.userId === eventData.userId,
+                    eventId: props.eventId,
+                  }))}
+                >
+                  <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-white shadow-lg transition hover:shadow-neutral-300 flex-1 w-full">
+                    <TicketIcon className="h-6 w-6" />
+                    <p>Buy Tickets</p>
+                  </button>
+                </TicketTiersDialog>
               )}
-          </div>
-          {/* Found a ticket */}
-          {foundTicket && (
-            <Link
-              href={`/events/${props.eventId}/tickets/${foundTicket.id}`}
-              className="mx-auto"
-            >
-              <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 font-semibold flex justify-center gap-2 items-center rounded-2xl shadow-white shadow-lg transition hover:shadow-neutral-300">
+            {/* Found a ticket */}
+            {foundTicket && (
+              <Link
+                href={`/events/${props.eventId}/tickets/${foundTicket.id}`}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 font-semibold flex justify-center gap-2 items-center rounded-2xl shadow-white shadow-lg transition hover:shadow-neutral-300 flex-1 w-full"
+              >
                 <TicketIcon className="mr-2 h-5 w-5" />
                 <p>{`View Ticket${foundTicket.quantity > 1 ? "s" : ""}`}</p>
-              </button>
-            </Link>
-          )}
+              </Link>
+            )}
+          </div>
         </div>
       )}
     </>
