@@ -3,7 +3,6 @@
 import { useUser } from "@clerk/nextjs";
 import {
   ArrowDownTrayIcon,
-  ArrowPathIcon,
   ArrowUpTrayIcon,
   CalendarIcon,
   ChevronLeftIcon,
@@ -36,6 +35,7 @@ import type { EventMedia, EventType } from "~/db/schema";
 import { createEventSchema } from "~/utils/createEventSchema";
 import { cn } from "~/utils/shadcn-ui";
 import type { PublicUserMetadata } from "~/utils/userMetadataSchema";
+import { LoadingSpinner } from "./LoadingSpinner";
 import { Calendar } from "./ui/calendar";
 import { Label } from "./ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
@@ -79,6 +79,7 @@ export const EventForm: FC<{
       eventMedia: EventMediaFile[];
     }
   ) => Promise<void> | void;
+  onDelete?: () => Promise<void> | void;
 }> = (props) => {
   const { mode = "create" } = props;
   const user = useUser();
@@ -86,6 +87,7 @@ export const EventForm: FC<{
     user.user &&
       (user.user.publicMetadata as PublicUserMetadata).platformRole === "admin"
   );
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   const [mediaPreviewUrls, setMediaPreviewUrls] = useState<PreviewUrl[]>(
     props.initialValues?.eventMedia
@@ -555,14 +557,37 @@ export const EventForm: FC<{
             </div>
           </>
         )}
-        <Button type="submit" className="w-full">
-          <p>{`${mode === "edit" ? "Edit" : "Create"} ${
-            props.type === "event" ? "Event" : "Conversation"
-          }`}</p>
-          {form.formState.isSubmitting && (
-            <ArrowPathIcon className="ml-2 animate-spin w-4 h-4" />
+        <div className="flex gap-2 justify-center items-center">
+          {props.onDelete && (
+            <Button
+              type="button"
+              className="w-full flex-1 gap-2"
+              variant="destructive"
+              onClick={async () => {
+                if (!props.onDelete) {
+                  return;
+                }
+
+                try {
+                  setIsDeleteLoading(true);
+                  await props.onDelete();
+                } catch (e) {
+                  console.error("Error deleting");
+                }
+                setIsDeleteLoading(false);
+              }}
+            >
+              <p>Delete</p>
+              {isDeleteLoading && <LoadingSpinner />}
+            </Button>
           )}
-        </Button>
+          <Button type="submit" className="w-full flex-1 gap-2">
+            <p>{`${mode === "edit" ? "Edit" : "Create"} ${
+              props.type === "event" ? "Event" : "Conversation"
+            }`}</p>
+            {form.formState.isSubmitting && <LoadingSpinner />}
+          </Button>
+        </div>
       </form>
     </Form>
   );

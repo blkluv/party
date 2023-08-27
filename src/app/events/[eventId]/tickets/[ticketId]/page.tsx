@@ -15,7 +15,7 @@ import { env } from "~/config/env";
 import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
 import {
-  isDiscussionVisible,
+  isDiscussionEnabled,
   isLocationVisible,
 } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
@@ -139,9 +139,11 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
     ticketData.event.hideLocation
   );
 
-  const showChat = isDiscussionVisible({
+  const showChat = isDiscussionEnabled({
     startTime: ticketData.event.startTime,
-    eventType: ticketData.event.type,
+    type: ticketData.event.type,
+    isTicketFound: true,
+    role: eventRole,
   });
 
   return (

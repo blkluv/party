@@ -120,7 +120,9 @@ export const tickets = sqliteTable("tickets", {
   promotionCodeId: text("promotion_code_id"),
   createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: int("updated_at", { mode: "timestamp_ms" }).notNull(),
-  status: text("status", { enum: ["success", "pending"] }).notNull(),
+  status: text("status", {
+    enum: ["success", "pending", "refunded"],
+  }).notNull(),
 });
 
 export const ticketRelations = relations(tickets, ({ one }) => ({

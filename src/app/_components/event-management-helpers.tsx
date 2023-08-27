@@ -15,6 +15,7 @@ import copy from "copy-to-clipboard";
 import dayjs from "dayjs";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ComponentProps, FC } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -81,6 +82,16 @@ import { env } from "~/config/env";
 import { EVENT_ROLES, type EventRole } from "~/db/schema";
 import { createPromotionCodeFormSchema } from "~/utils/createPromotionCodeFormSchema";
 import { trpc } from "~/utils/trpc";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
 type FormData = z.infer<typeof createPromotionCodeFormSchema>;
 
@@ -636,9 +647,18 @@ export const ManagementContainer: FC<{
 };
 
 export const ManageEventDetails: FC<{ eventId: string }> = (props) => {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { data: eventData, isLoading } = trpc.events.getFullEvent.useQuery({
     eventId: props.eventId,
   });
+  const { push, refresh } = useRouter();
+  const { mutate: deleteEvent, isLoading: isEventDeleting } =
+    trpc.events.deleteEvent.useMutation({
+      onSuccess: () => {
+        refresh();
+        push("/");
+      },
+    });
 
   if (isLoading || !eventData) {
     return (
@@ -649,20 +669,53 @@ export const ManageEventDetails: FC<{ eventId: string }> = (props) => {
   }
 
   return (
-    <EditEventForm
-      eventId={props.eventId}
-      type={eventData.type}
-      initialValues={{
-        ...eventData,
-        startDate: new Date(eventData.startTime),
-        startTime: dayjs(eventData.startTime).format("HH:mm"),
-        eventMedia: eventData.eventMedia.map((e) => ({
-          __type: "url",
-          id: e.id,
-          url: e.url,
-          isPoster: e.isPoster,
-        })),
-      }}
-    />
+    <>
+      <EditEventForm
+        eventId={props.eventId}
+        type={eventData.type}
+        initialValues={{
+          ...eventData,
+          startDate: new Date(eventData.startTime),
+          startTime: dayjs(eventData.startTime).format("HH:mm"),
+          eventMedia: eventData.eventMedia.map((e) => ({
+            __type: "url",
+            id: e.id,
+            url: e.url,
+            isPoster: e.isPoster,
+          })),
+        }}
+        onDelete={() => {
+          setShowDeleteDialog(true);
+        }}
+      />
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Event</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action is irreversible and deletes all tickets, promo codes,
+              and any other data related to this event.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <div className="flex justify-end gap-2">
+              <AlertDialogCancel asChild>
+                <Button variant="outline">Go Back</Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  variant="destructive"
+                  onClick={() => deleteEvent({ eventId: props.eventId })}
+                >
+                  <p>Delete</p>
+                  {isEventDeleting && <LoadingSpinner className="ml-2" />}
+                </Button>
+              </AlertDialogAction>
+            </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

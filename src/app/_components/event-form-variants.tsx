@@ -69,6 +69,7 @@ export const EditEventForm: FC<{
   initialValues: NonNullable<ComponentProps<typeof EventForm>["initialValues"]>;
   eventId: string;
   type: EventType;
+  onDelete: () => void | Promise<void>;
 }> = (props) => {
   const { push, refresh } = useRouter();
   const { mutateAsync: updateEvent } = trpc.events.updateEvent.useMutation();
@@ -85,6 +86,7 @@ export const EditEventForm: FC<{
       type={props.type}
       mode="edit"
       initialValues={props.initialValues}
+      onDelete={props.onDelete}
       onSubmit={async ({ eventMedia, ...values }) => {
         const updatedEvent = await updateEvent({
           eventId: props.eventId,
