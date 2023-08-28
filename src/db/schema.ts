@@ -125,7 +125,7 @@ export const tickets = sqliteTable("tickets", {
   }).notNull(),
 });
 
-export const ticketRelations = relations(tickets, ({ one }) => ({
+export const ticketRelations = relations(tickets, ({ one, many }) => ({
   event: one(events, { fields: [tickets.eventId], references: [events.id] }),
   price: one(ticketPrices, {
     fields: [tickets.ticketPriceId],
@@ -135,6 +135,7 @@ export const ticketRelations = relations(tickets, ({ one }) => ({
     fields: [tickets.promotionCodeId],
     references: [promotionCodes.id],
   }),
+  scans: many(ticketScans),
 }));
 
 export type Ticket = InferSelectModel<typeof tickets>;
@@ -298,3 +299,42 @@ export type EventRole = InferSelectModel<typeof eventRoles>;
 export type NewEventRole = InferInsertModel<typeof eventRoles>;
 export const selectEventRoleSchema = createSelectSchema(eventRoles);
 export const insertEventRoleSchema = createInsertSchema(eventRoles);
+
+export const ticketScans = sqliteTable("ticket_scans", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  /**
+   * The event that this ticket is for
+   */
+  eventId: text("event_id").notNull(),
+
+  /**
+   * The ID of the ticket being scanned
+   */
+  ticketId: text("ticket_id").notNull(),
+  /**
+   * The user who scanned the ticket
+   */
+  userId: text("user_id").notNull(),
+  /**
+   * The time the ticket was scanned
+   */
+  createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const ticketScanRelations = relations(ticketScans, ({ one }) => ({
+  event: one(events, {
+    fields: [ticketScans.eventId],
+    references: [events.id],
+  }),
+  ticket: one(tickets, {
+    fields: [ticketScans.ticketId],
+    references: [tickets.id],
+  }),
+}));
+
+export type TicketScan = InferSelectModel<typeof ticketScans>;
+export type NewTicketScan = InferInsertModel<typeof ticketScans>;
+export const selectTicketScanSchema = createSelectSchema(ticketScans);
+export const insertTicketScanSchema = createInsertSchema(ticketScans);

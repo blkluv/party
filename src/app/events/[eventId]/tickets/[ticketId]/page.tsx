@@ -161,7 +161,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
           </p>
         </div>
         <QRCode
-          value={`${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketData.event.id}/tickets/${ticketData.id}`}
+          value={`${env.NEXT_PUBLIC_WEBSITE_URL}/events/${ticketData.event.id}/tickets/${ticketData.id}/scan`}
           className="shadow-md border border-gray-300"
         />
         <h1 className="font-bold text-center text-lg capitalize">

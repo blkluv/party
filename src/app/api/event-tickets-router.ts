@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { Ticket } from "~/db/schema";
 import { tickets } from "~/db/schema";
 import { createTicketPurchaseUrl } from "~/utils/createTicketPurchaseUrl";
+import { ticketScansRouter } from "./ticket-scans-router";
 import {
   managerEventProcedure,
   protectedProcedure,
@@ -140,4 +141,6 @@ export const eventTicketsRouter = router({
 
       return refundedTicket;
     }),
+
+  scans: ticketScansRouter,
 });
