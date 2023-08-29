@@ -1,6 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
-import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { env } from "~/config/env";
@@ -66,7 +65,6 @@ export default function RootLayout({
             <Toaster />
           </TrpcProvider>
         </ClerkProvider>
-        <Analytics />
         <Script
           defer
           src="https://unpkg.com/@tinybirdco/flock.js"
