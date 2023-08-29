@@ -2,12 +2,20 @@
 
 import {
   EllipsisHorizontalIcon,
+  QrCodeIcon,
   ReceiptRefundIcon,
 } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { useState, type FC, type PropsWithChildren } from "react";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { Button } from "~/app/_components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "~/app/_components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,40 +36,64 @@ import { trpc } from "~/utils/trpc";
 export const TicketAdminOptionsDropdown: FC<
   PropsWithChildren<{ ticketId: string; eventId: string }>
 > = (props) => {
-  const utils = trpc.useContext();
-  const [open, setOpen] = useState(false);
+  const [showRefundDialog, setShowRefundDialog] = useState(false);
 
   const { mutateAsync: refundTicket, isLoading: isRefundLoading } =
     trpc.events.tickets.refundTicket.useMutation({
       onSuccess: async () => {
-        setOpen(false);
-        await utils.events.tickets.getAllTickets.refetch({
-          eventId: props.eventId,
-        });
+        setShowRefundDialog(false);
       },
     });
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem
-          className="gap-4"
-          onSelect={async (e) => {
-            e.preventDefault();
-            await refundTicket({
-              eventId: props.eventId,
-              ticketId: props.ticketId,
-            });
-          }}
-        >
-          <ReceiptRefundIcon className="w-4 h-4" />
-          <p>Refund</p>
-          {isRefundLoading && <LoadingSpinner />}
-        </DropdownMenuItem>
-        {/* <DropdownMenuItem>Scan</DropdownMenuItem> */}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
+        <DialogContent>
+          <DialogTitle>Refund Ticket</DialogTitle>
+          <DialogDescription>
+            By issuing a refund for this ticket, access will be revoked, and the
+            user&apos;s payment will be returned.
+          </DialogDescription>
+
+          <div className="flex gap-2 justify-end mt-2">
+            <Button variant="outline">Go Back</Button>
+            <Button
+              onClick={async () => {
+                await refundTicket({
+                  eventId: props.eventId,
+                  ticketId: props.ticketId,
+                });
+              }}
+            >
+              <p>Refund</p>
+              {isRefundLoading && <LoadingSpinner />}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>{props.children}</DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
+            className="gap-2"
+            onSelect={() => {
+              setShowRefundDialog(true);
+            }}
+          >
+            <ReceiptRefundIcon className="w-4 h-4" />
+            <p>Refund</p>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link
+              href={`/events/${props.eventId}/tickets/${props.ticketId}/scan`}
+            >
+              <QrCodeIcon className="w-4 h-4 mr-2" />
+              <p>Scan</p>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 };
 

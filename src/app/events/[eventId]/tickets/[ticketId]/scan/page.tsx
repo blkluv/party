@@ -1,28 +1,39 @@
 import { auth, clerkClient } from "@clerk/nextjs";
 import { TicketIcon } from "@heroicons/react/24/outline";
 import { and, eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense, cache } from "react";
 import { Label } from "~/app/_components/ui/label";
 import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
+import { getPageTitle } from "~/utils/getPageTitle";
 import { getUserEventRole } from "~/utils/getUserEventRole";
+import { TicketScansList } from "./ticket-scans-list";
 
 type PageProps = {
   params: { ticketId: string; eventId: string };
+};
+
+export const metadata: Metadata = {
+  title: getPageTitle("Scan Ticket"),
 };
 
 const getRole = cache(getUserEventRole);
 
 const Page = (props: PageProps) => {
   return (
-    <div className="w-full mx-auto max-w-xl flex-1 p-2 ">
+    <div className="w-full mx-auto max-w-xl flex-1 p-2 flex flex-col gap-8">
       <Suspense>
         <TicketInfoView
           eventId={props.params.eventId}
           ticketId={props.params.ticketId}
         />
       </Suspense>
+      <TicketScansList
+        eventId={props.params.eventId}
+        ticketId={props.params.ticketId}
+      />
     </div>
   );
 };

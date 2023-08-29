@@ -23,7 +23,23 @@ export const ticketScansRouter = router({
 
       return newTicketScan;
     }),
+  deleteScan: managerEventProcedure
+    .input(z.object({ ticketId: z.string(), ticketScanId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const deletedTicketScan = await ctx.db
+        .delete(ticketScans)
+        .where(
+          and(
+            eq(ticketScans.ticketId, input.ticketId),
+            eq(ticketScans.eventId, input.eventId),
+            eq(ticketScans.id, input.ticketScanId)
+          )
+        )
+        .returning()
+        .get();
 
+      return deletedTicketScan;
+    }),
   getAllTicketScans: managerEventProcedure
     .input(z.object({ ticketId: z.string() }))
     .query(async ({ ctx, input }) => {
