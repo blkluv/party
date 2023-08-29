@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   title: getPageTitle("Scan Ticket"),
 };
 
+export const dynamic = "force-dynamic";
+
 const getRole = cache(getUserEventRole);
 
 const Page = (props: PageProps) => {
@@ -64,6 +66,11 @@ const TicketInfoView = async (props: { ticketId: string; eventId: string }) => {
           name: true,
         },
       },
+      price: {
+        columns: {
+          name: true,
+        },
+      },
     },
   });
 
@@ -79,7 +86,7 @@ const TicketInfoView = async (props: { ticketId: string; eventId: string }) => {
         <p className="text-xl font-bold">{ticket.event.name}</p>
         <TicketIcon className="w-6 h-6" />
       </div>
-      <div className="grid grid-cols-2">
+      <div className="grid grid-cols-2 gap-2">
         <div>
           <Label>Name</Label>
           <p className="text-sm">{`${user.firstName} ${user.lastName}`}</p>
@@ -87,6 +94,10 @@ const TicketInfoView = async (props: { ticketId: string; eventId: string }) => {
         <div>
           <Label>Quantity</Label>
           <p className="text-sm">x{ticket.quantity}</p>
+        </div>
+        <div>
+          <Label>Tier</Label>
+          <p className="text-sm">{ticket.price?.name}</p>
         </div>
       </div>
     </div>

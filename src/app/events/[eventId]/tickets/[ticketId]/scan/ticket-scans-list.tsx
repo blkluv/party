@@ -56,12 +56,14 @@ export const TicketScansList: FC<{ ticketId: string; eventId: string }> = (
         <p>Scan</p>
         {isCreateScanLoading && <LoadingSpinner />}
       </button>
-      <div className="flex flex-col border border border-neutral-800/50 bg-neutral-800/20 shadow-lg rounded-2xl p-4">
-        {scans.map((e) => (
-          <TicketScan key={e.id} data={e} />
-        ))}
-        {isScansLoading && <LoadingSpinner className="mx-auto" size={36} />}
-      </div>
+      {scans.length > 0 && (
+        <div className="flex flex-col border border border-neutral-800/50 bg-neutral-800/20 shadow-lg rounded-2xl p-4">
+          {scans.map((e) => (
+            <TicketScan key={e.id} data={e} />
+          ))}
+        </div>
+      )}
+      {isScansLoading && <LoadingSpinner className="mx-auto" size={36} />}
     </>
   );
 };
