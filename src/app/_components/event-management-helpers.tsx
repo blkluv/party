@@ -10,7 +10,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { inferProcedureOutput } from "@trpc/server";
+import type { inferProcedureInput, inferProcedureOutput } from "@trpc/server";
 import copy from "copy-to-clipboard";
 import dayjs from "dayjs";
 import Image from "next/image";
@@ -81,7 +81,14 @@ import type { AppRouter } from "~/app/api/trpc/trpc-router";
 import { env } from "~/config/env";
 import { EVENT_ROLES, type EventRole } from "~/db/schema";
 import { createPromotionCodeFormSchema } from "~/utils/createPromotionCodeFormSchema";
+import { cn } from "~/utils/shadcn-ui";
 import { trpc } from "~/utils/trpc";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "./ui/accordion";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -717,5 +724,99 @@ export const ManageEventDetails: FC<{ eventId: string }> = (props) => {
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+};
+
+export const ManageEventRoleRequests: FC<{ eventId: string }> = (props) => {
+  const { data: requests = [], isLoading: isRequestsLoading } =
+    trpc.events.roles.requests.getAllEventRoleRequests.useQuery({
+      eventId: props.eventId,
+    });
+
+  const { mutateAsync: updateStatus } =
+    trpc.events.roles.requests.updateRequestStatus.useMutation();
+
+  const handleStatusUpdate = async (
+    args: Pick<
+      inferProcedureInput<
+        AppRouter["events"]["roles"]["requests"]["updateRequestStatus"]
+      >,
+      "status" | "userId" | "id"
+    >
+  ) => {
+    // no takesies backsies
+    if (requests.some((e) => e.id === args.id && e.status !== "pending")) {
+      return;
+    }
+
+    await updateStatus({
+      eventId: props.eventId,
+      status: args.status,
+      userId: args.userId,
+      id: args.id,
+    });
+  };
+
+  return (
+    <div className="flex flex-col">
+      <Accordion type="multiple">
+        {requests.map((e) => (
+          <AccordionItem value={e.id} key={e.id}>
+            <AccordionTrigger>
+              <div className="flex items-center gap-2">
+                <p>
+                  {e.user.firstName} {e.user.lastName}
+                </p>
+                <div
+                  className={cn(
+                    "rounded-full py-1 px-2",
+                    match(e.status)
+                      .with("approved", () => "bg-green-700")
+                      .with("rejected", () => "bg-red-700")
+                      .with("pending", () => "bg-neutral-700")
+                      .exhaustive()
+                  )}
+                >
+                  <p className="text-xs capitalize">{e.status}</p>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="flex flex-col gap-4">
+                <p>{e.message}</p>
+                {e.status === "pending" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button
+                      variant="destructive"
+                      onClick={async () => {
+                        await handleStatusUpdate({
+                          status: "rejected",
+                          userId: e.userId,
+                          id: e.id,
+                        });
+                      }}
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        await handleStatusUpdate({
+                          status: "approved",
+                          userId: e.userId,
+                          id: e.id,
+                        });
+                      }}
+                    >
+                      Approve
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+      {isRequestsLoading && <LoadingSpinner size={30} className="mx-auto" />}
+    </div>
   );
 };

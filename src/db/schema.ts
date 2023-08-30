@@ -338,3 +338,46 @@ export type TicketScan = InferSelectModel<typeof ticketScans>;
 export type NewTicketScan = InferInsertModel<typeof ticketScans>;
 export const selectTicketScanSchema = createSelectSchema(ticketScans);
 export const insertTicketScanSchema = createInsertSchema(ticketScans);
+
+export const eventRoleRequests = sqliteTable("event_role_requests", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  /**
+   * The event that this request is for
+   */
+  eventId: text("event_id").notNull(),
+
+  /**
+   * The user making the request
+   */
+  userId: text("user_id").notNull(),
+
+  /**
+   * A user-specified message describing why they want this role
+   */
+  message: text("message").notNull(),
+
+  status: text("status", {
+    enum: ["pending", "rejected", "approved"],
+  }).notNull(),
+  requestedRole: text("request_role", { enum: EVENT_ROLES }).notNull(),
+  createdAt: int("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const eventRoleRequestRelations = relations(
+  eventRoleRequests,
+  ({ one }) => ({
+    event: one(events, {
+      fields: [eventRoleRequests.eventId],
+      references: [events.id],
+    }),
+  })
+);
+
+export type EventRoleRequest = InferSelectModel<typeof eventRoleRequests>;
+export type NewEventRoleRequest = InferInsertModel<typeof eventRoleRequests>;
+export const selectEventRoleRequestSchema =
+  createSelectSchema(eventRoleRequests);
+export const insertEventRoleRequestSchema =
+  createInsertSchema(eventRoleRequests);

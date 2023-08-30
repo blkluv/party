@@ -4,6 +4,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, not } from "drizzle-orm";
 import { z } from "zod";
 import { EVENT_ROLES, eventRoles } from "~/db/schema";
+import { eventRoleRequestsRouter } from "./event-role-requests-router";
 import {
   adminEventProcedure,
   protectedProcedure,
@@ -11,6 +12,7 @@ import {
 } from "./trpc/trpc-config";
 
 export const eventRolesRouter = router({
+  requests: eventRoleRequestsRouter,
   createEventRole: adminEventProcedure
     .input(z.object({ userId: z.string(), role: z.enum(EVENT_ROLES) }))
     .mutation(async ({ input, ctx }) => {

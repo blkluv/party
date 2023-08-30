@@ -358,7 +358,7 @@ const TicketTiersView = async (props: { eventId: string }) => {
   return (
     <>
       {eventData?.type === "discussion" && (
-        <div className="flex flex-col mt-4">
+        <div className="flex flex-col mt-4 px-4 lg:px-0">
           {discussionEnabled && userAuth.userId ? (
             <Link
               className="bg-secondary text-secondary-foreground hover:bg-secondary/90 px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-lg transition flex-1 w-full"
@@ -438,6 +438,7 @@ const TicketTiersView = async (props: { eventId: string }) => {
               foundTicket === null &&
               currentTicketPrices.length > 0 && (
                 <TicketTiersDialog
+                  eventId={props.eventId}
                   data={currentTicketPrices.map((e) => ({
                     data: e,
                     disabled: userAuth?.userId === eventData.userId,
@@ -446,7 +447,7 @@ const TicketTiersView = async (props: { eventId: string }) => {
                 >
                   <button className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 font-semibold flex justify-center gap-4 items-center rounded-2xl shadow-white shadow-lg transition hover:shadow-neutral-300 flex-1 w-full">
                     <TicketIcon className="h-6 w-6" />
-                    <p>Buy Tickets</p>
+                    <p>Tickets</p>
                   </button>
                 </TicketTiersDialog>
               )}

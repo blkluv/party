@@ -50,6 +50,13 @@
       "when": 1693181894747,
       "tag": "0006_mysterious_reavers",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1693357446243,
+      "tag": "0007_worried_shadow_king",
+      "breakpoints": true
     }
   ]
 }

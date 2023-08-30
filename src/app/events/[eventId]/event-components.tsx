@@ -3,9 +3,11 @@
 import { useUser } from "@clerk/nextjs";
 import {
   ArrowLeftIcon,
+  ArrowRightIcon,
   CalendarIcon,
   ClockIcon,
   Cog6ToothIcon,
+  DocumentCheckIcon,
   LinkIcon,
   PencilIcon,
   TicketIcon,
@@ -17,6 +19,7 @@ import Link from "next/link";
 import type { ComponentProps, PropsWithChildren } from "react";
 import { useState, type FC } from "react";
 import { ClientDate } from "~/app/_components/ClientDate";
+import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { LoginPrompt } from "~/app/_components/login-prompt";
 import {
   AlertDialog,
@@ -28,6 +31,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "~/app/_components/ui/alert-dialog";
+import { Button } from "~/app/_components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -41,8 +45,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/app/_components/ui/dropdown-menu";
+import { Label } from "~/app/_components/ui/label";
+import { Textarea } from "~/app/_components/ui/textarea";
 import type { EventRole } from "~/db/schema";
 import { cn } from "~/utils/shadcn-ui";
+import { trpc } from "~/utils/trpc";
 import { TicketTierListing } from "./TicketTierListing";
 
 export const EventDescription: FC<{ text: string; defaultOpen?: boolean }> = (
@@ -216,15 +223,26 @@ export const JoinDiscussionAlertDialog: FC<PropsWithChildren> = (props) => {
 };
 
 export const TicketTiersDialog: FC<
-  PropsWithChildren<{ data: ComponentProps<typeof TicketTierListing>[] }>
+  PropsWithChildren<{
+    data: ComponentProps<typeof TicketTierListing>[];
+    eventId: string;
+  }>
 > = (props) => {
   const user = useUser();
 
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showTicketTiers, setShowTicketTiers] = useState(false);
+  const [showTicketRepApplication, setShowTicketRepApplication] =
+    useState(false);
 
   return (
     <>
+      {showTicketRepApplication && (
+        <TicketRepApplicationDialog
+          onOpenChange={setShowTicketRepApplication}
+          eventId={props.eventId}
+        />
+      )}
       {showLoginPrompt && <LoginPrompt onOpenChange={setShowLoginPrompt} />}
       <Dialog
         onOpenChange={(val) => {
@@ -247,10 +265,93 @@ export const TicketTiersDialog: FC<
             {props.data.map((tier) => (
               <TicketTierListing {...tier} key={tier.data.id} />
             ))}
+            <Button
+              className="gap-2 mx-auto group"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowTicketTiers(false);
+                setShowTicketRepApplication(true);
+              }}
+            >
+              <p className="text-sm">Become a ticket rep</p>
+              <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition" />
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
     </>
+  );
+};
+
+export const TicketRepApplicationDialog: FC<{
+  eventId: string;
+  onOpenChange: (val: boolean) => void;
+}> = (props) => {
+  const { mutateAsync: createRoleRequest, isLoading } =
+    trpc.events.roles.requests.createEventRoleRequest.useMutation({
+      onSuccess: () => {
+        props.onOpenChange(false);
+      },
+    });
+  const { data: existingRequest, isLoading: isExistingRequestLoading } =
+    trpc.events.roles.requests.getRoleRequest.useQuery({
+      eventId: props.eventId,
+    });
+  const [message, setMessage] = useState("");
+
+  const isExistingRequestPresent = existingRequest && !isExistingRequestLoading;
+
+  return (
+    <Dialog open={true} onOpenChange={props.onOpenChange}>
+      <DialogContent>
+        <DialogTitle>Become a Ticket Rep</DialogTitle>
+        <DialogDescription>
+          Becoming a ticket rep for this event gives you access to promotion
+          codes, tickets, and more.
+        </DialogDescription>
+        {!isExistingRequestPresent && (
+          <>
+            <div className="flex flex-col gap-2">
+              <Label>Message</Label>
+              <Textarea
+                placeholder="Message"
+                onChange={(e) => setMessage(e.target.value)}
+                value={message}
+              />
+              <p className="text-sm text-muted-foreground">
+                Tell us a bit about why you want to become a ticket rep for this
+                event.
+              </p>
+            </div>
+            <Button
+              className="mx-auto gap-2"
+              onClick={async () => {
+                await createRoleRequest({ eventId: props.eventId, message });
+              }}
+            >
+              <p>Submit</p>
+              {isLoading && <LoadingSpinner />}
+            </Button>
+          </>
+        )}
+        {isExistingRequestPresent && (
+          <>
+            {existingRequest.status === "pending" && (
+              <p className="my-4 text-sm text-center">
+                You already have a pending application. We&apos;ll get back to
+                you as fast as we can.
+              </p>
+            )}
+            {existingRequest.status !== "pending" && (
+              <p className="my-4 text-sm text-center">
+                Your application was {existingRequest.status}.
+              </p>
+            )}
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -279,6 +380,12 @@ export const EventManagementDropdown: FC<{
               <Link href={`/events/${props.eventId}/roles`}>
                 <UserGroupIcon className="w-4 h-4 mr-2" />
                 <p>Roles</p>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href={`/events/${props.eventId}/applications`}>
+                <DocumentCheckIcon className="w-4 h-4 mr-2" />
+                <p>Applications</p>
               </Link>
             </DropdownMenuItem>
           </>
