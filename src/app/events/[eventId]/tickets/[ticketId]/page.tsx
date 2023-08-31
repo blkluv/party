@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs";
+import { auth, currentUser } from "@clerk/nextjs";
 import { ChatBubbleBottomCenterTextIcon } from "@heroicons/react/24/outline";
 import { and, eq } from "drizzle-orm";
 import { InstagramIcon } from "lucide-react";
@@ -19,6 +19,7 @@ import {
   isLocationVisible,
 } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
+import { createTicketFunText } from "~/utils/getTicketFunText";
 import { getUserEventRole } from "~/utils/getUserEventRole";
 import { cn } from "~/utils/shadcn-ui";
 import { getStripeClient } from "~/utils/stripe";
@@ -50,6 +51,20 @@ const Page = async (props: {
           />
         </Suspense>
       </div>
+    </div>
+  );
+};
+
+const _FunText = async (props: { eventId: string; ticketId: string }) => {
+  const userAuth = auth();
+  const text = await createTicketFunText({
+    eventId: props.eventId,
+    userId: userAuth.userId,
+  });
+
+  return (
+    <div>
+      <p>{text}</p>
     </div>
   );
 };
@@ -149,6 +164,9 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
   return (
     <>
       <div className="border rounded-lg bg-neutral-900/50 relative z-10 px-8 py-8 flex flex-col gap-4">
+        {/* <Suspense>
+          <FunText eventId={props.eventId} ticketId={props.ticketId} />
+        </Suspense> */}
         <div>
           <p className="text-sm text-center font-medium">
             {ticketData.event.name}

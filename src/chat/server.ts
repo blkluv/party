@@ -5,7 +5,7 @@ import { Redis } from "@upstash/redis/cloudflare";
 import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { createLocalJWKSet, jwtVerify } from "jose";
-import type { PartyKitRoom, PartyKitServer } from "partykit/server";
+import type { Party, PartyKitServer } from "partykit/server";
 import { z } from "zod";
 import type { ChatErrorEvent, InitialMessagesEvent } from "~/utils/chat";
 import { socketEventSchema } from "~/utils/chat";
@@ -29,7 +29,7 @@ const getDb = (args: { url: string; authToken: string }) => {
   return drizzle(libsqlClient, { schema });
 };
 
-const getEnv = (room: PartyKitRoom) => {
+const getEnv = (room: Party) => {
   const env = z
     .object({
       OPENAI_API_KEY: z.string(),

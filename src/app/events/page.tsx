@@ -3,7 +3,7 @@ import {
   ChatBubbleBottomCenterTextIcon,
   TicketIcon,
 } from "@heroicons/react/24/outline";
-import { and, asc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -70,7 +70,7 @@ const getEvents = cache(async () => {
         },
       },
     },
-    orderBy: asc(events.startTime),
+    orderBy: desc(events.startTime),
   });
 
   return foundEvents;
