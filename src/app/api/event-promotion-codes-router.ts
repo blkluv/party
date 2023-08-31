@@ -4,7 +4,11 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { promotionCodes } from "~/db/schema";
 import { createPromotionCodeFormSchema } from "~/utils/createPromotionCodeFormSchema";
-import { managerEventProcedure, router } from "./trpc/trpc-config";
+import {
+  adminEventProcedure,
+  managerEventProcedure,
+  router,
+} from "./trpc/trpc-config";
 export const eventPromotionCodesRouter = router({
   getAllPromotionCodes: managerEventProcedure.query(async ({ ctx, input }) => {
     return await ctx.db.query.promotionCodes.findMany({
@@ -24,7 +28,7 @@ export const eventPromotionCodesRouter = router({
       },
     });
   }),
-  createPromotionCode: managerEventProcedure
+  createPromotionCode: adminEventProcedure
     .input(createPromotionCodeFormSchema)
     .mutation(async ({ ctx, input }) => {
       const stripeCoupon = await ctx.stripe.coupons.create({

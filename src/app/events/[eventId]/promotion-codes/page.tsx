@@ -40,7 +40,10 @@ const Page = async (props: PageProps) => {
 
   return (
     <div className="max-w-2xl w-full my-8 px-2 mx-auto">
-      <ManagePromotionCodes eventId={props.params.eventId} />
+      <ManagePromotionCodes
+        eventId={props.params.eventId}
+        role={userEventRole}
+      />
     </div>
   );
 };

@@ -9,6 +9,7 @@ import { getDb } from "~/db/client";
 import { tickets } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { getUserEventRole } from "~/utils/getUserEventRole";
+import { isRoleAllowed } from "~/utils/permissions";
 import { TicketScansList } from "./ticket-scans-list";
 
 type PageProps = {
@@ -23,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 const getRole = cache(getUserEventRole);
 
-const Page = (props: PageProps) => {
+const Page = async (props: PageProps) => {
   return (
     <div className="w-full mx-auto max-w-xl flex-1 p-2 flex flex-col gap-8">
       <Suspense>
@@ -32,10 +33,6 @@ const Page = (props: PageProps) => {
           ticketId={props.params.ticketId}
         />
       </Suspense>
-      <TicketScansList
-        eventId={props.params.eventId}
-        ticketId={props.params.ticketId}
-      />
     </div>
   );
 };
@@ -43,64 +40,70 @@ const Page = (props: PageProps) => {
 const TicketInfoView = async (props: { ticketId: string; eventId: string }) => {
   const userAuth = auth();
 
-  if (!userAuth) {
+  if (!userAuth?.userId) {
     redirect(`/events/${props.eventId}`);
   }
 
   const role = await getRole(props.eventId);
 
-  if (role !== "manager" && role !== "admin") {
+  if (!isRoleAllowed(role, "TICKETS_SCAN")) {
     redirect(`/events/${props.eventId}`);
   }
 
   const db = getDb();
 
-  const ticket = await db.query.tickets.findFirst({
-    where: and(
-      eq(tickets.id, props.ticketId),
-      eq(tickets.eventId, props.eventId)
-    ),
-    with: {
-      event: {
-        columns: {
-          name: true,
+  const [ticket, user] = await Promise.all([
+    db.query.tickets.findFirst({
+      where: and(
+        eq(tickets.id, props.ticketId),
+        eq(tickets.eventId, props.eventId)
+      ),
+      with: {
+        event: {
+          columns: {
+            name: true,
+          },
+        },
+        price: {
+          columns: {
+            name: true,
+          },
         },
       },
-      price: {
-        columns: {
-          name: true,
-        },
-      },
-    },
-  });
-
-  if (!ticket) {
-    redirect(`/events/${props.eventId}`);
-  }
-
-  const user = await clerkClient.users.getUser(ticket.userId);
+    }),
+    clerkClient.users.getUser(userAuth.userId),
+  ]);
 
   return (
-    <div className="rounded-2xl bg-neutral-800/20 border border-neutral-800/50 shadow-lg flex flex-col gap-4 p-4">
-      <div className="flex justify-between gap-2">
-        <p className="text-xl font-bold">{ticket.event.name}</p>
-        <TicketIcon className="w-6 h-6" />
+    <>
+      <div className="rounded-2xl bg-neutral-800/20 border border-neutral-800/50 shadow-lg flex flex-col gap-4 p-4">
+        <div className="flex justify-between gap-2">
+          <p className="text-xl font-bold">
+            {ticket ? ticket.event.name : "Ticket Not Found"}
+          </p>
+          <TicketIcon className="w-6 h-6" />
+        </div>
+        {ticket && (
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>Name</Label>
+              <p className="text-sm">{`${user.firstName} ${user.lastName}`}</p>
+            </div>
+            <div>
+              <Label>Quantity</Label>
+              <p className="text-sm">x{ticket.quantity}</p>
+            </div>
+            <div>
+              <Label>Tier</Label>
+              <p className="text-sm">{ticket.price?.name}</p>
+            </div>
+          </div>
+        )}
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <Label>Name</Label>
-          <p className="text-sm">{`${user.firstName} ${user.lastName}`}</p>
-        </div>
-        <div>
-          <Label>Quantity</Label>
-          <p className="text-sm">x{ticket.quantity}</p>
-        </div>
-        <div>
-          <Label>Tier</Label>
-          <p className="text-sm">{ticket.price?.name}</p>
-        </div>
-      </div>
-    </div>
+      {ticket && (
+        <TicketScansList eventId={props.eventId} ticketId={props.ticketId} />
+      )}
+    </>
   );
 };
 

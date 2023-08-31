@@ -17,9 +17,10 @@ import { Label } from "~/app/_components/ui/label";
 import type { AppRouter } from "~/app/api/trpc/trpc-router";
 import { trpc } from "~/utils/trpc";
 
-export const TicketScansList: FC<{ ticketId: string; eventId: string }> = (
-  props
-) => {
+export const TicketScansList: FC<{
+  ticketId: string;
+  eventId: string;
+}> = (props) => {
   const {
     data: scans = [],
     isLoading: isScansLoading,

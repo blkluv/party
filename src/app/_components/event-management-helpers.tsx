@@ -102,7 +102,10 @@ import {
 
 type FormData = z.infer<typeof createPromotionCodeFormSchema>;
 
-export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
+export const ManagePromotionCodes: FC<{
+  eventId: string;
+  role: EventRole["role"];
+}> = (props) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const {
     data: codes = [],
@@ -122,26 +125,28 @@ export const ManagePromotionCodes: FC<{ eventId: string }> = (props) => {
 
   return (
     <div className="flex flex-col">
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button className="ml-auto mb-2 mr-2">
-            <p>Create Promotion Code</p>
-            <PlusIcon className="ml-2 w-4 h-4" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogTitle>Create Promotion Code</DialogTitle>
-          <DialogDescription>
-            Create a promotion code that uses an existing coupon. This code
-            applies to all tickets sold for your event.
-          </DialogDescription>
-          <PromotionCodeForm
-            onSubmit={async (data) => {
-              await createPromotionCode({ ...data, eventId: props.eventId });
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      {props.role === "admin" && (
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="ml-auto mb-2 mr-2">
+              <p>Create Promotion Code</p>
+              <PlusIcon className="ml-2 w-4 h-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogTitle>Create Promotion Code</DialogTitle>
+            <DialogDescription>
+              Create a promotion code that uses an existing coupon. This code
+              applies to all tickets sold for your event.
+            </DialogDescription>
+            <PromotionCodeForm
+              onSubmit={async (data) => {
+                await createPromotionCode({ ...data, eventId: props.eventId });
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       <Table>
         <TableCaption>A list of promotion codes for your event.</TableCaption>

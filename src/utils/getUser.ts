@@ -17,10 +17,6 @@ export const getUsers = async (ids: string[]) => {
 };
 
 export const formatUser = (user: User) => {
-  if (!user) {
-    return null;
-  }
-
   const publicMetadata = publicUserMetadataSchema.safeParse(
     user.publicMetadata
   );
