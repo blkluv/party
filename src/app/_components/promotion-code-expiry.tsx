@@ -25,9 +25,7 @@ export const PromotionCodeExpiryNotification = () => {
     <AlertDialog
       open={open}
       onOpenChange={() => {
-        if (pathname) {
-          push(pathname);
-        }
+        push(pathname);
       }}
     >
       <AlertDialogContent>

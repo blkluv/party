@@ -1,12 +1,12 @@
 import dayjs from "dayjs";
 import { eq, gte } from "drizzle-orm";
-import type { NextApiHandler } from "next";
+import { NextResponse } from "next/server";
 import { MAX_EVENT_DURATION_HOURS } from "~/config/constants";
 import { getDb } from "~/db/client";
 import { events, tickets } from "~/db/schema";
 import { refreshTicketStatus } from "~/utils/refreshTicketStatus";
 
-const handler: NextApiHandler = async (_req, res) => {
+export const GET = async () => {
   const db = getDb();
 
   // Get all upcoming events
@@ -40,7 +40,5 @@ const handler: NextApiHandler = async (_req, res) => {
     }
   }
 
-  return res.status(200).send({});
+  return NextResponse.json({});
 };
-
-export default handler;
