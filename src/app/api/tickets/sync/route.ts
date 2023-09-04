@@ -33,7 +33,9 @@ export const GET = async () => {
     for (const t of e.tickets) {
       const isRefreshed = await refreshTicketStatus(t);
       if (isRefreshed) {
-        console.log(`Updated ticket "${t.id}" to "${isRefreshed.status}"`);
+        console.log(
+          `Updated ticket id="${t.id}" to status="${isRefreshed.status}"`
+        );
       }
     }
   }
