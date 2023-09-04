@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { Suspense } from "react";
 import { getDb } from "~/db/client";
 import { eventMedia, tickets } from "~/db/schema";
 import { getPageTitle } from "~/utils/getPageTitle";
+import { refreshTicketStatus } from "~/utils/refreshTicketStatus";
 import { ClientDate } from "../_components/ClientDate";
 
 export const metadata: Metadata = {
@@ -48,14 +49,7 @@ const TicketsList = async () => {
   }
 
   const foundTickets = await db.query.tickets.findMany({
-    where: and(
-      eq(tickets.userId, userAuth.userId),
-      eq(tickets.status, "success")
-    ),
-    columns: {
-      quantity: true,
-      id: true,
-    },
+    where: eq(tickets.userId, userAuth.userId),
     with: {
       event: {
         columns: {
@@ -73,6 +67,11 @@ const TicketsList = async () => {
           },
         },
       },
+      price: {
+        columns: {
+          isFree: true,
+        },
+      },
     },
   });
 
@@ -80,14 +79,40 @@ const TicketsList = async () => {
     (a, b) => a.event.startTime.getTime() - b.event.startTime.getTime()
   );
 
+  const validTickets = (
+    await Promise.allSettled(
+      foundTickets.map(async (t) => {
+        if (t.status === "pending") {
+          const refreshedData = await refreshTicketStatus(t);
+          if (refreshedData) {
+            return {
+              ...t,
+              status: refreshedData.status,
+              quantity: refreshedData.quantity,
+            };
+          }
+        } else if (t.status === "success") {
+          return t;
+        }
+
+        throw new Error();
+      })
+    )
+  )
+    .filter(
+      (e): e is PromiseFulfilledResult<(typeof foundTickets)[number]> =>
+        e.status === "fulfilled"
+    )
+    .map((e) => e.value);
+
   return (
     <div className="flex flex-col gap-2">
-      {foundTickets.length === 0 && (
+      {validTickets.length === 0 && (
         <p className="font-medium text-sm text-center text-neutral-400">
           No tickets
         </p>
       )}
-      {foundTickets.map((e) => (
+      {validTickets.map((e) => (
         <Link
           key={e.id}
           href={`/events/${e.event.id}/tickets/${e.id}`}

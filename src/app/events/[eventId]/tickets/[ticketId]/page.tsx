@@ -7,7 +7,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import QRCode from "react-qr-code";
-import { z } from "zod";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { Button } from "~/app/_components/ui/button";
@@ -21,8 +20,8 @@ import {
 import { getPageTitle } from "~/utils/getPageTitle";
 import { createTicketFunText } from "~/utils/getTicketFunText";
 import { getUserEventRole } from "~/utils/getUserEventRole";
+import { refreshTicketStatus } from "~/utils/refreshTicketStatus";
 import { cn } from "~/utils/shadcn-ui";
-import { getStripeClient } from "~/utils/stripe";
 import { LocationDialog, TicketInfoButton } from "./ticket-helpers";
 
 export const dynamic = "force-dynamic";
@@ -30,10 +29,6 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: getPageTitle("Ticket"),
 };
-
-const paymentValidationSchema = z
-  .object({ status: z.literal("succeeded") })
-  .strip();
 
 const Page = async (props: {
   params: { ticketId: string; eventId: string };
@@ -71,7 +66,6 @@ const _FunText = async (props: { eventId: string; ticketId: string }) => {
 
 const TicketView = async (props: { eventId: string; ticketId: string }) => {
   const db = getDb();
-  const stripe = getStripeClient();
 
   const user = await currentUser();
 
@@ -89,7 +83,13 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
       // If not, the user needs to own the ticket
       isAdmin ? undefined : eq(tickets.userId, user.id)
     ),
-    columns: { quantity: true, status: true, stripeSessionId: true, id: true },
+    columns: {
+      quantity: true,
+      status: true,
+      stripeSessionId: true,
+      id: true,
+      eventId: true,
+    },
     with: {
       price: {
         columns: {
@@ -114,34 +114,10 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
   }
 
   // Update status of ticket if pending
-  if (ticketData.status === "pending" && ticketData.price.isFree === false) {
-    if (!ticketData.stripeSessionId) {
-      redirect(`/events/${ticketData.event.id}`);
-    }
-
-    const session = await stripe.checkout.sessions.retrieve(
-      ticketData.stripeSessionId,
-      {
-        expand: ["payment_intent", "line_items"],
-      }
-    );
-
-    const paymentIntentStatus = paymentValidationSchema.safeParse(
-      session.payment_intent
-    );
-
-    const ticketLineItem = session.line_items?.data[0];
-
-    if (paymentIntentStatus.success && ticketLineItem?.quantity) {
-      await db
-        .update(tickets)
-        .set({ status: "success", quantity: ticketLineItem.quantity })
-        .where(eq(tickets.id, props.ticketId))
-        .run();
-
-      ticketData.quantity = ticketLineItem.quantity;
-      ticketData.status = "success";
-    }
+  const refreshedTicketData = await refreshTicketStatus(ticketData);
+  if (refreshedTicketData) {
+    ticketData.quantity = refreshedTicketData.quantity;
+    ticketData.status = refreshedTicketData.status;
   }
 
   // Still not success, go back to event page
