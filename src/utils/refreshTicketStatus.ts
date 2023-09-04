@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDb } from "~/db/client";
 import type { Ticket, TicketPrice } from "~/db/schema";
@@ -21,7 +20,7 @@ export const refreshTicketStatus = async <T extends Data>(ticketData: T) => {
   // Update status of ticket if pending
   if (ticketData.status === "pending" && ticketData.price.isFree === false) {
     if (!ticketData.stripeSessionId) {
-      redirect(`/events/${ticketData.eventId}`);
+      return undefined;
     }
 
     const session = await stripe.checkout.sessions.retrieve(
