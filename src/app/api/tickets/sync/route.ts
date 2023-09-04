@@ -28,7 +28,7 @@ export const GET = async () => {
     },
   });
 
-  // Refresh all tickets with status pending
+  // Refresh all tickets with status pending.
   for (const e of foundEvents) {
     for (const t of e.tickets) {
       const isRefreshed = await refreshTicketStatus(t);
