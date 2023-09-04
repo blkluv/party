@@ -1,4 +1,4 @@
-import { auth, currentUser } from "@clerk/nextjs";
+import { auth, clerkClient } from "@clerk/nextjs";
 import { ChatBubbleBottomCenterTextIcon } from "@heroicons/react/24/outline";
 import { and, eq } from "drizzle-orm";
 import { InstagramIcon } from "lucide-react";
@@ -67,9 +67,9 @@ const _FunText = async (props: { eventId: string; ticketId: string }) => {
 const TicketView = async (props: { eventId: string; ticketId: string }) => {
   const db = getDb();
 
-  const user = await currentUser();
+  const userAuth = auth();
 
-  if (!user) {
+  if (!userAuth.userId) {
     redirect("/sign-in");
   }
 
@@ -81,7 +81,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
       eq(tickets.id, props.ticketId),
       // If the user is an admin, they are always allowed to view tickets
       // If not, the user needs to own the ticket
-      isAdmin ? undefined : eq(tickets.userId, user.id)
+      isAdmin ? undefined : eq(tickets.userId, userAuth.userId)
     ),
     columns: {
       quantity: true,
@@ -89,6 +89,7 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
       stripeSessionId: true,
       id: true,
       eventId: true,
+      userId: true,
     },
     with: {
       price: {
@@ -112,6 +113,8 @@ const TicketView = async (props: { eventId: string; ticketId: string }) => {
   if (!ticketData) {
     redirect(`/events/${props.eventId}`);
   }
+
+  const user = await clerkClient.users.getUser(ticketData.userId);
 
   // Update status of ticket if pending
   const refreshedTicketData = await refreshTicketStatus(ticketData);

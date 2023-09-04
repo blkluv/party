@@ -52,27 +52,30 @@ const TicketInfoView = async (props: { ticketId: string; eventId: string }) => {
 
   const db = getDb();
 
-  const [ticket, user] = await Promise.all([
-    db.query.tickets.findFirst({
-      where: and(
-        eq(tickets.id, props.ticketId),
-        eq(tickets.eventId, props.eventId)
-      ),
-      with: {
-        event: {
-          columns: {
-            name: true,
-          },
-        },
-        price: {
-          columns: {
-            name: true,
-          },
+  const ticket = await db.query.tickets.findFirst({
+    where: and(
+      eq(tickets.id, props.ticketId),
+      eq(tickets.eventId, props.eventId)
+    ),
+    with: {
+      event: {
+        columns: {
+          name: true,
         },
       },
-    }),
-    clerkClient.users.getUser(userAuth.userId),
-  ]);
+      price: {
+        columns: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!ticket) {
+    redirect(`/events/${props.eventId}`);
+  }
+
+  const user = await clerkClient.users.getUser(ticket.userId);
 
   return (
     <>
