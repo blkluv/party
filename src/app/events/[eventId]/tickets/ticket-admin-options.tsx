@@ -6,7 +6,7 @@ import {
   ReceiptRefundIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useState, type FC, type PropsWithChildren } from "react";
+import { useEffect, useState, type FC, type PropsWithChildren } from "react";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { Button } from "~/app/_components/ui/button";
@@ -98,8 +98,27 @@ export const TicketAdminOptionsDropdown: FC<
 };
 
 export const TicketsTable: FC<{ eventId: string }> = (props) => {
-  const { data: foundTickets = [], isLoading } =
-    trpc.events.tickets.getAllTickets.useQuery({ eventId: props.eventId });
+  const {
+    data: foundTickets = [],
+    isFetching,
+    refetch,
+  } = trpc.events.tickets.getAllTickets.useQuery({ eventId: props.eventId });
+
+  const {
+    mutateAsync: syncTickets,
+    isSuccess: isSyncSuccess,
+    isLoading: isSyncFetching,
+  } = trpc.events.tickets.sync.useMutation({
+    onSuccess: async () => {
+      await refetch();
+    },
+  });
+
+  useEffect(() => {
+    if (!isSyncSuccess && !isSyncFetching) {
+      syncTickets({ eventId: props.eventId });
+    }
+  }, [syncTickets, props.eventId, isSyncFetching, isSyncSuccess]);
 
   return (
     <>
@@ -136,7 +155,7 @@ export const TicketsTable: FC<{ eventId: string }> = (props) => {
           ))}
         </TableBody>
       </Table>
-      {isLoading && (
+      {isFetching && (
         <div className="flex justify-center">
           <LoadingSpinner className="mx-auto" size={30} />
         </div>

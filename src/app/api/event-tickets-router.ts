@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { Ticket } from "~/db/schema";
 import { tickets } from "~/db/schema";
 import { createTicketPurchaseUrl } from "~/utils/createTicketPurchaseUrl";
+import { refreshTicketStatus } from "~/utils/refreshTicketStatus";
 import { ticketScansRouter } from "./ticket-scans-router";
 import {
   managerEventProcedure,
@@ -146,6 +147,21 @@ export const eventTicketsRouter = router({
 
       return refundedTicket;
     }),
+  sync: managerEventProcedure.mutation(async ({ ctx, input }) => {
+    const pendingTickets = await ctx.db.query.tickets.findMany({
+      where: and(
+        eq(tickets.eventId, input.eventId),
+        eq(tickets.status, "pending")
+      ),
+      with: {
+        price: true,
+      },
+    });
+
+    await Promise.all(pendingTickets.map((t) => refreshTicketStatus(t)));
+
+    return {};
+  }),
 
   scans: ticketScansRouter,
 });
