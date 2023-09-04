@@ -42,6 +42,10 @@ export const TicketTierListing: FC<{
       return;
     }
 
+    if (!searchParams) {
+      return;
+    }
+
     const data = await createTicketCheckoutSession({
       ticketPriceId: props.data.id,
       promotionCode: searchParams.get("promotionCode") ?? undefined,
