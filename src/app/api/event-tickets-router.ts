@@ -62,8 +62,8 @@ export const eventTicketsRouter = router({
 
       const users = (
         await clerkClient.users.getUserList({
-          userId: foundTickets.map((e) => e.userId),
-          limit: 500,
+          userId: Array.from(new Set(foundTickets.map((e) => e.userId))),
+          limit: 1000,
         })
       ).map((u) => ({
         id: u.id,
