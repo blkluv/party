@@ -71,7 +71,7 @@ const PromotionCodePerformanceView = async (props: {
   }
 
   const totalRevenue = foundPromotionCode.tickets.reduce(
-    (sum, current) => sum + current.price.price,
+    (sum, current) => sum + current.price.price * current.quantity,
     0
   );
   const ticketsSold = foundPromotionCode.tickets.reduce(

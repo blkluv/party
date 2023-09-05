@@ -6,7 +6,13 @@ import {
   ReceiptRefundIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useEffect, useState, type FC, type PropsWithChildren } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FC,
+  type PropsWithChildren,
+} from "react";
 import { ClientDate } from "~/app/_components/ClientDate";
 import { LoadingSpinner } from "~/app/_components/LoadingSpinner";
 import { Button } from "~/app/_components/ui/button";
@@ -104,6 +110,10 @@ export const TicketsTable: FC<{ eventId: string }> = (props) => {
     refetch,
   } = trpc.events.tickets.getAllTickets.useQuery({ eventId: props.eventId });
 
+  const totalTickets = useMemo(() => {
+    return foundTickets.reduce((sum, e) => sum + e.quantity, 0);
+  }, [foundTickets]);
+
   const {
     mutateAsync: syncTickets,
     isSuccess: isSyncSuccess,
@@ -122,6 +132,12 @@ export const TicketsTable: FC<{ eventId: string }> = (props) => {
 
   return (
     <>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-bold text-center">Tickets</h1>
+        <div className="bg-neutral-800 text-sm font-semibold mx-auto text-center px-4 py-1 rounded-full">
+          <p>{totalTickets}</p>
+        </div>
+      </div>
       <Table>
         <TableCaption>A list of tickets purchased for this event.</TableCaption>
         <TableHeader>

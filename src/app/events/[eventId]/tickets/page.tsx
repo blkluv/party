@@ -19,7 +19,6 @@ const Page = async (props: PageProps) => {
 
   return (
     <div className="flex flex-col gap-8 sm:py-8 py-4 w-full max-w-xl mx-auto">
-      <h1 className="font-semibold text-xl text-center">Tickets</h1>
       <TicketsTable eventId={props.params.eventId} />
     </div>
   );
