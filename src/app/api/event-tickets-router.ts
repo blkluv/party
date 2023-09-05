@@ -1,5 +1,4 @@
 import { clerkClient } from "@clerk/nextjs";
-import type { User } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -77,16 +76,20 @@ export const eventTicketsRouter = router({
 
       console.log(`Found ${users.length} users for the ticket rows`);
 
-      type TicketWithUser = (typeof foundTickets)[number] & {
-        user: Pick<User, "id" | "firstName" | "lastName">;
-      };
+      // type TicketWithUser = (typeof foundTickets)[number] & {
+      //   user: Pick<User, "id" | "firstName" | "lastName">;
+      // };
 
       const ticketsWithUser = foundTickets
         .map((e) => ({
           ...e,
-          user: users.find((u) => u.id === e.userId),
+          user: users.find((u) => u.id === e.userId) ?? {
+            id: e.userId,
+            firstName: "Unknown",
+            lastName: "User",
+          },
         }))
-        .filter((e): e is TicketWithUser => {
+        .filter((e) => {
           const isTicketScanned = e.scans.length > 0;
 
           if (
@@ -96,7 +99,7 @@ export const eventTicketsRouter = router({
             return false;
           }
 
-          return Boolean(e.user);
+          return true;
         })
         .sort((a, b) =>
           `${a.user.firstName} ${a.user.lastName}`.localeCompare(
