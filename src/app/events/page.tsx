@@ -3,7 +3,7 @@ import {
   ChatBubbleBottomCenterTextIcon,
   TicketIcon,
 } from "@heroicons/react/24/outline";
-import { and, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,7 +11,7 @@ import { redirect } from "next/navigation";
 import type { FC } from "react";
 import { Suspense, cache } from "react";
 import { getDb } from "~/db/client";
-import { eventMedia, events, tickets } from "~/db/schema";
+import { eventMedia, events } from "~/db/schema";
 import { isEventOver } from "~/utils/event-time-helpers";
 import { getPageTitle } from "~/utils/getPageTitle";
 import { ClientDate } from "../_components/ClientDate";
@@ -54,7 +54,7 @@ const getEvents = cache(async () => {
   }
 
   const foundEvents = await db.query.events.findMany({
-    where: and(eq(tickets.userId, userAuth.userId)),
+    where: eq(events.userId, userAuth.userId),
     columns: {
       id: true,
       name: true,
