@@ -60,9 +60,13 @@ export const eventTicketsRouter = router({
 
       console.log(`Found ${foundTickets.length} ticket rows`);
 
+      const userIds = Array.from(new Set(foundTickets.map((e) => e.userId)));
+
+      console.log(`Found ${userIds.length} unique users`);
+
       const users = (
         await clerkClient.users.getUserList({
-          userId: Array.from(new Set(foundTickets.map((e) => e.userId))),
+          userId: userIds,
           limit: 500,
         })
       ).map((u) => ({
