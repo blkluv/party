@@ -3,7 +3,6 @@ import type { User } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import type { Ticket } from "~/db/schema";
 import { tickets } from "~/db/schema";
 import { createTicketPurchaseUrl } from "~/utils/createTicketPurchaseUrl";
 import { refreshTicketStatus } from "~/utils/refreshTicketStatus";
@@ -42,43 +41,67 @@ export const eventTicketsRouter = router({
         });
       }
     }),
-  getAllTickets: managerEventProcedure.query(async ({ ctx, input }) => {
-    const foundTickets = await ctx.db.query.tickets.findMany({
-      where: and(
-        eq(tickets.eventId, input.eventId),
-        eq(tickets.status, "success")
-      ),
-    });
-
-    console.log(`Found ${foundTickets.length} ticket rows`);
-
-    const users = (
-      await clerkClient.users.getUserList({
-        userId: foundTickets.map((e) => e.userId),
-        limit: 500,
+  getAllTickets: managerEventProcedure
+    .input(
+      z.object({
+        filters: z.object({ scanned: z.boolean().optional() }).optional(),
       })
-    ).map((u) => ({ id: u.id, firstName: u.firstName, lastName: u.lastName }));
+    )
+    .query(async ({ ctx, input }) => {
+      const foundTickets = await ctx.db.query.tickets.findMany({
+        where: and(
+          eq(tickets.eventId, input.eventId),
+          eq(tickets.status, "success")
+        ),
+        with: {
+          scans: true,
+        },
+      });
 
-    console.log(`Found ${users.length} users for the ticket rows`);
+      console.log(`Found ${foundTickets.length} ticket rows`);
 
-    return foundTickets
-      .map((e) => ({
-        ...e,
-        user: users.find((u) => u.id === e.userId),
-      }))
-      .filter(
-        (
-          e
-        ): e is Ticket & {
-          user: Pick<User, "id" | "firstName" | "lastName">;
-        } => Boolean(e.user)
-      )
-      .sort((a, b) =>
-        `${a.user.firstName} ${a.user.lastName}`.localeCompare(
-          `${b.user.firstName} ${b.user.lastName}`
-        )
-      );
-  }),
+      const users = (
+        await clerkClient.users.getUserList({
+          userId: foundTickets.map((e) => e.userId),
+          limit: 500,
+        })
+      ).map((u) => ({
+        id: u.id,
+        firstName: u.firstName,
+        lastName: u.lastName,
+      }));
+
+      console.log(`Found ${users.length} users for the ticket rows`);
+
+      type TicketWithUser = (typeof foundTickets)[number] & {
+        user: Pick<User, "id" | "firstName" | "lastName">;
+      };
+
+      const ticketsWithUser = foundTickets
+        .map((e) => ({
+          ...e,
+          user: users.find((u) => u.id === e.userId),
+        }))
+        .filter((e): e is TicketWithUser => {
+          const isTicketScanned = e.scans.length > 0;
+
+          if (
+            input.filters?.scanned !== undefined &&
+            isTicketScanned !== input.filters.scanned
+          ) {
+            return false;
+          }
+
+          return Boolean(e.user);
+        })
+        .sort((a, b) =>
+          `${a.user.firstName} ${a.user.lastName}`.localeCompare(
+            `${b.user.firstName} ${b.user.lastName}`
+          )
+        );
+
+      return ticketsWithUser;
+    }),
   refundTicket: managerEventProcedure
     .input(z.object({ ticketId: z.string() }))
     .mutation(async ({ ctx, input }) => {

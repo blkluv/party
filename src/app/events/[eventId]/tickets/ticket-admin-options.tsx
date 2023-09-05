@@ -104,11 +104,15 @@ export const TicketAdminOptionsDropdown: FC<
 };
 
 export const TicketsTable: FC<{ eventId: string }> = (props) => {
+  const [showScanned, setShowScanned] = useState(false);
   const {
     data: foundTickets = [],
     isFetching,
     refetch,
-  } = trpc.events.tickets.getAllTickets.useQuery({ eventId: props.eventId });
+  } = trpc.events.tickets.getAllTickets.useQuery({
+    eventId: props.eventId,
+    filters: { scanned: showScanned === true ? true : undefined },
+  });
 
   const totalTickets = useMemo(() => {
     return foundTickets.reduce((sum, e) => sum + e.quantity, 0);
@@ -138,44 +142,58 @@ export const TicketsTable: FC<{ eventId: string }> = (props) => {
           <p>{totalTickets}</p>
         </div>
       </div>
-      <Table>
-        <TableCaption>A list of tickets purchased for this event.</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Quantity</TableHead>
-            <TableHead className="hidden sm:table-cell">Purchased At</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {foundTickets.map((e) => (
-            <TableRow key={e.id}>
-              <TableCell>
-                {e.user.firstName} {e.user.lastName}
-              </TableCell>
-              <TableCell>{e.quantity}</TableCell>
-              <TableCell className="hidden sm:table-cell">
-                <ClientDate date={e.createdAt} calendar />
-              </TableCell>
-              <TableCell>
-                <TicketAdminOptionsDropdown
-                  eventId={props.eventId}
-                  ticketId={e.id}
-                >
-                  <Button variant="ghost" size="sm">
-                    <EllipsisHorizontalIcon className="w-5 h-5" />
-                  </Button>
-                </TicketAdminOptionsDropdown>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      {isFetching && (
-        <div className="flex justify-center">
-          <LoadingSpinner className="mx-auto" size={30} />
+      <div className="flex flex-col gap-2">
+        <div className="flex justify-end">
+          <Button
+            variant={showScanned ? "default" : "outline"}
+            onClick={() => setShowScanned((e) => !e)}
+          >
+            Scanned Only
+          </Button>
         </div>
-      )}
+        <Table>
+          <TableCaption>
+            A list of tickets purchased for this event.
+          </TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Quantity</TableHead>
+              <TableHead className="hidden sm:table-cell">
+                Purchased At
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {foundTickets.map((e) => (
+              <TableRow key={e.id}>
+                <TableCell>
+                  {e.user.firstName} {e.user.lastName}
+                </TableCell>
+                <TableCell>{e.quantity}</TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  <ClientDate date={e.createdAt} calendar />
+                </TableCell>
+                <TableCell>
+                  <TicketAdminOptionsDropdown
+                    eventId={props.eventId}
+                    ticketId={e.id}
+                  >
+                    <Button variant="ghost" size="sm">
+                      <EllipsisHorizontalIcon className="w-5 h-5" />
+                    </Button>
+                  </TicketAdminOptionsDropdown>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        {isFetching && (
+          <div className="flex justify-center">
+            <LoadingSpinner className="mx-auto" size={30} />
+          </div>
+        )}
+      </div>
     </>
   );
 };
