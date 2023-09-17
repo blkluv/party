@@ -13,7 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/app/_components/ui/dialog";
-import { SHOW_LOCATION_HOURS_THRESHOLD } from "~/config/constants";
 import { env } from "~/config/env";
 import { getForwardGeocoding } from "~/utils/getForwardGeocoding";
 import { cn } from "~/utils/shadcn-ui";
@@ -33,9 +32,43 @@ export const TicketInfoButton = () => {
           Here&apos;s what you need to know about your ticket.
         </DialogDescription>
         <p>
-          Your ticket will display the event location{" "}
-          {SHOW_LOCATION_HOURS_THRESHOLD} hours before the designated event
-          start time.
+          Welcome to our “Neon Nerfs/NEON NURFSS” event. We&apos;re thrilled to
+          have you join us for a day of exciting fun and camaraderie. Please
+          take a moment to read the following disclaimer carefully:
+          <br />
+          Participation at Your Own Risk:
+          <br />
+          By purchasing a ticket to this event and participating in the Nerf
+          battles, you acknowledge and agree to the following:
+          <br />
+          Assumption of Risk: Nerf battles involve physical activity and the use
+          of toy blasters. While we prioritize safety, there is a potential risk
+          of minor injuries such as bumps, bruises, or scratches. Participants
+          are responsible for their own safety during the event.
+          <br />
+          Safety Guidelines: We have established safety guidelines and rules for
+          the Nerf battles to minimize risks. Please follow these guidelines at
+          all times, including the use of eye protection provided by the event
+          organizers.
+          <br />
+          Personal Responsibility: Participants are responsible for their
+          actions and conduct during the event. Any deliberate or unsafe
+          behavior may result in removal from the event without a refund.
+          <br />
+          Liability Waiver: By participating in this event, you waive any claims
+          against the event organizers, hosts, and the venue for any injuries or
+          damages sustained during the Nerf battles.
+          <br />
+          Emergency Services: In case of any medical emergency, please
+          immediately seek assistance from event staff. We have trained
+          personnel on-site to assist if needed.
+          <br />
+          By purchasing a ticket and participating in “Neon Nerfs/NEON NURFSS”,
+          you confirm that you have read, understood, and accepted this
+          disclaimer. Your safety is our top priority, and we want you to have a
+          fantastic time while being mindful of your well-being.
+          <br />
+          Thank you for joining us, and let the Nerf battles begin!
         </p>
       </DialogContent>
     </Dialog>
